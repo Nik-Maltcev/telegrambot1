@@ -1,0 +1,136 @@
+from aiogram import Router, F
+from aiogram.types import Message, CallbackQuery
+from bot.database import Database
+from bot.keyboards import (
+    get_cities_keyboard,
+    get_resource_categories_keyboard,
+    get_resource_card_keyboard,
+    get_back_keyboard
+)
+
+router = Router()
+
+# Store user's selected city in memory (in production, use FSM or database)
+user_resource_city = {}
+
+
+@router.message(F.text == "📦 Resources")
+async def show_resources_menu(message: Message, db: Database):
+    """Show resources section - select city first"""
+    user = await db.get_user(message.from_user.id)
+
+    if not user:
+        await message.answer("❌ You are not registered. Please use /start to register.")
+        return
+
+    cities = await db.get_resource_cities()
+
+    if not cities:
+        await message.answer(
+            "📦 Resources\n\n"
+            "No resources available yet. Be the first to add one!"
+        )
+        return
+
+    await message.answer(
+        "📦 Resources\n\n"
+        "First, select a city to filter resources:",
+        reply_markup=get_cities_keyboard(cities)
+    )
+
+
+@router.callback_query(F.data.startswith("city:") & F.message.text.contains("Resources"))
+async def show_resource_categories(callback: CallbackQuery, db: Database):
+    """Show resource categories after city selection"""
+    city = callback.data.split(":", 1)[1]
+    user_resource_city[callback.from_user.id] = city
+
+    await callback.message.edit_text(
+        f"📦 Resources in {city}\n\n"
+        f"Select a category:",
+        reply_markup=get_resource_categories_keyboard()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("res_cat:"))
+async def show_resources_in_category(callback: CallbackQuery, db: Database):
+    """Show resources in selected category"""
+    category = callback.data.split(":", 1)[1]
+    city = user_resource_city.get(callback.from_user.id, "")
+
+    if not city:
+        await callback.answer("Please select a city first", show_alert=True)
+        return
+
+    resources = await db.get_resources_by_city_and_category(city, category)
+
+    if not resources:
+        await callback.answer(
+            f"No resources found in {category} for {city}",
+            show_alert=True
+        )
+        return
+
+    # Show category description
+    category_descriptions = {
+        "Real Estate": "🏠 Real Estate\n\nProperties, apartments, houses, and real estate opportunities available for exchange or temporary use.",
+        "Cars": "🚗 Cars\n\nVehicles available for sharing, rent, or exchange within the community.",
+        "Aircrafts": "✈️ Aircrafts\n\nPrivate jets, helicopters, and aircraft available for community members.",
+        "Boats": "⛵ Boats\n\nYachts, boats, and watercraft available for exchange or use.",
+        "Equipment": "🔧 Equipment\n\nTools, machinery, and equipment available for sharing.",
+        "Skills and Knowledge": "🎓 Skills and Knowledge\n\nExpertise, mentoring, and educational resources offered by members.",
+        "Experience and Time": "⏰ Experience and Time\n\nTime, experience, and personal assistance offered by members.",
+        "Unique Opportunities": "✨ Unique Opportunities\n\nSpecial opportunities, access, and unique experiences.",
+        "Works of Art": "🎨 Works of Art\n\nArtwork, collectibles, and creative works available for viewing or exchange.",
+        "Personal Introduction to Specific Circles": "🤝 Personal Introduction\n\nConnections and introductions to specific professional or social circles."
+    }
+
+    description = category_descriptions.get(category, f"📦 {category}")
+    resources_text = f"{description}\n\n"
+
+    for res in resources:
+        instagram_info = f" | 📸 @{res['instagram']}" if res['instagram'] else ""
+        resources_text += (
+            f"━━━━━━━━━━━━━━━\n"
+            f"📌 {res['title']}\n"
+            f"📝 {res['description']}\n\n"
+            f"👤 Owner: {res['name']} (💰 {res['points']} points){instagram_info}\n"
+            f"Resource ID: {res['id']}\n\n"
+        )
+
+    # Split if message is too long
+    if len(resources_text) > 4096:
+        chunks = [resources_text[i:i+4096] for i in range(0, len(resources_text), 4096)]
+        for chunk in chunks:
+            await callback.message.answer(chunk)
+    else:
+        await callback.message.answer(resources_text)
+
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_resources")
+async def back_to_resources(callback: CallbackQuery, db: Database):
+    """Go back to city selection for resources"""
+    cities = await db.get_resource_cities()
+
+    await callback.message.edit_text(
+        "📦 Resources\n\n"
+        "Select a city to filter resources:",
+        reply_markup=get_cities_keyboard(cities)
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_category")
+async def back_to_category(callback: CallbackQuery):
+    """Go back to category selection"""
+    city = user_resource_city.get(callback.from_user.id, "Unknown")
+
+    await callback.message.edit_text(
+        f"📦 Resources in {city}\n\n"
+        f"Select a category:",
+        reply_markup=get_resource_categories_keyboard()
+    )
+    await callback.answer()

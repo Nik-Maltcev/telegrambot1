@@ -1,183 +1,196 @@
-# Community Telegram Bot
+# Telegram Бот для Комьюнити
 
-A Telegram bot for a closed international community platform with resource exchange and points system.
+Telegram бот для закрытого международного комьюнити с системой обмена ресурсами и балльной системой.
 
-## Features
+## Возможности
 
-- **User Registration**: Collect user information including name, cities, about, and Instagram
-- **Friends Section**: Browse community members by city
-- **Resources Section**: Browse and share resources across multiple categories:
-  - Real Estate
-  - Cars
-  - Aircrafts
-  - Boats
-  - Equipment
-  - Skills and Knowledge
-  - Experience and Time
-  - Unique Opportunities
-  - Works of Art
-  - Personal Introduction to Specific Circles
-- **Lots System**: Manage what you share and what you seek
-- **Open Resources Database**: Shared maps, access links, and verified specialists
-- **Points System**: Track member contributions
-- **Admin Panel**: Manage users, resources, and points
+- **Регистрация пользователей**: Сбор информации о пользователе (имя, города, о себе, Instagram)
+- **Раздел "Друзья"**: Просмотр участников комьюнити по городам
+- **Раздел "Ресурсы"**: Просмотр и обмен ресурсами по категориям:
+  - Недвижимость
+  - Автомобили
+  - Самолеты
+  - Яхты и лодки
+  - Оборудование
+  - Навыки и знания
+  - Опыт и время
+  - Уникальные возможности
+  - Произведения искусства
+  - Личные знакомства с определенными кругами
+- **Система лотов**: Управление тем, чем делитесь и что ищете
+- **База открытых ресурсов**: Общие карты, ссылки и проверенные специалисты
+- **Балльная система**: Отслеживание вклада участников
+- **Админ-панель**: Управление пользователями, ресурсами и баллами
 
-## Installation
+## Установка
 
-1. Clone the repository:
+1. Клонируйте репозиторий:
 ```bash
 git clone <repository-url>
 cd bottelegram
 ```
 
-2. Install dependencies:
+2. Установите зависимости:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure environment variables:
+3. Настройте переменные окружения:
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` file and add your configuration:
-- `BOT_TOKEN`: Your Telegram bot token from [@BotFather](https://t.me/BotFather)
-- `ADMIN_IDS`: Comma-separated list of admin Telegram user IDs
-- `CHANNEL_USERNAME`: Your community channel username (optional)
-- `DATABASE_PATH`: Path to SQLite database file (default: bot_database.db)
+Отредактируйте файл `.env` и добавьте свою конфигурацию:
+- `BOT_TOKEN`: Токен вашего бота от [@BotFather](https://t.me/BotFather)
+- `ADMIN_IDS`: ID администраторов через запятую
+- `CHANNEL_USERNAME`: Имя канала комьюнити (опционально)
+- `DATABASE_PATH`: Путь к файлу базы данных SQLite (по умолчанию: bot_database.db)
 
-## Getting Bot Token
+## Получение токена бота
 
-1. Open Telegram and search for [@BotFather](https://t.me/BotFather)
-2. Send `/newbot` command
-3. Follow the instructions to create your bot
-4. Copy the bot token and paste it into `.env` file
+1. Откройте Telegram и найдите [@BotFather](https://t.me/BotFather)
+2. Отправьте команду `/newbot`
+3. Следуйте инструкциям для создания бота
+4. Скопируйте токен и вставьте его в файл `.env`
 
-## Getting Your User ID
+## Получение вашего User ID
 
-To set yourself as an admin, you need your Telegram user ID:
+Чтобы назначить себя администратором, вам нужен ваш Telegram user ID:
 
-1. Search for [@userinfobot](https://t.me/userinfobot) in Telegram
-2. Start the bot and it will send you your user ID
-3. Add this ID to `ADMIN_IDS` in `.env` file
+1. Найдите бота [@userinfobot](https://t.me/userinfobot) в Telegram
+2. Запустите бота и он отправит вам ваш user ID
+3. Добавьте этот ID в `ADMIN_IDS` в файле `.env`
 
-## Running the Bot
+## Запуск бота
 
+Простой способ:
 ```bash
-python -p bot/main.py
+python run.py
 ```
 
-Or using Python module:
+Или через модуль Python:
 ```bash
 python -m bot.main
 ```
 
-## Project Structure
+## Структура проекта
 
 ```
 bottelegram/
 ├── bot/
 │   ├── __init__.py
-│   ├── main.py              # Main bot entry point
-│   ├── config.py            # Configuration settings
-│   ├── database.py          # Database operations
-│   ├── keyboards.py         # Keyboard layouts
-│   └── handlers/            # Message handlers
+│   ├── main.py              # Основной файл бота
+│   ├── config.py            # Настройки конфигурации
+│   ├── database.py          # Работа с базой данных
+│   ├── keyboards.py         # Клавиатуры бота
+│   └── handlers/            # Обработчики сообщений
 │       ├── __init__.py
-│       ├── registration.py  # User registration
-│       ├── menu.py          # Main menu
-│       ├── friends.py       # Friends section
-│       ├── resources.py     # Resources section
-│       ├── lots.py          # Lots section
-│       ├── open_resources.py # Open resources
-│       └── admin.py         # Admin panel
-├── requirements.txt         # Python dependencies
-├── .env.example            # Environment variables template
+│       ├── registration.py  # Регистрация пользователей
+│       ├── menu.py          # Главное меню
+│       ├── friends.py       # Раздел "Друзья"
+│       ├── resources.py     # Раздел "Ресурсы"
+│       ├── lots.py          # Раздел "Лоты"
+│       ├── open_resources.py # Открытые ресурсы
+│       └── admin.py         # Админ-панель
+├── requirements.txt         # Зависимости Python
+├── .env.example            # Шаблон переменных окружения
 ├── .gitignore
-└── README.md
+├── run.py                  # Файл запуска
+├── README.md               # Документация (English)
+└── README_RU.md            # Документация (Русский)
 ```
 
-## Database
+## База данных
 
-The bot uses SQLite database with the following tables:
+Бот использует SQLite с следующими таблицами:
 
-- **users**: User profiles with points
-- **resources**: Community resources by category
-- **lots**: User's shared and sought items
-- **open_resources**: Shared maps, links, and specialists
+- **users**: Профили пользователей с баллами
+- **resources**: Ресурсы комьюнити по категориям
+- **lots**: Что пользователи делятся и ищут
+- **open_resources**: Общие карты, ссылки и специалисты
 
-Database is automatically created on first run.
+База данных автоматически создается при первом запуске.
 
-## Admin Functions
+## Функции администратора
 
-Admins have access to additional features:
+Администраторы имеют доступ к дополнительным функциям:
 
-1. **Manage Users**: View all registered users
-2. **Manage Points**: Update user points
-3. **Manage Open Resources**: Add shared resources (maps, links, specialists)
-4. **Manage Resources**: Moderate user-submitted resources (coming soon)
+1. **Управление пользователями**: Просмотр всех зарегистрированных пользователей
+2. **Управление баллами**: Изменение баллов пользователей
+3. **Управление открытыми ресурсами**: Добавление общих ресурсов (карты, ссылки, специалисты)
+4. **Управление ресурсами**: Модерация ресурсов пользователей (в разработке)
 
-## Usage
+## Использование
 
-### For Users
+### Для пользователей
 
-1. Start the bot with `/start`
-2. Complete registration
-3. Use the menu to:
-   - Browse friends by city
-   - Explore resources by category
-   - Manage your lots (what you share/seek)
-   - Access open resources database
-   - View your profile
+1. Запустите бота командой `/start`
+2. Пройдите регистрацию
+3. Используйте меню для:
+   - Просмотра друзей по городам
+   - Изучения ресурсов по категориям
+   - Управления своими лотами (что делитесь/ищете)
+   - Доступа к базе открытых ресурсов
+   - Просмотра профиля
 
-### For Admins
+### Для администраторов
 
-1. Access Admin Panel from the main menu
-2. Manage users and their points
-3. Add open resources for the community
-4. Monitor resource submissions
+1. Откройте Админ-панель из главного меню
+2. Управляйте пользователями и их баллами
+3. Добавляйте открытые ресурсы для комьюнити
+4. Следите за добавлением ресурсов
 
-## Bot Commands
+## Команды бота
 
-- `/start` - Start the bot and register (or return to main menu)
+- `/start` - Запустить бота и зарегистрироваться (или вернуться в главное меню)
 
-## Points System
+## Балльная система
 
-- Points are awarded for providing resources or services
-- Each action equals one point
-- Admins can manually adjust points through the admin panel
-- Points are displayed on user profiles
+- Баллы начисляются за предоставление ресурсов или услуг
+- Каждое действие равно одному баллу
+- Администраторы могут вручную изменять баллы через админ-панель
+- Баллы отображаются в профилях пользователей
 
-## Channel Integration
+## Интеграция с каналом
 
-The bot can link to a community channel for:
-- News and updates
-- Resident portraits
-- Exchange digests
-- New resource announcements
+Бот может быть связан с каналом комьюнити для:
+- Новостей и обновлений
+- Портретов резидентов
+- Дайджестов обменов
+- Объявлений о новых ресурсах
 
-Configure `CHANNEL_USERNAME` in `.env` to enable this feature.
+Настройте `CHANNEL_USERNAME` в `.env` для активации этой функции.
 
-## Support
+## Техническая информация
 
-For issues or questions, contact the bot administrator.
+- **Фреймворк**: aiogram 3.4.1
+- **База данных**: SQLite с aiosqlite
+- **Версия Python**: 3.8+
+- **Асинхронность**: Полная поддержка async/await
 
-## Technical Details
+## Разработка
 
-- **Framework**: aiogram 3.4.1
-- **Database**: SQLite with aiosqlite
-- **Python Version**: 3.8+
-- **Async**: Full async/await support
+Бот структурирован для легкого расширения:
 
-## Development
+1. Добавляйте новые обработчики в `bot/handlers/`
+2. Создавайте новые клавиатуры в `bot/keyboards.py`
+3. Добавляйте методы базы данных в `bot/database.py`
+4. Настраивайте новые функции в `bot/config.py`
 
-The bot is structured for easy extension:
+## Поддержка
 
-1. Add new handlers in `bot/handlers/`
-2. Create new keyboard layouts in `bot/keyboards.py`
-3. Add database methods in `bot/database.py`
-4. Configure new features in `bot/config.py`
+По вопросам обращайтесь к администратору бота.
 
-## License
+## Дополнительные возможности для расширения
 
-This project is created for a private community. All rights reserved.
+В будущем можно добавить:
+- Автоматическую загрузку данных из Google Forms
+- Систему уведомлений о новых ресурсах
+- Поиск по ресурсам
+- Рейтинг пользователей
+- Историю обменов
+- Статистику активности
+
+## Лицензия
+
+Этот проект создан для частного комьюнити. Все права защищены.

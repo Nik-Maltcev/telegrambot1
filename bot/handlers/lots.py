@@ -3,7 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from bot.database import Database
-from bot.keyboards import get_lots_type_keyboard, get_add_lot_keyboard, get_cancel_keyboard
+from bot.keyboards import get_lots_type_keyboard, get_add_lot_keyboard
 
 router = Router()
 

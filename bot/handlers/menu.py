@@ -51,10 +51,3 @@ async def show_channel(message: Message):
             "Channel link will be provided soon.\n"
             "Stay tuned!"
         )
-
-
-@router.message(F.text.in_({"👥 Friends", "📦 Resources", "🎯 Lots", "🗂 Open Resources Database"}))
-async def handle_menu_sections(message: Message, db: Database):
-    """Handle menu sections that are implemented in other handlers"""
-    # These are handled by their respective routers
-    pass

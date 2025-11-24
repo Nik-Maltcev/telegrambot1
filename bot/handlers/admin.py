@@ -7,7 +7,8 @@ from bot.database import Database
 from bot.keyboards import (
     get_admin_panel_keyboard,
     get_confirmation_keyboard,
-    get_cancel_keyboard
+    get_cancel_keyboard,
+    get_admin_menu_keyboard
 )
 from bot.config import ADMIN_IDS
 
@@ -106,9 +107,9 @@ async def start_manage_points(callback: CallbackQuery, state: FSMContext):
 @router.message(ManagePoints.user_id, F.text)
 async def process_user_id_for_points(message: Message, state: FSMContext, db: Database):
     """Process user ID for points management"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     try:
@@ -135,9 +136,9 @@ async def process_user_id_for_points(message: Message, state: FSMContext, db: Da
 @router.message(ManagePoints.points, F.text)
 async def process_points_value(message: Message, state: FSMContext, db: Database):
     """Process new points value"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     try:
@@ -182,9 +183,9 @@ async def start_add_open_resource(callback: CallbackQuery, state: FSMContext):
 @router.message(AddOpenResource.section, F.text)
 async def process_section(message: Message, state: FSMContext):
     """Process section for open resource"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     if message.text.lower() not in ["maps", "accesses", "specialists"]:
@@ -202,9 +203,9 @@ async def process_section(message: Message, state: FSMContext):
 @router.message(AddOpenResource.title, F.text)
 async def process_title(message: Message, state: FSMContext):
     """Process title for open resource"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     await state.update_data(title=message.text)
@@ -218,9 +219,9 @@ async def process_title(message: Message, state: FSMContext):
 @router.message(AddOpenResource.description, F.text)
 async def process_description(message: Message, state: FSMContext):
     """Process description for open resource"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     await state.update_data(description=message.text)
@@ -234,9 +235,9 @@ async def process_description(message: Message, state: FSMContext):
 @router.message(AddOpenResource.link, F.text)
 async def process_link(message: Message, state: FSMContext):
     """Process link for open resource"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     link = message.text if message.text != "-" else ""
@@ -251,9 +252,9 @@ async def process_link(message: Message, state: FSMContext):
 @router.message(AddOpenResource.city, F.text)
 async def process_city(message: Message, state: FSMContext, db: Database):
     """Process city and complete adding open resource"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Operation cancelled.")
+        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
         return
 
     city = message.text if message.text != "-" else ""

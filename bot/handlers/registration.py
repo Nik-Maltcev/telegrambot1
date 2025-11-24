@@ -50,7 +50,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 @router.message(Registration.name, F.text)
 async def process_name(message: Message, state: FSMContext):
     """Process name input"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
         await message.answer("Registration cancelled.", reply_markup=None)
         return
@@ -66,7 +66,7 @@ async def process_name(message: Message, state: FSMContext):
 @router.message(Registration.main_city, F.text)
 async def process_main_city(message: Message, state: FSMContext):
     """Process main city input"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
         await message.answer("Registration cancelled.", reply_markup=None)
         return
@@ -82,7 +82,7 @@ async def process_main_city(message: Message, state: FSMContext):
 @router.message(Registration.about, F.text)
 async def process_about(message: Message, state: FSMContext):
     """Process about input"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
         await message.answer("Registration cancelled.", reply_markup=None)
         return
@@ -98,7 +98,7 @@ async def process_about(message: Message, state: FSMContext):
 @router.message(Registration.current_city, F.text)
 async def process_current_city(message: Message, state: FSMContext):
     """Process current city input"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
         await message.answer("Registration cancelled.", reply_markup=None)
         return
@@ -114,7 +114,7 @@ async def process_current_city(message: Message, state: FSMContext):
 @router.message(Registration.instagram, F.text)
 async def process_instagram(message: Message, state: FSMContext, db: Database):
     """Process Instagram and complete registration"""
-    if message.text == "❌ Cancel":
+    if message.text == "🔙 Back":
         await state.clear()
         await message.answer("Registration cancelled.", reply_markup=None)
         return

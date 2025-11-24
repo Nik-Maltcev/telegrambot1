@@ -45,7 +45,7 @@ def get_admin_menu_keyboard() -> ReplyKeyboardMarkup:
 def get_cancel_keyboard() -> ReplyKeyboardMarkup:
     """Cancel keyboard"""
     builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text="❌ Cancel"))
+    builder.add(KeyboardButton(text="🔙 Back"))
     return builder.as_markup(resize_keyboard=True)
 
 

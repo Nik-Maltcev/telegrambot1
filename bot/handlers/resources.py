@@ -23,19 +23,10 @@ async def show_resources_menu(message: Message, db: Database):
         await message.answer("❌ You are not registered. Please use /start to register.")
         return
 
-    cities = await db.get_resource_cities()
-
-    if not cities:
-        await message.answer(
-            "📦 Resources\n\n"
-            "No resources available yet. Be the first to add one!"
-        )
-        return
-
     await message.answer(
         "📦 Resources\n\n"
         "First, select a city to filter resources:",
-        reply_markup=get_cities_keyboard(cities)
+        reply_markup=get_cities_keyboard()
     )
 
 
@@ -87,7 +78,8 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
     }
 
     description = category_descriptions.get(category, f"📦 {category}")
-    resources_text = f"{description}\n\n"
+    resources_text = f"ℹ️ About this section:\n\nThis section allows you to find and request resources from other community members. You can browse by category and city, and contact the owner directly to arrange an exchange.\n\n"
+    resources_text += f"{description}\n\n"
 
     for res in resources:
         instagram_info = f" | 📸 @{res['instagram']}" if res['instagram'] else ""
@@ -113,12 +105,10 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
 @router.callback_query(F.data == "back_to_resources")
 async def back_to_resources(callback: CallbackQuery, db: Database):
     """Go back to city selection for resources"""
-    cities = await db.get_resource_cities()
-
     await callback.message.edit_text(
         "📦 Resources\n\n"
         "Select a city to filter resources:",
-        reply_markup=get_cities_keyboard(cities)
+        reply_markup=get_cities_keyboard()
     )
     await callback.answer()
 

@@ -15,19 +15,10 @@ async def show_friends_menu(message: Message, db: Database):
         await message.answer("❌ You are not registered. Please use /start to register.")
         return
 
-    cities = await db.get_all_cities()
-
-    if not cities:
-        await message.answer(
-            "👥 Friends\n\n"
-            "No users registered yet. Be the first!"
-        )
-        return
-
     await message.answer(
         "👥 Friends\n\n"
         "Select a city to see community members:",
-        reply_markup=get_cities_keyboard(cities)
+        reply_markup=get_cities_keyboard()
     )
 
 
@@ -67,11 +58,9 @@ async def show_city_users(callback: CallbackQuery, db: Database):
 @router.callback_query(F.data == "back_to_friends")
 async def back_to_friends(callback: CallbackQuery, db: Database):
     """Go back to friends menu"""
-    cities = await db.get_all_cities()
-
     await callback.message.edit_text(
         "👥 Friends\n\n"
         "Select a city to see community members:",
-        reply_markup=get_cities_keyboard(cities)
+        reply_markup=get_cities_keyboard()
     )
     await callback.answer()

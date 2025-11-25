@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import Message, InputFile
 from bot.database import Database
 from bot.keyboards import get_main_menu_keyboard, get_admin_menu_keyboard, get_cancel_keyboard
 from bot.config import ADMIN_IDS
@@ -35,13 +35,17 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
         )
     else:
         # Start registration
-        await message.answer(
-            "👋 Welcome to the Community!\n\n"
-            "This is a closed international community for talented, successful, "
-            "and aspiring people who are ready to share their resources and skills "
-            "on a voluntary basis.\n\n"
-            "Let's get you registered!\n\n"
-            "Please enter your name:",
+        video_url = "https://www.youtube.com/watch?v=z1MgFIpSqJk&list=RDz1MgFIpSqJk&start_radio=1"
+        await message.answer_video(
+            video=video_url,
+            caption=(
+                "👋 Welcome to the Community!\n\n"
+                "This is a closed international community for talented, successful, "
+                "and aspiring people who are ready to share their resources and skills "
+                "on a voluntary basis.\n\n"
+                "Let's get you registered!\n\n"
+                "Please enter your name:"
+            ),
             reply_markup=get_cancel_keyboard()
         )
         await state.set_state(Registration.name)
@@ -73,7 +77,8 @@ async def process_main_city(message: Message, state: FSMContext):
 
     await state.update_data(main_city=message.text)
     await message.answer(
-        "Tell us a bit about yourself (brief intro):",
+        "Tell us a bit about yourself (brief intro):\n\n"
+        "For example •Artist and community owner•",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.about)
@@ -141,14 +146,13 @@ async def process_instagram(message: Message, state: FSMContext, db: Database):
         keyboard = get_admin_menu_keyboard() if is_admin else get_main_menu_keyboard()
 
         await message.answer(
-            f"✅ Registration completed!\n\n"
-            f"👤 Name: {data['name']}\n"
-            f"🏙 Main City: {data['main_city']}\n"
-            f"📍 Current City: {data['current_city']}\n"
-            f"📝 About: {data['about']}\n"
-            f"📸 Instagram: {instagram if instagram else 'Not provided'}\n"
-            f"💰 Points: 0\n\n"
-            f"Welcome to the community!",
+            f"🩵 Registration completed!\n\n"
+            f"👀Name: {data['name']}\n"
+            f"📍Main City: {data['main_city']}\n"
+            f"🗽Current City: {data['current_city']}\n"
+            f"💌About: {data['about']}\n"
+            f"💿Instagram: @{instagram if instagram else 'Not provided'}\n"
+            f"Points: 0",
             reply_markup=keyboard
         )
     else:

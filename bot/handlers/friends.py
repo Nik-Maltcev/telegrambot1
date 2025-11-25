@@ -36,12 +36,12 @@ async def show_city_users(callback: CallbackQuery, db: Database):
     users_text = f"👥 Friends in {city}\n\n"
 
     for user in users:
+        telegram_username = f"(@{user['username']})" if user['username'] else ""
         instagram_info = f" | 📸 @{user['instagram']}" if user['instagram'] else ""
         users_text += (
-            f"👤 {user['name']}\n"
+            f"👤 {user['name']} {telegram_username}\n"
             f"📝 {user['about']}\n"
-            f"💰 Points: {user['points']}{instagram_info}\n"
-            f"User ID: {user['user_id']}\n\n"
+            f"💰 Points: {user['points']}{instagram_info}\n\n"
         )
 
     # Split if message is too long
@@ -51,6 +51,14 @@ async def show_city_users(callback: CallbackQuery, db: Database):
             await callback.message.answer(chunk)
     else:
         await callback.message.answer(users_text)
+
+    # Show user card with buttons
+    if len(users) == 1:
+        user = users[0]
+        await callback.message.answer(
+            f"👤 {user['name']}",
+            reply_markup=get_user_card_keyboard(user['user_id'], user['instagram'])
+        )
 
     await callback.answer()
 

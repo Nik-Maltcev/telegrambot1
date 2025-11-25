@@ -78,26 +78,20 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
     }
 
     description = category_descriptions.get(category, f"📦 {category}")
-    resources_text = f"ℹ️ About this section:\n\nThis section allows you to find and request resources from other community members. You can browse by category and city, and contact the owner directly to arrange an exchange.\n\n"
-    resources_text += f"{description}\n\n"
+    await callback.message.answer(f"ℹ️ About this section:\n\nThis section allows you to find and request resources from other community members. You can browse by category and city, and contact the owner directly to arrange an exchange.\n\n{description}")
 
     for res in resources:
         telegram_username = f"(@{res['username']})" if res['username'] else ""
         instagram_info = f" | 📸 @{res['instagram']}" if res['instagram'] else ""
-        resources_text += (
-            f"━━━━━━━━━━━━━━━\n"
+        resource_text = (
             f"📌 {res['title']}\n"
             f"📝 {res['description']}\n\n"
             f"👤 Owner: {res['name']} {telegram_username} (💰 {res['points']} points){instagram_info}\n\n"
         )
-
-    # Split if message is too long
-    if len(resources_text) > 4096:
-        chunks = [resources_text[i:i+4096] for i in range(0, len(resources_text), 4096)]
-        for chunk in chunks:
-            await callback.message.answer(chunk)
-    else:
-        await callback.message.answer(resources_text)
+        await callback.message.answer(
+            resource_text,
+            reply_markup=get_resource_card_keyboard(res['user_id'], res['instagram'])
+        )
 
     await callback.answer()
 

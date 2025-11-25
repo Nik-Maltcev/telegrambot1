@@ -84,7 +84,7 @@ def get_resource_categories_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for text, callback_data in categories:
         builder.row(InlineKeyboardButton(text=text, callback_data=callback_data))
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_cities"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_resources"))
     return builder.as_markup()
 
 
@@ -131,6 +131,7 @@ def get_resource_card_keyboard(owner_id: int, instagram: str = "") -> InlineKeyb
     """Keyboard for resource card"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="💬 Request / Contact", url=f"tg://user?id={owner_id}"))
+    builder.row(InlineKeyboardButton(text="🤝 Propose Deal", callback_data=f"deal:propose:{owner_id}"))
     if instagram:
         builder.row(InlineKeyboardButton(text="📸 Instagram", url=f"https://instagram.com/{instagram.lstrip('@')}"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_category"))

@@ -157,10 +157,11 @@ async def process_points_value(message: Message, state: FSMContext, db: Database
             await message.answer(
                 f"✅ Points updated successfully!\n\n"
                 f"User: {user['name']}\n"
-                f"New points: {points}"
+                f"New points: {points}",
+                reply_markup=get_menu_keyboard(message.from_user.id)
             )
         else:
-            await message.answer("❌ Failed to update points.")
+            await message.answer("❌ Failed to update points.", reply_markup=get_menu_keyboard(message.from_user.id))
 
     except ValueError:
         await message.answer("❌ Invalid points value. Please enter a number.")
@@ -276,10 +277,11 @@ async def process_city(message: Message, state: FSMContext, db: Database):
         await message.answer(
             f"✅ Open resource added successfully!\n\n"
             f"Section: {data['section']}\n"
-            f"Title: {data['title']}"
+            f"Title: {data['title']}",
+            reply_markup=get_menu_keyboard(message.from_user.id)
         )
     else:
-        await message.answer("❌ Failed to add open resource.")
+        await message.answer("❌ Failed to add open resource.", reply_markup=get_menu_keyboard(message.from_user.id))
 
 
 @router.callback_query(F.data == "admin:resources")

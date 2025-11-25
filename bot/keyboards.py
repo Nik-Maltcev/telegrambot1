@@ -49,12 +49,16 @@ def get_cancel_keyboard() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-def get_cities_keyboard(cities: List[str]) -> InlineKeyboardMarkup:
+def get_cities_keyboard() -> InlineKeyboardMarkup:
     """Keyboard with city buttons"""
+    cities = [
+        "Paris", "Berlin", "New York", "Lisbon", "Amsterdam", "Budapest",
+        "Bangkok", "Tokyo", "Barcelona", "Istanbul", "London", "Warsaw", "Minsk"
+    ]
     builder = InlineKeyboardBuilder()
     for city in cities:
         builder.row(InlineKeyboardButton(text=city, callback_data=f"city:{city}"))
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_main_menu"))
     return builder.as_markup()
 
 
@@ -76,7 +80,7 @@ def get_resource_categories_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for text, callback_data in categories:
         builder.row(InlineKeyboardButton(text=text, callback_data=callback_data))
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_resources"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_cities"))
     return builder.as_markup()
 
 

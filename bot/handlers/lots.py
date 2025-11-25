@@ -71,6 +71,13 @@ async def start_add_lot(callback: CallbackQuery, state: FSMContext):
     """Start adding a new lot"""
     await callback.message.answer(
         "➕ Add New Lot\n\n"
+        "To add a new lot, please follow this format:\n\n"
+        "1.  **Title:** A brief, clear title for your lot.\n"
+        "2.  **Description:** A detailed description of what you're offering or seeking.\n"
+        "3.  **Photos/Videos (Optional):** Attach any relevant media.\n\n"
+        "Example:\n"
+        "**Title:** Professional Photoshoot in Paris\n"
+        "**Description:** I'm a photographer offering a free 1-hour photoshoot in the heart of Paris. You'll receive 20 edited photos. In return, I'm looking for a place to stay for a weekend.\n\n"
         "What would you like to add?",
         reply_markup=get_lots_type_keyboard()
     )

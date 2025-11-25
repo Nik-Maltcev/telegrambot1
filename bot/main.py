@@ -7,7 +7,7 @@ from bot.config import BOT_TOKEN, DATABASE_PATH
 from bot.database import Database
 
 # Import handlers
-from bot.handlers import registration, menu, friends, resources, lots, open_resources, admin
+from bot.handlers import registration, menu, friends, resources, lots, open_resources, admin, deals
 
 # Configure logging
 logging.basicConfig(
@@ -43,6 +43,7 @@ async def main():
     dp.include_router(lots.router)
     dp.include_router(open_resources.router)
     dp.include_router(admin.router)
+    dp.include_router(deals.router)
 
     logger.info("Bot started")
 

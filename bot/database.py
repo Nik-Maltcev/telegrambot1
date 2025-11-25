@@ -65,6 +65,29 @@ class Database:
                 )
             """)
 
+            # Invite tokens table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS invite_tokens (
+                    token TEXT PRIMARY KEY,
+                    is_used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Deals table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS deals (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    proposer_id INTEGER NOT NULL,
+                    receiver_id INTEGER NOT NULL,
+                    status TEXT NOT NULL, -- pending, accepted, completed, declined
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (proposer_id) REFERENCES users (user_id),
+                    FOREIGN KEY (receiver_id) REFERENCES users (user_id)
+                )
+            """)
+
             await db.commit()
 
     # User methods
@@ -238,5 +261,92 @@ class Database:
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("SELECT * FROM users ORDER BY name") as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    # Invite token methods
+    async def add_invite_token(self, token: str) -> bool:
+        """Add a new invite token."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("INSERT INTO invite_tokens (token) VALUES (?)", (token,))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error adding invite token: {e}")
+            return False
+
+    async def is_valid_token(self, token: str) -> bool:
+        """Check if an invite token is valid and unused."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT * FROM invite_tokens WHERE token = ? AND is_used = FALSE",
+                (token,)
+            ) as cursor:
+                return await cursor.fetchone() is not None
+
+    async def use_invite_token(self, token: str) -> bool:
+        """Mark an invite token as used."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "UPDATE invite_tokens SET is_used = TRUE WHERE token = ?",
+                    (token,)
+                )
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error using invite token: {e}")
+            return False
+
+    # Deal methods
+    async def create_deal(self, proposer_id: int, receiver_id: int) -> Optional[int]:
+        """Create a new deal."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                cursor = await db.execute("""
+                    INSERT INTO deals (proposer_id, receiver_id, status)
+                    VALUES (?, ?, 'pending')
+                """, (proposer_id, receiver_id))
+                await db.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            print(f"Error creating deal: {e}")
+            return None
+
+    async def get_deal(self, deal_id: int) -> Optional[Dict]:
+        """Get deal by ID."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM deals WHERE id = ?", (deal_id,)) as cursor:
+                row = await cursor.fetchone()
+                return dict(row) if row else None
+
+    async def update_deal_status(self, deal_id: int, status: str) -> bool:
+        """Update deal status."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "UPDATE deals SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    (status, deal_id)
+                )
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating deal status: {e}")
+            return False
+
+    async def get_user_deals(self, user_id: int) -> List[Dict]:
+        """Get all deals for a user."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT d.*, p.name as proposer_name, r.name as receiver_name
+                FROM deals d
+                JOIN users p ON d.proposer_id = p.user_id
+                JOIN users r ON d.receiver_id = r.user_id
+                WHERE d.proposer_id = ? OR d.receiver_id = ?
+                ORDER BY d.created_at DESC
+            """, (user_id, user_id)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]

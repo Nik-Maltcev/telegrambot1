@@ -34,21 +34,35 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             reply_markup=keyboard
         )
     else:
-        # Start registration
-        video_url = "https://www.youtube.com/watch?v=z1MgFIpSqJk&list=RDz1MgFIpSqJk&start_radio=1"
-        await message.answer_video(
-            video=video_url,
-            caption=(
+        # New user - check for invite token
+        args = message.text.split()
+        if len(args) > 1:
+            token = args[1]
+            if await db.is_valid_token(token):
+                await state.update_data(invite_token=token)
+                # Start registration
+                video_url = "https://www.youtube.com/watch?v=z1MgFIpSqJk&list=RDz1MgFIpSqJk&start_radio=1"
+                await message.answer_video(
+                    video=video_url,
+                    caption=(
+                        "👋 Welcome to the Community!\n\n"
+                        "This is a closed international community for talented, successful, "
+                        "and aspiring people who are ready to share their resources and skills "
+                        "on a voluntary basis.\n\n"
+                        "Let's get you registered!\n\n"
+                        "Please enter your name:"
+                    ),
+                    reply_markup=get_cancel_keyboard()
+                )
+                await state.set_state(Registration.name)
+            else:
+                await message.answer("❌ Invalid or expired invite token.")
+        else:
+            await message.answer(
                 "👋 Welcome to the Community!\n\n"
-                "This is a closed international community for talented, successful, "
-                "and aspiring people who are ready to share their resources and skills "
-                "on a voluntary basis.\n\n"
-                "Let's get you registered!\n\n"
-                "Please enter your name:"
-            ),
-            reply_markup=get_cancel_keyboard()
-        )
-        await state.set_state(Registration.name)
+                "This is a private community. To join, you need an invite token.\n"
+                "Please use the invite link from an admin to register."
+            )
 
 
 @router.message(Registration.name, F.text)
@@ -138,6 +152,10 @@ async def process_instagram(message: Message, state: FSMContext, db: Database):
         instagram=instagram,
         points=0  # Starting with 0 points
     )
+
+    if success:
+        # Mark token as used
+        await db.use_invite_token(data['invite_token'])
 
     await state.clear()
 

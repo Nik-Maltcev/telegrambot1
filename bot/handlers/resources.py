@@ -82,13 +82,13 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
     resources_text += f"{description}\n\n"
 
     for res in resources:
+        telegram_username = f"(@{res['username']})" if res['username'] else ""
         instagram_info = f" | 📸 @{res['instagram']}" if res['instagram'] else ""
         resources_text += (
             f"━━━━━━━━━━━━━━━\n"
             f"📌 {res['title']}\n"
             f"📝 {res['description']}\n\n"
-            f"👤 Owner: {res['name']} (💰 {res['points']} points){instagram_info}\n"
-            f"Resource ID: {res['id']}\n\n"
+            f"👤 Owner: {res['name']} {telegram_username} (💰 {res['points']} points){instagram_info}\n\n"
         )
 
     # Split if message is too long

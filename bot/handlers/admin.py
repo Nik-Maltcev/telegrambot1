@@ -293,3 +293,32 @@ async def manage_resources(callback: CallbackQuery):
         "Coming soon..."
     )
     await callback.answer()
+
+
+def generate_invite_token(length=16):
+    """Generate a random invite token."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for i in range(length))
+
+
+@router.callback_query(F.data == "admin:generate_token")
+async def generate_token(callback: CallbackQuery, db: Database):
+    """Generate and show a new invite token."""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+
+    token = generate_invite_token()
+    success = await db.add_invite_token(token)
+
+    if success:
+        await callback.message.answer(
+            f"🔑 New Invite Token\n\n"
+            f"Here is the new single-use invite token:\n\n"
+            f"`{token}`\n\n"
+            f"Share it with a new user to allow them to register."
+        )
+    else:
+        await callback.message.answer("❌ Failed to generate a new token.")
+
+    await callback.answer()

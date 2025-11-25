@@ -10,7 +10,7 @@ from bot.keyboards import (
     get_admin_panel_keyboard,
     get_confirmation_keyboard,
     get_cancel_keyboard,
-    get_admin_menu_keyboard
+    get_menu_keyboard
 )
 from bot.config import ADMIN_IDS
 
@@ -111,7 +111,7 @@ async def process_user_id_for_points(message: Message, state: FSMContext, db: Da
     """Process user ID for points management"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     try:
@@ -140,7 +140,7 @@ async def process_points_value(message: Message, state: FSMContext, db: Database
     """Process new points value"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     try:
@@ -187,7 +187,7 @@ async def process_section(message: Message, state: FSMContext):
     """Process section for open resource"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     if message.text.lower() not in ["maps", "accesses", "specialists"]:
@@ -207,7 +207,7 @@ async def process_title(message: Message, state: FSMContext):
     """Process title for open resource"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     await state.update_data(title=message.text)
@@ -223,7 +223,7 @@ async def process_description(message: Message, state: FSMContext):
     """Process description for open resource"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     await state.update_data(description=message.text)
@@ -239,7 +239,7 @@ async def process_link(message: Message, state: FSMContext):
     """Process link for open resource"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     link = message.text if message.text != "-" else ""
@@ -256,7 +256,7 @@ async def process_city(message: Message, state: FSMContext, db: Database):
     """Process city and complete adding open resource"""
     if message.text == "🔙 Back":
         await state.clear()
-        await message.answer("Returned to menu.", reply_markup=get_admin_menu_keyboard())
+        await message.answer("Returned to menu.", reply_markup=get_menu_keyboard(message.from_user.id))
         return
 
     city = message.text if message.text != "-" else ""

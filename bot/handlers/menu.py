@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message
 from bot.database import Database
-from bot.keyboards import get_main_menu_keyboard, get_admin_menu_keyboard
+from bot.keyboards import get_menu_keyboard
 from bot.config import ADMIN_IDS, CHANNEL_USERNAME
 
 router = Router()
@@ -11,9 +11,10 @@ router = Router()
 async def show_profile(message: Message, db: Database):
     """Show user profile"""
     user = await db.get_user(message.from_user.id)
+    keyboard = get_menu_keyboard(message.from_user.id)
 
     if not user:
-        await message.answer("❌ You are not registered. Please use /start to register.")
+        await message.answer("❌ You are not registered. Please use /start to register.", reply_markup=keyboard)
         return
 
     profile_text = (
@@ -27,12 +28,13 @@ async def show_profile(message: Message, db: Database):
         f"📅 Registered: {user['registered_at'][:10]}"
     )
 
-    await message.answer(profile_text)
+    await message.answer(profile_text, reply_markup=keyboard)
 
 
 @router.message(F.text == "📢 Channel")
 async def show_channel(message: Message):
     """Show channel link"""
+    keyboard = get_menu_keyboard(message.from_user.id)
     if CHANNEL_USERNAME:
         await message.answer(
             f"📢 Community Channel\n\n"
@@ -43,11 +45,13 @@ async def show_channel(message: Message):
             f"• Resident portraits\n"
             f"• Exchange digest\n"
             f"• New resources digest\n\n"
-            f"📍 Pinned: How to earn points?"
+            f"📍 Pinned: How to earn points?",
+            reply_markup=keyboard
         )
     else:
         await message.answer(
             "📢 Community Channel\n\n"
             "Channel link will be provided soon.\n"
-            "Stay tuned!"
+            "Stay tuned!",
+            reply_markup=keyboard
         )

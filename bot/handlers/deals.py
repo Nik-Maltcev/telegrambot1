@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from bot.database import Database
-from bot.keyboards import get_confirmation_keyboard, get_deal_completion_keyboard
+from bot.keyboards import get_confirmation_keyboard, get_deal_completion_keyboard, get_menu_keyboard
 
 router = Router()
 
@@ -153,9 +153,10 @@ async def confirm_deal_completion(callback: CallbackQuery, db: Database):
 async def show_my_deals(message: Message, db: Database):
     """Show user's deal history."""
     deals = await db.get_user_deals(message.from_user.id)
+    keyboard = get_menu_keyboard(message.from_user.id)
 
     if not deals:
-        await message.answer("You have no deals yet.")
+        await message.answer("You have no deals yet.", reply_markup=keyboard)
         return
 
     deals_text = "📈 My Deals\n\n"
@@ -175,4 +176,4 @@ async def show_my_deals(message: Message, db: Database):
             f"**Date:** {deal['created_at'][:10]}\n"
         )
 
-    await message.answer(deals_text)
+    await message.answer(deals_text, reply_markup=keyboard)

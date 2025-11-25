@@ -1,6 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from typing import List
+from bot.config import ADMIN_IDS
 
 
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -175,3 +176,10 @@ def get_deal_completion_keyboard(deal_id: int) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="✅ Mark as Complete", callback_data=f"deal:complete:{deal_id}")
     )
     return builder.as_markup()
+
+
+def get_menu_keyboard(user_id: int) -> ReplyKeyboardMarkup:
+    """Get the correct menu keyboard for a user."""
+    if user_id in ADMIN_IDS:
+        return get_admin_menu_keyboard()
+    return get_main_menu_keyboard()

@@ -34,8 +34,21 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             reply_markup=keyboard
         )
     else:
-        # New user - check for invite token
+        # New user - check for invite token or if admin
+        is_admin = message.from_user.id in ADMIN_IDS
         args = message.text.split()
+
+        if is_admin:
+            # Allow admin to register without token
+            await message.answer(
+                "👋 Welcome Admin!\n\n"
+                "Let's get you registered!\n\n"
+                "Please enter your name:",
+                reply_markup=get_cancel_keyboard()
+            )
+            await state.set_state(Registration.name)
+            return
+
         if len(args) > 1:
             token = args[1]
             if await db.is_valid_token(token):
@@ -154,8 +167,9 @@ async def process_instagram(message: Message, state: FSMContext, db: Database):
     )
 
     if success:
-        # Mark token as used
-        await db.use_invite_token(data['invite_token'])
+        # Mark token as used if it was present
+        if 'invite_token' in data:
+            await db.use_invite_token(data['invite_token'])
 
     await state.clear()
 

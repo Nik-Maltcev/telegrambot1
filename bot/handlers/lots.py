@@ -8,7 +8,8 @@ from bot.keyboards import (
     get_lots_type_keyboard,
     get_add_lot_keyboard,
     get_create_lot_type_keyboard,
-    get_cancel_keyboard
+    get_cancel_keyboard,
+    get_menu_keyboard
 )
 
 router = Router()
@@ -147,8 +148,16 @@ async def process_lot_title(message: Message, state: FSMContext):
     """Step 3: Process Title and Ask for Description"""
     if message.text == "🔙 Back":
         await state.clear()
+        # Restore Main Menu first
         await message.answer(
             "Creation cancelled.",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
+        # Then show lots menu again
+        await message.answer(
+            "🎯 Lots\n\n"
+            "Here you can manage what you share and what you're looking for.\n\n"
+            "Select an option:",
             reply_markup=get_lots_type_keyboard()
         )
         return
@@ -166,8 +175,16 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
     """Step 4: Process Description and Save Lot"""
     if message.text == "🔙 Back":
         await state.clear()
+        # Restore Main Menu first
         await message.answer(
             "Creation cancelled.",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
+        # Then show lots menu again
+        await message.answer(
+            "🎯 Lots\n\n"
+            "Here you can manage what you share and what you're looking for.\n\n"
+            "Select an option:",
             reply_markup=get_lots_type_keyboard()
         )
         return
@@ -186,15 +203,31 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
 
     if success:
         type_emoji = "🎁" if data['lot_type'] == "share" else "🔍"
+        # Restore Main Menu first
         await message.answer(
             f"✅ New lot added successfully!\n\n"
             f"{type_emoji} **{data['title']}**\n"
             f"{description}",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
+        # Then show lots menu again
+        await message.answer(
+            "🎯 Lots\n\n"
+            "Here you can manage what you share and what you're looking for.\n\n"
+            "Select an option:",
             reply_markup=get_lots_type_keyboard()
         )
     else:
+        # Restore Main Menu first
         await message.answer(
             "❌ Failed to add lot. Please try again.",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
+        # Then show lots menu again
+        await message.answer(
+            "🎯 Lots\n\n"
+            "Here you can manage what you share and what you're looking for.\n\n"
+            "Select an option:",
             reply_markup=get_lots_type_keyboard()
         )
 

@@ -4,7 +4,12 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from bot.database import Database
-from bot.keyboards import get_lots_type_keyboard, get_add_lot_keyboard
+from bot.keyboards import (
+    get_lots_type_keyboard,
+    get_add_lot_keyboard,
+    get_create_lot_type_keyboard,
+    get_cancel_keyboard
+)
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -104,8 +109,8 @@ async def show_user_lots(callback: CallbackQuery, db: Database):
 
 @router.callback_query(F.data == "add_lot")
 async def start_add_lot(callback: CallbackQuery, state: FSMContext):
-    """Start adding a new lot"""
-    await callback.message.answer(
+    """Start adding a new lot - Step 1: Instruction and Type Selection"""
+    await callback.message.edit_text(
         "➕ Add New Lot\n\n"
         "To add a new lot, please follow this format:\n\n"
         "1.  **Title:** A brief, clear title for your lot.\n"
@@ -115,9 +120,83 @@ async def start_add_lot(callback: CallbackQuery, state: FSMContext):
         "**Title:** Professional Photoshoot in Paris\n"
         "**Description:** I'm a photographer offering a free 1-hour photoshoot in the heart of Paris. You'll receive 20 edited photos. In return, I'm looking for a place to stay for a weekend.\n\n"
         "What would you like to add?",
-        reply_markup=get_lots_type_keyboard()
+        reply_markup=get_create_lot_type_keyboard()
     )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("create_lot:"))
+async def process_lot_type(callback: CallbackQuery, state: FSMContext):
+    """Step 2: Process Type and Ask for Title"""
+    lot_type = callback.data.split(":", 1)[1]
+    await state.update_data(lot_type=lot_type)
+
+    type_str = "Share" if lot_type == "share" else "Seek"
+
+    await callback.message.answer(
+        f"You are creating a new '{type_str}' lot.\n\n"
+        f"Please enter the **Title** for your lot:",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(AddLot.title)
+    await callback.answer()
+
+
+@router.message(AddLot.title, F.text)
+async def process_lot_title(message: Message, state: FSMContext):
+    """Step 3: Process Title and Ask for Description"""
+    if message.text == "🔙 Back":
+        await state.clear()
+        await message.answer(
+            "Creation cancelled.",
+            reply_markup=get_lots_type_keyboard()
+        )
+        return
+
+    await state.update_data(title=message.text)
+    await message.answer(
+        "Great! Now please enter a detailed **Description**:",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(AddLot.description)
+
+
+@router.message(AddLot.description, F.text)
+async def process_lot_description(message: Message, state: FSMContext, db: Database):
+    """Step 4: Process Description and Save Lot"""
+    if message.text == "🔙 Back":
+        await state.clear()
+        await message.answer(
+            "Creation cancelled.",
+            reply_markup=get_lots_type_keyboard()
+        )
+        return
+
+    data = await state.get_data()
+    description = message.text
+
+    success = await db.add_lot(
+        user_id=message.from_user.id,
+        lot_type=data['lot_type'],
+        title=data['title'],
+        description=description
+    )
+
+    await state.clear()
+
+    if success:
+        type_emoji = "🎁" if data['lot_type'] == "share" else "🔍"
+        await message.answer(
+            f"✅ New lot added successfully!\n\n"
+            f"{type_emoji} **{data['title']}**\n"
+            f"{description}",
+            reply_markup=get_lots_type_keyboard()
+        )
+    else:
+        await message.answer(
+            "❌ Failed to add lot. Please try again.",
+            reply_markup=get_lots_type_keyboard()
+        )
 
 
 @router.callback_query(F.data == "lots_menu")

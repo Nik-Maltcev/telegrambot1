@@ -100,6 +100,17 @@ def get_lots_type_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def get_create_lot_type_keyboard() -> InlineKeyboardMarkup:
+    """Keyboard for selecting lot type to create"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="🎁 I Share", callback_data="create_lot:share"),
+        InlineKeyboardButton(text="🔍 I Seek", callback_data="create_lot:seek")
+    )
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="lots_menu"))
+    return builder.as_markup()
+
+
 def get_open_resources_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for open resources sections"""
     builder = InlineKeyboardBuilder()

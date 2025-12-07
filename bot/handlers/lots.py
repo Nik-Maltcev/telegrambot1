@@ -1,3 +1,4 @@
+import logging
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -6,6 +7,7 @@ from bot.database import Database
 from bot.keyboards import get_lots_type_keyboard, get_add_lot_keyboard
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 
 class AddLot(StatesGroup):
@@ -34,36 +36,70 @@ async def show_lots_menu(message: Message, db: Database):
 @router.callback_query(F.data.startswith("lots:"))
 async def show_user_lots(callback: CallbackQuery, db: Database):
     """Show user's lots (share or seek)"""
-    lot_type = callback.data.split(":", 1)[1]
-    lots = await db.get_user_lots(callback.from_user.id, lot_type)
+    try:
+        lot_type = callback.data.split(":", 1)[1]
+        lots = await db.get_user_lots(callback.from_user.id, lot_type)
 
-    type_emoji = "🎁" if lot_type == "share" else "🔍"
-    type_name = "I Share" if lot_type == "share" else "I Seek"
+        type_emoji = "🎁" if lot_type == "share" else "🔍"
+        type_name = "I Share" if lot_type == "share" else "I Seek"
 
-    if not lots:
-        await callback.message.edit_text(
-            f"{type_emoji} {type_name}\n\n"
-            f"You don't have any items in this section yet.\n"
-            f"Add your first one!",
-            reply_markup=get_add_lot_keyboard()
-        )
-    else:
-        lots_text = f"{type_emoji} {type_name}\n\n"
-
-        for lot in lots:
-            lots_text += (
-                f"━━━━━━━━━━━━━━━\n"
-                f"📌 {lot['title']}\n"
-                f"📝 {lot['description']}\n"
-                f"📅 Added: {lot['created_at'][:10]}\n\n"
+        if not lots:
+            await callback.message.edit_text(
+                f"{type_emoji} {type_name}\n\n"
+                f"You don't have any items in this section yet.\n"
+                f"Add your first one!",
+                reply_markup=get_add_lot_keyboard()
             )
+        else:
+            lots_text = f"{type_emoji} {type_name}\n\n"
 
-        await callback.message.edit_text(
-            lots_text,
-            reply_markup=get_add_lot_keyboard()
-        )
+            for lot in lots:
+                # Handle potentially missing fields gracefully
+                title = lot.get('title', 'No Title')
+                description = lot.get('description', '')
+                created_at = lot.get('created_at', '')
+                date_str = created_at[:10] if created_at else 'Unknown'
 
-    await callback.answer()
+                lots_text += (
+                    f"━━━━━━━━━━━━━━━\n"
+                    f"📌 {title}\n"
+                    f"📝 {description}\n"
+                    f"📅 Added: {date_str}\n\n"
+                )
+
+            if len(lots_text) > 4096:
+                # If text is too long, we need to handle it.
+                # Since we can't edit one message into multiple, we delete and send new ones.
+                await callback.message.delete()
+
+                chunks = [lots_text[i:i+4096] for i in range(0, len(lots_text), 4096)]
+                for chunk in chunks:
+                    await callback.message.answer(chunk)
+
+                # Add the control buttons at the end
+                await callback.message.answer(
+                    "Manage your lots:",
+                    reply_markup=get_add_lot_keyboard()
+                )
+            else:
+                await callback.message.edit_text(
+                    lots_text,
+                    reply_markup=get_add_lot_keyboard()
+                )
+
+    except Exception as e:
+        logger.error(f"Error in show_user_lots: {e}", exc_info=True)
+        # Try to inform the user
+        try:
+            await callback.answer("An error occurred. Please try again.", show_alert=True)
+        except:
+            pass
+    finally:
+        # Ensure we always answer the callback to stop the loading animation
+        try:
+            await callback.answer()
+        except:
+            pass
 
 
 @router.callback_query(F.data == "add_lot")

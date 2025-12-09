@@ -88,6 +88,18 @@ class Database:
                 )
             """)
 
+            # User Answers table (Questionnaire)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS user_answers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    question_slug TEXT NOT NULL,
+                    answer_data TEXT NOT NULL, -- JSON or comma-separated string
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (user_id)
+                )
+            """)
+
             await db.commit()
 
     # User methods
@@ -125,6 +137,30 @@ class Database:
         except Exception as e:
             print(f"Error updating points: {e}")
             return False
+
+    async def add_user_answer(self, user_id: int, question_slug: str, answer_data: str) -> bool:
+        """Add or update a user's answer to the questionnaire."""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                # specific logic to avoid duplicates for the same user/question
+                await db.execute("DELETE FROM user_answers WHERE user_id = ? AND question_slug = ?", (user_id, question_slug))
+                await db.execute("""
+                    INSERT INTO user_answers (user_id, question_slug, answer_data)
+                    VALUES (?, ?, ?)
+                """, (user_id, question_slug, answer_data))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error adding user answer: {e}")
+            return False
+
+    async def get_user_answers(self, user_id: int) -> List[Dict]:
+        """Get all answers for a user."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM user_answers WHERE user_id = ?", (user_id,)) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
 
     async def get_users_by_city(self, city: str) -> List[Dict]:
         """Get all users in a specific city"""

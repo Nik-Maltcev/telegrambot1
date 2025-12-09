@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class AddLot(StatesGroup):
+    selecting_type = State()
     lot_type = State()
     title = State()
     description = State()
@@ -123,7 +124,17 @@ async def start_add_lot(callback: CallbackQuery, state: FSMContext):
         "What would you like to add?",
         reply_markup=get_create_lot_type_keyboard()
     )
+    await state.set_state(AddLot.selecting_type)
     await callback.answer()
+
+
+@router.message(AddLot.selecting_type)
+async def warning_select_type(message: Message):
+    """Warn user to select type first if they try to type"""
+    await message.answer(
+        "⚠️ Please select **I Share** or **I Seek** using the buttons above first.",
+        reply_markup=get_create_lot_type_keyboard()
+    )
 
 
 @router.callback_query(F.data.startswith("create_lot:"))

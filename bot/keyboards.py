@@ -57,12 +57,25 @@ def get_cancel_keyboard() -> ReplyKeyboardMarkup:
 def get_cities_keyboard() -> InlineKeyboardMarkup:
     """Keyboard with city buttons"""
     cities = [
-        "Paris", "Berlin", "New York", "Lisbon", "Amsterdam", "Budapest",
-        "Bangkok", "Tokyo", "Barcelona", "Istanbul", "London", "Warsaw", "Minsk"
+        "New York", "Los Angeles", "San Francisco", "Miami",
+        "London", "Paris", "Berlin", "Hamburg", "Amsterdam",
+        "Milan", "Rome", "Barcelona", "Copenhagen", "Stockholm", "Lisbon",
+        "Vienna", "Zurich", "Prague", "Budapest", "Warsaw", "Moscow",
+        "Bangkok", "Singapore", "Hong Kong", "Tokyo", "Seoul",
+        "Shanghai", "Beijing", "Dubai",
+        "Sydney", "Melbourne",
+        "Mexico City", "São Paulo", "Buenos Aires", "Rio de Janeiro",
+        "Tel Aviv", "Istanbul"
     ]
     builder = InlineKeyboardBuilder()
-    for city in cities:
-        builder.row(InlineKeyboardButton(text=city, callback_data=f"city:{city}"))
+    # Create rows with 2 columns for better visibility
+    for i in range(0, len(cities), 2):
+        row_btns = []
+        row_btns.append(InlineKeyboardButton(text=cities[i], callback_data=f"city:{cities[i]}"))
+        if i + 1 < len(cities):
+            row_btns.append(InlineKeyboardButton(text=cities[i+1], callback_data=f"city:{cities[i+1]}"))
+        builder.row(*row_btns)
+
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_main_menu"))
     return builder.as_markup()
 

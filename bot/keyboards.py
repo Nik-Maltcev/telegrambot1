@@ -1,7 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from typing import List
+from typing import List, Dict, Set
 from bot.config import ADMIN_IDS
+from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, RESULT_TYPES
 
 
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -207,3 +208,51 @@ def get_menu_keyboard(user_id: int) -> ReplyKeyboardMarkup:
     if user_id in ADMIN_IDS:
         return get_admin_menu_keyboard()
     return get_main_menu_keyboard()
+
+
+# --- Questionnaire Keyboards ---
+
+def get_skill_categories_keyboard() -> InlineKeyboardMarkup:
+    """Keyboard for selecting skill category (Single Choice)"""
+    builder = InlineKeyboardBuilder()
+    for key, data in SKILL_CATEGORIES.items():
+        # Truncate long names if necessary or use code
+        text = f"{key}. {data['name']}"
+        builder.row(InlineKeyboardButton(text=text, callback_data=f"q_cat:{key}"))
+
+    return builder.as_markup()
+
+def get_skill_items_keyboard(category_key: str, selected: Set[str]) -> InlineKeyboardMarkup:
+    """Keyboard for selecting skill items (Multiple Choice)"""
+    builder = InlineKeyboardBuilder()
+    items = SKILL_CATEGORIES.get(category_key, {}).get("items", [])
+
+    for item in items:
+        is_selected = item in selected
+        text = f"{'✅' if is_selected else '⬜️'} {item}"
+        # Store index to save space in callback data, or use hash?
+        # Using simplified slug or index might be risky if list changes.
+        # Let's try to use short identifier.
+        # Actually, callback_data limit is 64 chars. Some items are long.
+        # We need a way to map them.
+        import hashlib
+        item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
+        builder.row(InlineKeyboardButton(text=text, callback_data=f"q_item:{item_hash}"))
+
+    builder.row(InlineKeyboardButton(text="🆗 Done", callback_data="q_item_done"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="q_back_cat"))
+    return builder.as_markup()
+
+def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str, done_callback: str) -> InlineKeyboardMarkup:
+    """Generic multiselect keyboard"""
+    builder = InlineKeyboardBuilder()
+    import hashlib
+
+    for item in options:
+        is_selected = item in selected
+        text = f"{'✅' if is_selected else '⬜️'} {item}"
+        item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
+        builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
+
+    builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    return builder.as_markup()

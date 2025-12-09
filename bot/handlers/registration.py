@@ -60,27 +60,18 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
         # Start registration flow - video intro
         video_url = "https://www.youtube.com/watch?v=z1MgFIpSqJk&list=RDz1MgFIpSqJk&start_radio=1"
-        try:
-             await message.answer_video(
-                video=video_url,
-                caption=(
-                    "👋 Welcome to JOYSEEKERS!\n\n"
-                    "This is a closed international community for talented, successful, "
-                    "and aspiring people who are ready to share their resources and skills "
-                    "on a voluntary basis.\n\n"
-                    "Let's get you registered!\n\n"
-                    "Please enter your name:"
-                ),
-                reply_markup=get_cancel_keyboard()
-            )
-        except Exception:
-             # Fallback if video fails
-             await message.answer(
-                "👋 Welcome to the Community!\n\n"
-                "Let's get you registered!\n\n"
-                "Please enter your name:",
-                reply_markup=get_cancel_keyboard()
-             )
+
+        # Use simple message with link instead of video to avoid API errors
+        await message.answer(
+            f"👋 Welcome to JOYSEEKERS!\n\n"
+            f"Watch our intro: {video_url}\n\n"
+            "This is a closed international community for talented, successful, "
+            "and aspiring people who are ready to share their resources and skills "
+            "on a voluntary basis.\n\n"
+            "Let's get you registered!\n\n"
+            "Please enter your name:",
+            reply_markup=get_cancel_keyboard()
+        )
 
         await state.set_state(Registration.name)
 

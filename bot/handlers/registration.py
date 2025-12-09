@@ -35,6 +35,7 @@ class Registration(StatesGroup):
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext, db: Database):
     """Handle /start command"""
+    await state.clear()
     user = await db.get_user(message.from_user.id)
 
     if user:

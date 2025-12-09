@@ -63,7 +63,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
              await message.answer_video(
                 video=video_url,
                 caption=(
-                    "👋 Welcome to the Community!\n\n"
+                    "👋 Welcome to JOYSEEKERS!\n\n"
                     "This is a closed international community for talented, successful, "
                     "and aspiring people who are ready to share their resources and skills "
                     "on a voluntary basis.\n\n"
@@ -426,8 +426,13 @@ async def process_invite_code(message: Message, state: FSMContext, db: Database)
         keyboard = get_admin_menu_keyboard() if is_admin else get_main_menu_keyboard()
 
         await message.answer(
-            f"🎉 **Registration Successful!**\n\n"
-            f"Welcome to the community, {data.get('name')}!",
+            f"Registration completed!\n\n"
+            f"﹡Name - {data.get('name')}\n"
+            f"﹡Main City - {data.get('main_city')}\n"
+            f"﹡Current City - {data.get('current_city')}\n"
+            f"﹡About - {data.get('about')}\n"
+            f"﹡Instagram - @{data.get('instagram') if data.get('instagram') else 'Not provided'}\n"
+            f"Points: 0",
             reply_markup=keyboard
         )
     else:

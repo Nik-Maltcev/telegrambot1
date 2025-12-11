@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
@@ -13,6 +13,32 @@ from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, 
 import json
 
 router = Router()
+
+
+@router.message(Command("cancel"))
+async def cmd_cancel(message: Message, state: FSMContext, db: Database):
+    """Cancel current operation and return to menu"""
+    await state.clear()
+    user = await db.get_user(message.from_user.id)
+    
+    if user:
+        is_admin = message.from_user.id in ADMIN_IDS
+        keyboard = get_admin_menu_keyboard() if is_admin else get_main_menu_keyboard()
+        await message.answer("✅ Operation cancelled. Back to menu.", reply_markup=keyboard)
+    else:
+        await message.answer("Operation cancelled. Use /start to register.")
+
+
+@router.message(Command("myid"))
+async def cmd_myid(message: Message):
+    """Show user's Telegram ID"""
+    await message.answer(
+        f"Your Telegram ID: `{message.from_user.id}`\n\n"
+        f"Admin IDs configured: {ADMIN_IDS}\n"
+        f"You are admin: {message.from_user.id in ADMIN_IDS}",
+        parse_mode="Markdown"
+    )
+
 
 class Registration(StatesGroup):
     name = State()

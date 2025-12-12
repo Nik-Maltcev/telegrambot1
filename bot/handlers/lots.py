@@ -9,8 +9,10 @@ from bot.keyboards import (
     get_add_lot_keyboard,
     get_create_lot_type_keyboard,
     get_cancel_keyboard,
-    get_menu_keyboard
+    get_menu_keyboard,
+    get_lot_moderation_keyboard
 )
+from bot.config import ADMIN_IDS
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -66,12 +68,22 @@ async def show_user_lots(callback: CallbackQuery, db: Database):
                 description = lot.get('description', '')
                 created_at = lot.get('created_at', '')
                 date_str = created_at[:10] if created_at else 'Unknown'
+                status = lot.get('status', 'approved')
+
+                # Status indicator
+                if status == 'pending':
+                    status_text = "⏳ Pending"
+                elif status == 'approved':
+                    status_text = "✅ Approved"
+                else:
+                    status_text = "❌ Rejected"
 
                 lots_text += (
                     f"━━━━━━━━━━━━━━━\n"
                     f"📌 {title}\n"
                     f"📝 {description}\n"
-                    f"📅 Added: {date_str}\n\n"
+                    f"📅 Added: {date_str}\n"
+                    f"Status: {status_text}\n\n"
                 )
 
             if len(lots_text) > 4096:
@@ -203,25 +215,48 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
     data = await state.get_data()
     description = message.text
 
-    success = await db.add_lot(
+    # Save lot with pending status
+    lot_id = await db.add_lot(
         user_id=message.from_user.id,
         lot_type=data['lot_type'],
         title=data['title'],
-        description=description
+        description=description,
+        status="pending"
     )
 
     await state.clear()
 
-    if success:
+    if lot_id:
         type_emoji = "🎁" if data['lot_type'] == "share" else "🔍"
-        # Restore Main Menu first
+        type_name = "Share" if data['lot_type'] == "share" else "Seek"
+
+        # Notify user
         await message.answer(
-            f"✅ New lot added successfully!\n\n"
+            f"✅ Lot submitted for moderation!\n\n"
             f"{type_emoji} **{data['title']}**\n"
-            f"{description}",
+            f"{description}\n\n"
+            f"⏳ An admin will review your lot soon.",
             reply_markup=get_menu_keyboard(message.from_user.id)
         )
-        # Then show lots menu again
+
+        # Notify admins
+        from bot.main import bot
+        user = await db.get_user(message.from_user.id)
+        for admin_id in ADMIN_IDS:
+            try:
+                await bot.send_message(
+                    admin_id,
+                    f"🆕 New lot pending moderation!\n\n"
+                    f"👤 From: {user['name']} (@{message.from_user.username or 'no username'})\n"
+                    f"📋 Type: {type_emoji} {type_name}\n\n"
+                    f"📌 Title: {data['title']}\n"
+                    f"📝 Description: {description}",
+                    reply_markup=get_lot_moderation_keyboard(lot_id)
+                )
+            except Exception:
+                pass  # Admin might have blocked the bot
+
+        # Show lots menu
         await message.answer(
             "🎯 Lots\n\n"
             "Here you can manage what you share and what you're looking for.\n\n"
@@ -229,12 +264,10 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
             reply_markup=get_lots_type_keyboard()
         )
     else:
-        # Restore Main Menu first
         await message.answer(
             "❌ Failed to add lot. Please try again.",
             reply_markup=get_menu_keyboard(message.from_user.id)
         )
-        # Then show lots menu again
         await message.answer(
             "🎯 Lots\n\n"
             "Here you can manage what you share and what you're looking for.\n\n"

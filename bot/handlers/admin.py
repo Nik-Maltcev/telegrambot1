@@ -10,7 +10,8 @@ from bot.keyboards import (
     get_admin_panel_keyboard,
     get_confirmation_keyboard,
     get_cancel_keyboard,
-    get_menu_keyboard
+    get_menu_keyboard,
+    get_lot_moderation_keyboard
 )
 from bot.config import ADMIN_IDS
 
@@ -326,3 +327,182 @@ async def generate_token(callback: CallbackQuery, db: Database):
         await callback.message.answer("❌ Failed to generate a new token.")
 
     await callback.answer()
+
+
+# --- Lot Moderation ---
+
+@router.callback_query(F.data == "admin:lots")
+async def show_pending_lots(callback: CallbackQuery, db: Database):
+    """Show pending lots for moderation"""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+
+    lots = await db.get_pending_lots()
+
+    if not lots:
+        await callback.message.answer(
+            "🎯 Lot Moderation\n\n"
+            "✅ No pending lots to moderate!"
+        )
+        await callback.answer()
+        return
+
+    # Show first pending lot
+    lot = lots[0]
+    type_emoji = "🎁" if lot['type'] == "share" else "🔍"
+    type_name = "Share" if lot['type'] == "share" else "Seek"
+
+    await callback.message.answer(
+        f"🎯 Lot Moderation ({len(lots)} pending)\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"👤 From: {lot['user_name']} (@{lot['username'] or 'no username'})\n"
+        f"📋 Type: {type_emoji} {type_name}\n\n"
+        f"📌 Title: {lot['title']}\n"
+        f"📝 Description: {lot['description']}\n"
+        f"📅 Created: {lot['created_at'][:10]}",
+        reply_markup=get_lot_moderation_keyboard(lot['id'])
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:lots_next")
+async def show_next_pending_lot(callback: CallbackQuery, db: Database):
+    """Show next pending lot"""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+
+    lots = await db.get_pending_lots()
+
+    if not lots:
+        await callback.message.edit_text(
+            "🎯 Lot Moderation\n\n"
+            "✅ No more pending lots!"
+        )
+        await callback.answer()
+        return
+
+    lot = lots[0]
+    type_emoji = "🎁" if lot['type'] == "share" else "🔍"
+    type_name = "Share" if lot['type'] == "share" else "Seek"
+
+    await callback.message.edit_text(
+        f"🎯 Lot Moderation ({len(lots)} pending)\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"👤 From: {lot['user_name']} (@{lot['username'] or 'no username'})\n"
+        f"📋 Type: {type_emoji} {type_name}\n\n"
+        f"📌 Title: {lot['title']}\n"
+        f"📝 Description: {lot['description']}\n"
+        f"📅 Created: {lot['created_at'][:10]}",
+        reply_markup=get_lot_moderation_keyboard(lot['id'])
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("lot:approve:"))
+async def approve_lot(callback: CallbackQuery, db: Database):
+    """Approve a lot"""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+
+    lot_id = int(callback.data.split(":")[2])
+    lot = await db.get_lot(lot_id)
+
+    if not lot:
+        await callback.answer("Lot not found", show_alert=True)
+        return
+
+    await db.update_lot_status(lot_id, "approved")
+
+    # Notify user
+    from bot.main import bot
+    try:
+        await bot.send_message(
+            lot['user_id'],
+            f"✅ Your lot has been approved!\n\n"
+            f"📌 {lot['title']}\n\n"
+            f"It's now visible to other community members."
+        )
+    except Exception:
+        pass  # User might have blocked the bot
+
+    await callback.answer("✅ Lot approved!", show_alert=True)
+
+    # Show next lot
+    lots = await db.get_pending_lots()
+    if lots:
+        lot = lots[0]
+        type_emoji = "🎁" if lot['type'] == "share" else "🔍"
+        type_name = "Share" if lot['type'] == "share" else "Seek"
+
+        await callback.message.edit_text(
+            f"🎯 Lot Moderation ({len(lots)} pending)\n\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"👤 From: {lot['user_name']} (@{lot['username'] or 'no username'})\n"
+            f"📋 Type: {type_emoji} {type_name}\n\n"
+            f"📌 Title: {lot['title']}\n"
+            f"📝 Description: {lot['description']}\n"
+            f"📅 Created: {lot['created_at'][:10]}",
+            reply_markup=get_lot_moderation_keyboard(lot['id'])
+        )
+    else:
+        await callback.message.edit_text(
+            "🎯 Lot Moderation\n\n"
+            "✅ No more pending lots!"
+        )
+
+
+@router.callback_query(F.data.startswith("lot:reject:"))
+async def reject_lot(callback: CallbackQuery, db: Database):
+    """Reject a lot"""
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+
+    lot_id = int(callback.data.split(":")[2])
+    lot = await db.get_lot(lot_id)
+
+    if not lot:
+        await callback.answer("Lot not found", show_alert=True)
+        return
+
+    await db.update_lot_status(lot_id, "rejected")
+
+    # Notify user
+    from bot.main import bot
+    try:
+        await bot.send_message(
+            lot['user_id'],
+            f"❌ Your lot was not approved.\n\n"
+            f"📌 {lot['title']}\n\n"
+            f"Please review our guidelines and try again."
+        )
+    except Exception:
+        pass
+
+    await callback.answer("❌ Lot rejected", show_alert=True)
+
+    # Show next lot
+    lots = await db.get_pending_lots()
+    if lots:
+        lot = lots[0]
+        type_emoji = "🎁" if lot['type'] == "share" else "🔍"
+        type_name = "Share" if lot['type'] == "share" else "Seek"
+
+        await callback.message.edit_text(
+            f"🎯 Lot Moderation ({len(lots)} pending)\n\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"👤 From: {lot['user_name']} (@{lot['username'] or 'no username'})\n"
+            f"📋 Type: {type_emoji} {type_name}\n\n"
+            f"📌 Title: {lot['title']}\n"
+            f"📝 Description: {lot['description']}\n"
+            f"📅 Created: {lot['created_at'][:10]}",
+            reply_markup=get_lot_moderation_keyboard(lot['id'])
+        )
+    else:
+        await callback.message.edit_text(
+            "🎯 Lot Moderation\n\n"
+            "✅ No more pending lots!"
+        )

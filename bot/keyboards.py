@@ -176,11 +176,23 @@ def get_admin_panel_keyboard() -> InlineKeyboardMarkup:
     """Admin panel keyboard"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="👥 Manage Users", callback_data="admin:users"))
+    builder.row(InlineKeyboardButton(text="🎯 Moderate Lots", callback_data="admin:lots"))
     builder.row(InlineKeyboardButton(text="📦 Manage Resources", callback_data="admin:resources"))
     builder.row(InlineKeyboardButton(text="🗂 Manage Open Resources", callback_data="admin:open_resources"))
     builder.row(InlineKeyboardButton(text="💰 Manage Points", callback_data="admin:points"))
     builder.row(InlineKeyboardButton(text="🔑 Generate Invite Token", callback_data="admin:generate_token"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
+    return builder.as_markup()
+
+
+def get_lot_moderation_keyboard(lot_id: int) -> InlineKeyboardMarkup:
+    """Keyboard for lot moderation"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="✅ Approve", callback_data=f"lot:approve:{lot_id}"),
+        InlineKeyboardButton(text="❌ Reject", callback_data=f"lot:reject:{lot_id}")
+    )
+    builder.row(InlineKeyboardButton(text="⏭ Skip", callback_data="admin:lots_next"))
     return builder.as_markup()
 
 

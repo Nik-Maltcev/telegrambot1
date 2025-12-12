@@ -47,10 +47,17 @@ class Database:
                     type TEXT NOT NULL,  -- 'share' or 'seek'
                     title TEXT NOT NULL,
                     description TEXT,
+                    status TEXT DEFAULT 'pending',  -- 'pending', 'approved', 'rejected'
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users (user_id)
                 )
             """)
+            
+            # Add status column if not exists (migration for existing DBs)
+            try:
+                await db.execute("ALTER TABLE lots ADD COLUMN status TEXT DEFAULT 'approved'")
+            except:
+                pass  # Column already exists
 
             # Open resources table (maps, accesses, specialists)
             await db.execute("""
@@ -223,22 +230,22 @@ class Database:
 
     # Lot methods
     async def add_lot(self, user_id: int, lot_type: str, title: str,
-                     description: str) -> bool:
-        """Add new lot (share or seek)"""
+                     description: str, status: str = "pending") -> Optional[int]:
+        """Add new lot (share or seek), returns lot ID"""
         try:
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute("""
-                    INSERT INTO lots (user_id, type, title, description)
-                    VALUES (?, ?, ?, ?)
-                """, (user_id, lot_type, title, description))
+                cursor = await db.execute("""
+                    INSERT INTO lots (user_id, type, title, description, status)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (user_id, lot_type, title, description, status))
                 await db.commit()
-            return True
+                return cursor.lastrowid
         except Exception as e:
             print(f"Error adding lot: {e}")
-            return False
+            return None
 
     async def get_user_lots(self, user_id: int, lot_type: str) -> List[Dict]:
-        """Get user lots by type (share or seek)"""
+        """Get user lots by type (share or seek) - shows all statuses for owner"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("""
@@ -248,6 +255,42 @@ class Database:
             """, (user_id, lot_type)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    async def get_lot(self, lot_id: int) -> Optional[Dict]:
+        """Get lot by ID"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM lots WHERE id = ?", (lot_id,)) as cursor:
+                row = await cursor.fetchone()
+                return dict(row) if row else None
+
+    async def get_pending_lots(self) -> List[Dict]:
+        """Get all pending lots for moderation"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT l.*, u.name as user_name, u.username
+                FROM lots l
+                JOIN users u ON l.user_id = u.user_id
+                WHERE l.status = 'pending'
+                ORDER BY l.created_at ASC
+            """) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def update_lot_status(self, lot_id: int, status: str) -> bool:
+        """Update lot status (approve/reject)"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute(
+                    "UPDATE lots SET status = ? WHERE id = ?",
+                    (status, lot_id)
+                )
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating lot status: {e}")
+            return False
 
     async def delete_lot(self, lot_id: int, user_id: int) -> bool:
         """Delete lot if it belongs to user"""

@@ -179,12 +179,24 @@ async def process_instagram(message: Message, state: FSMContext):
     await state.update_data(instagram=instagram)
 
     # Transition to Questionnaire
-    await message.answer(
-        "🩵 Now, let's fill out your Professional Profile (Skills & Knowledge).\n"
-        "This helps us integrate you into the community resource database.\n\n"
-        "Please select your **Category of Expertise**:",
-        reply_markup=get_skill_categories_keyboard()
+    skills_intro = (
+        "🩵 Skills and Knowledge\n\n"
+        "Please provide information about the skills, knowledge, and professional abilities "
+        "you are willing to share with the community — whether it's yoga teaching, photography, "
+        "design, coding, business strategy, breathwork, writing, marketing, sound healing, "
+        "or anything else you've mastered.\n\n"
+        "Each of us carries unique mastery: something we do naturally, deeply, and with love. "
+        "Here you can list the areas where you can:\n"
+        "• give a thoughtful consultation,\n"
+        "• teach your skill or method,\n"
+        "• guide someone through a process,\n"
+        "• create or deliver a clear final result,\n"
+        "• or complete a project fully \"turnkey.\"\n\n"
+        "Please share only the skills in which you feel confident and capable of supporting others "
+        "on a real, professional level.\n\n"
+        "1. Select your Category of Expertise:"
     )
+    await message.answer(skills_intro, reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
 
 
@@ -260,8 +272,13 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     selected = set(data.get("selected_offer_formats", []))
 
+    formats_text = (
+        "2. Formats You Offer\n\n"
+        "Select the formats in which you can share your expertise "
+        "(you can select multiple):"
+    )
     await callback.message.edit_text(
-        "2. Formats You Offer (Select multiple):",
+        formats_text,
         reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done")
     )
     await state.set_state(Registration.offer_formats)
@@ -302,8 +319,15 @@ async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     selected = set(data.get("selected_interaction_formats", []))
 
+    interaction_text = (
+        "3. Interaction Format\n\n"
+        "How do you prefer to interact with community members?\n"
+        "• Online\n"
+        "• Offline\n"
+        "• Both"
+    )
     await callback.message.edit_text(
-        "3. Interaction Format:",
+        interaction_text,
         reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done")
     )
     await state.set_state(Registration.interaction_format)
@@ -343,8 +367,18 @@ async def finish_interaction_formats(callback: CallbackQuery, state: FSMContext)
     data = await state.get_data()
     selected = set(data.get("selected_result_types", []))
 
+    result_text = (
+        "4. Type of Result\n\n"
+        "What kind of result can you deliver?\n"
+        "• Clear final result (design, project, strategy, plan)\n"
+        "• Practical skill\n"
+        "• Learning / skill improvement\n"
+        "• Support and guidance\n"
+        "• 1:1 consultation\n"
+        "• Other form of result"
+    )
     await callback.message.edit_text(
-        "4. Type of Result:",
+        result_text,
         reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done")
     )
     await state.set_state(Registration.result_type)

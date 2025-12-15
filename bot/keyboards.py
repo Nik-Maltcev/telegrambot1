@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Any
 from bot.config import ADMIN_IDS
 from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, RESULT_TYPES
 
@@ -267,4 +267,84 @@ def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str
         builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
 
     builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    return builder.as_markup()
+
+
+def get_single_select_keyboard(options: List[str], prefix: str, back_callback: str = None) -> InlineKeyboardMarkup:
+    """Generic single select keyboard"""
+    builder = InlineKeyboardBuilder()
+    import hashlib
+
+    for item in options:
+        item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
+        builder.row(InlineKeyboardButton(text=item, callback_data=f"{prefix}:{item_hash}"))
+
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
+def get_skip_keyboard(skip_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
+    """Keyboard with skip option"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="⏭ Skip this section", callback_data=skip_callback))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
+def get_section_intro_keyboard(start_callback: str, skip_callback: str) -> InlineKeyboardMarkup:
+    """Keyboard for section intro with start/skip options"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="✅ Fill this section", callback_data=start_callback))
+    builder.row(InlineKeyboardButton(text="⏭ Skip", callback_data=skip_callback))
+    return builder.as_markup()
+
+
+def get_cities_select_keyboard(prefix: str, done_callback: str = None) -> InlineKeyboardMarkup:
+    """Keyboard for city selection"""
+    from bot.form_data import CITIES
+    builder = InlineKeyboardBuilder()
+    import hashlib
+
+    # Create rows with 2 columns
+    for i in range(0, len(CITIES), 2):
+        row_btns = []
+        city_hash = hashlib.md5(CITIES[i].encode()).hexdigest()[:8]
+        row_btns.append(InlineKeyboardButton(text=CITIES[i], callback_data=f"{prefix}:{city_hash}"))
+        if i + 1 < len(CITIES):
+            city_hash2 = hashlib.md5(CITIES[i+1].encode()).hexdigest()[:8]
+            row_btns.append(InlineKeyboardButton(text=CITIES[i+1], callback_data=f"{prefix}:{city_hash2}"))
+        builder.row(*row_btns)
+
+    if done_callback:
+        builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    return builder.as_markup()
+
+
+def get_category_keyboard(categories: Dict, prefix: str, back_callback: str = None) -> InlineKeyboardMarkup:
+    """Keyboard for category selection (like intro_categories, specialist_categories)"""
+    builder = InlineKeyboardBuilder()
+    for key, data in categories.items():
+        builder.row(InlineKeyboardButton(text=data['name'], callback_data=f"{prefix}:{key}"))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
+def get_category_items_keyboard(category_key: str, categories: Dict, selected: Set[str], prefix: str, done_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
+    """Keyboard for selecting items within a category"""
+    builder = InlineKeyboardBuilder()
+    import hashlib
+    items = categories.get(category_key, {}).get("items", [])
+
+    for item in items:
+        is_selected = item in selected
+        text = f"{'✅' if is_selected else '⬜️'} {item}"
+        item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
+        builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
+
+    builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()

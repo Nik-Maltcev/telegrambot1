@@ -30,7 +30,6 @@ RESOURCE_CATEGORIES = [
     "Boats",
     "Equipment",
     "Skills and Knowledge",
-    "Experience and Time",
     "Unique Opportunities",
     "Works of Art",
     "Personal Introduction to Specific Circles"

@@ -193,8 +193,8 @@ async def process_name(message: Message, state: FSMContext):
 @router.message(Registration.main_city, F.text)
 async def process_main_city(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await state.clear()
-        await message.answer("Registration cancelled.", reply_markup=None)
+        await state.set_state(Registration.name)
+        await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
         return
     await state.update_data(main_city=message.text)
     await message.answer("Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•", reply_markup=get_cancel_keyboard())
@@ -204,8 +204,8 @@ async def process_main_city(message: Message, state: FSMContext):
 @router.message(Registration.about, F.text)
 async def process_about(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await state.clear()
-        await message.answer("Registration cancelled.", reply_markup=None)
+        await state.set_state(Registration.main_city)
+        await message.answer("Great! Now, please enter the city where you are usually located:", reply_markup=get_cancel_keyboard())
         return
     await state.update_data(about=message.text)
     await message.answer("What is your current city?", reply_markup=get_cancel_keyboard())
@@ -215,8 +215,8 @@ async def process_about(message: Message, state: FSMContext):
 @router.message(Registration.current_city, F.text)
 async def process_current_city(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await state.clear()
-        await message.answer("Registration cancelled.", reply_markup=None)
+        await state.set_state(Registration.about)
+        await message.answer("Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•", reply_markup=get_cancel_keyboard())
         return
     await state.update_data(current_city=message.text)
     await message.answer("Please enter your Instagram username (or send '-' if you don't have one):", reply_markup=get_cancel_keyboard())
@@ -226,8 +226,8 @@ async def process_current_city(message: Message, state: FSMContext):
 @router.message(Registration.instagram, F.text)
 async def process_instagram(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await state.clear()
-        await message.answer("Registration cancelled.", reply_markup=None)
+        await state.set_state(Registration.current_city)
+        await message.answer("What is your current city?", reply_markup=get_cancel_keyboard())
         return
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)

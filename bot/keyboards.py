@@ -90,7 +90,6 @@ def get_resource_categories_keyboard() -> InlineKeyboardMarkup:
         ("⛵ Boats", "res_cat:Boats"),
         ("🔧 Equipment", "res_cat:Equipment"),
         ("🎓 Skills and Knowledge", "res_cat:Skills and Knowledge"),
-        ("⏰ Experience and Time", "res_cat:Experience and Time"),
         ("✨ Unique Opportunities", "res_cat:Unique Opportunities"),
         ("🎨 Works of Art", "res_cat:Works of Art"),
         ("🤝 Personal Introduction", "res_cat:Personal Introduction to Specific Circles"),
@@ -301,20 +300,31 @@ def get_section_intro_keyboard(start_callback: str, skip_callback: str) -> Inlin
     return builder.as_markup()
 
 
-def get_cities_select_keyboard(prefix: str, done_callback: str = None) -> InlineKeyboardMarkup:
-    """Keyboard for city selection"""
+def get_cities_select_keyboard(prefix: str, done_callback: str = None, selected: Set[str] = None) -> InlineKeyboardMarkup:
+    """Keyboard for city selection with multi-select support"""
     from bot.form_data import CITIES
     builder = InlineKeyboardBuilder()
     import hashlib
 
+    selected = selected or set()
+
     # Create rows with 2 columns
     for i in range(0, len(CITIES), 2):
         row_btns = []
-        city_hash = hashlib.md5(CITIES[i].encode()).hexdigest()[:8]
-        row_btns.append(InlineKeyboardButton(text=CITIES[i], callback_data=f"{prefix}:{city_hash}"))
+
+        city1 = CITIES[i]
+        is_selected1 = city1 in selected
+        text1 = f"{'✅ ' if is_selected1 else ''}{city1}"
+        city_hash1 = hashlib.md5(city1.encode()).hexdigest()[:8]
+        row_btns.append(InlineKeyboardButton(text=text1, callback_data=f"{prefix}:{city_hash1}"))
+
         if i + 1 < len(CITIES):
-            city_hash2 = hashlib.md5(CITIES[i+1].encode()).hexdigest()[:8]
-            row_btns.append(InlineKeyboardButton(text=CITIES[i+1], callback_data=f"{prefix}:{city_hash2}"))
+            city2 = CITIES[i+1]
+            is_selected2 = city2 in selected
+            text2 = f"{'✅ ' if is_selected2 else ''}{city2}"
+            city_hash2 = hashlib.md5(city2.encode()).hexdigest()[:8]
+            row_btns.append(InlineKeyboardButton(text=text2, callback_data=f"{prefix}:{city_hash2}"))
+
         builder.row(*row_btns)
 
     if done_callback:

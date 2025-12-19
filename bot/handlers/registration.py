@@ -65,7 +65,6 @@ class Registration(StatesGroup):
     name = State()
     main_city = State()
     about = State()
-    # current_city removed
     instagram = State()
 
     # Skills section
@@ -175,7 +174,9 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             # Specialists list initialization
             specialists_list=[],
             # Aircraft types multi-select
-            selected_aircraft_types=[]
+            selected_aircraft_types=[],
+            # Vessel types multi-select
+            selected_vessel_types=[]
         )
 
         intro_text = (
@@ -247,7 +248,12 @@ async def process_instagram(message: Message, state: FSMContext):
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)
 
-    # Clear reply keyboard
+    # We remove the keyboard for processing, but immediately show inline keyboard for next step.
+    # The user asked for "Back" button on every question.
+    # For inline keyboards, we implement "Back" in the keyboard itself.
+    # We don't send ReplyKeyboardRemove because we want the user to be able to use standard keyboard if needed?
+    # No, skills selection is inline.
+
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
 
     skills_intro = (
@@ -259,8 +265,12 @@ async def process_instagram(message: Message, state: FSMContext):
         "• teach your skill or method\n"
         "• guide someone through a process\n"
         "• create or deliver a clear final result\n\n"
-        "Select your Category of Expertise:"
+        "Select your Category of Expertise: You may select multiple options across different categories."
     )
+    # No back button here because previous step was text input.
+    # But wait, user might want to go back to Instagram input?
+    # The current library setup for get_skill_categories_keyboard doesn't take back_callback.
+    # We should add it.
     await message.answer(skills_intro, reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
 
@@ -302,7 +312,7 @@ async def process_skill_item_toggle(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.skill_items, F.data == "q_back_cat")
 async def back_to_categories(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Select your Category of Expertise:", reply_markup=get_skill_categories_keyboard())
+    await callback.message.edit_text("Select your Category of Expertise: You may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
     await callback.answer()
 
@@ -318,9 +328,16 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_offer_formats", []))
     await callback.message.edit_text(
         "Formats You Offer\n\nSelect the formats in which you can share your expertise (you can select multiple):",
-        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done")
+        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
     )
     await state.set_state(Registration.offer_formats)
+    await callback.answer()
+
+# Back from offer formats
+@router.callback_query(Registration.offer_formats, F.data == "q_fmt_back")
+async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Select your Category of Expertise: You may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
+    await state.set_state(Registration.skill_category)
     await callback.answer()
 
 
@@ -336,7 +353,7 @@ async def toggle_offer_format(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_offer_formats=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back"))
     await callback.answer()
 
 
@@ -351,9 +368,20 @@ async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_interaction_formats", []))
     await callback.message.edit_text(
         "Interaction Format\n\nHow do you prefer to interact with community members?",
-        reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done")
+        reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done", "q_int_back")
     )
     await state.set_state(Registration.interaction_format)
+    await callback.answer()
+
+@router.callback_query(Registration.interaction_format, F.data == "q_int_back")
+async def back_from_interaction_format(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_offer_formats", []))
+    await callback.message.edit_text(
+        "Formats You Offer\n\nSelect the formats in which you can share your expertise (you can select multiple):",
+        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
+    )
+    await state.set_state(Registration.offer_formats)
     await callback.answer()
 
 
@@ -369,7 +397,7 @@ async def toggle_interaction_format(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_interaction_formats=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done", "q_int_back"))
     await callback.answer()
 
 
@@ -384,9 +412,20 @@ async def finish_interaction_formats(callback: CallbackQuery, state: FSMContext)
     selected = set(data.get("selected_result_types", []))
     await callback.message.edit_text(
         "Type of Result\n\nWhat kind of result can you deliver?",
-        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done")
+        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
     )
     await state.set_state(Registration.result_type)
+    await callback.answer()
+
+@router.callback_query(Registration.result_type, F.data == "q_res_back")
+async def back_from_result_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_interaction_formats", []))
+    await callback.message.edit_text(
+        "Interaction Format\n\nHow do you prefer to interact with community members?",
+        reply_markup=get_multiselect_keyboard(INTERACTION_FORMATS, selected, "q_int", "q_int_done", "q_int_back")
+    )
+    await state.set_state(Registration.interaction_format)
     await callback.answer()
 
 
@@ -402,7 +441,7 @@ async def toggle_result_type(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_result_types=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back"))
     await callback.answer()
 
 
@@ -422,8 +461,19 @@ async def finish_skills_section(callback: CallbackQuery, state: FSMContext):
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
         "Sharing information about them does not commit you to making an introduction."
     )
-    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip"))
+    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
     await state.set_state(Registration.intro_section)
+    await callback.answer()
+
+@router.callback_query(Registration.intro_section, F.data == "intro_sec_back")
+async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_result_types", []))
+    await callback.message.edit_text(
+        "Type of Result\n\nWhat kind of result can you deliver?",
+        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+    )
+    await state.set_state(Registration.result_type)
     await callback.answer()
 
 
@@ -438,7 +488,7 @@ async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
     )
-    await callback.message.edit_text(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip"))
+    await callback.message.edit_text(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip", "re_sec_back"))
     await state.set_state(Registration.real_estate_section)
     await callback.answer()
 
@@ -447,9 +497,22 @@ async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
 async def start_intro_section(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         "Select the category of people you can introduce:",
-        reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat")
+        reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back")
     )
     await state.set_state(Registration.intro_category)
+    await callback.answer()
+
+@router.callback_query(Registration.intro_category, F.data == "intro_cat_back")
+async def back_to_intro_section(callback: CallbackQuery, state: FSMContext):
+    intro_text = (
+        "2|9 🩵 Personal Introductions to Key People\n\n"
+        "In almost every life story, there is a moment when someone opened a door for us.\n\n"
+        "Here, you can describe the key people in your orbit — founders, creators, innovators, "
+        "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
+        "Sharing information about them does not commit you to making an introduction."
+    )
+    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
+    await state.set_state(Registration.intro_section)
     await callback.answer()
 
 
@@ -490,7 +553,7 @@ async def toggle_intro_item(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.intro_items, F.data == "intro_back_cat")
 async def back_to_intro_categories(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Select the category of people you can introduce:", reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat"))
+    await callback.message.edit_text("Select the category of people you can introduce:", reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back"))
     await state.set_state(Registration.intro_category)
     await callback.answer()
 
@@ -502,13 +565,15 @@ async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
          await callback.answer("Please select at least one item.", show_alert=True)
          return
 
-    # Updated: Allow multiple location selection if desired, or keep single.
-    # For intro, single usually makes sense, but consistency suggests maybe multi?
-    # Prompt didn't specify for Intro, but said "Make multi selection for cities possible? If yes do it for resource sections".
-    # Intro is arguably a resource. Let's make it multi.
     selected = set(data.get("selected_intro_cities", []))
-    await callback.message.edit_text("Select your location:", reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected))
+    await callback.message.edit_text("Select your location:", reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected, "intro_city_back"))
     await state.set_state(Registration.intro_location)
+    await callback.answer()
+
+@router.callback_query(Registration.intro_location, F.data == "intro_city_back")
+async def back_from_intro_city(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Select the category of people you can introduce:", reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back"))
+    await state.set_state(Registration.intro_category)
     await callback.answer()
 
 
@@ -524,7 +589,7 @@ async def select_intro_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_intro_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected, "intro_city_back"))
     await callback.answer()
 
 
@@ -538,9 +603,17 @@ async def finish_intro_location(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_intro_formats", []))
     await callback.message.edit_text(
         "Intro Format\n\nSpecify the format of introduction you are comfortable with:",
-        reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done")
+        reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
     )
     await state.set_state(Registration.intro_format)
+    await callback.answer()
+
+@router.callback_query(Registration.intro_format, F.data == "intro_fmt_back")
+async def back_from_intro_format(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_intro_cities", []))
+    await callback.message.edit_text("Select your location:", reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected, "intro_city_back"))
+    await state.set_state(Registration.intro_location)
     await callback.answer()
 
 
@@ -556,7 +629,7 @@ async def toggle_intro_format(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_intro_formats=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back"))
     await callback.answer()
 
 
@@ -568,7 +641,7 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         return
 
     # Progress message
-    await callback.message.answer("wooo-hoo! \nyou’re doing great — already halfway there! 👏🏻 just a little more to go.")
+    await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
 
     # Move to Real Estate section
     real_estate_text = (
@@ -577,8 +650,20 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
     )
-    await callback.message.answer(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip"))
+    await callback.message.answer(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip", "re_sec_back"))
     await state.set_state(Registration.real_estate_section)
+    await callback.answer()
+
+@router.callback_query(Registration.real_estate_section, F.data == "re_sec_back")
+async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
+    # Go back to intro section last step
+    data = await state.get_data()
+    selected = set(data.get("selected_intro_formats", []))
+    await callback.message.edit_text(
+        "Intro Format\n\nSpecify the format of introduction you are comfortable with:",
+        reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
+    )
+    await state.set_state(Registration.intro_format)
     await callback.answer()
 
 
@@ -592,7 +677,7 @@ async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
     )
-    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip"))
+    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip", "cars_sec_back"))
     await state.set_state(Registration.cars_section)
     await callback.answer()
 
@@ -604,9 +689,21 @@ async def start_realestate_section(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_prop_cities", []))
     await callback.message.edit_text(
         "Location\n\nSelect your property location:",
-        reply_markup=get_cities_select_keyboard("prop_city", "prop_city_done", selected)
+        reply_markup=get_cities_select_keyboard("prop_city", "prop_city_done", selected, "prop_city_back")
     )
     await state.set_state(Registration.property_location)
+    await callback.answer()
+
+@router.callback_query(Registration.property_location, F.data == "prop_city_back")
+async def back_from_prop_city(callback: CallbackQuery, state: FSMContext):
+    real_estate_text = (
+        "3|9 🩵 Real Estate\n\n"
+        "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
+        "to host another resident in a separate room — this is where you can share it with the community.\n\n"
+        "Please list only the properties you are willing to share free of charge."
+    )
+    await callback.message.edit_text(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip", "re_sec_back"))
+    await state.set_state(Registration.real_estate_section)
     await callback.answer()
 
 
@@ -622,7 +719,7 @@ async def select_property_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_prop_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("prop_city", "prop_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("prop_city", "prop_city_done", selected, "prop_city_back"))
     await callback.answer()
 
 
@@ -636,9 +733,20 @@ async def finish_property_location(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_property_types", []))
     await callback.message.edit_text(
         "Type of Property\n\nPlease select:",
-        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done")
+        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
     )
     await state.set_state(Registration.property_type)
+    await callback.answer()
+
+@router.callback_query(Registration.property_type, F.data == "prop_type_back")
+async def back_from_prop_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_prop_cities", []))
+    await callback.message.edit_text(
+        "Location\n\nSelect your property location:",
+        reply_markup=get_cities_select_keyboard("prop_city", "prop_city_done", selected, "prop_city_back")
+    )
+    await state.set_state(Registration.property_location)
     await callback.answer()
 
 
@@ -654,7 +762,7 @@ async def toggle_property_type(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_property_types=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back"))
     await callback.answer()
 
 
@@ -667,9 +775,20 @@ async def finish_property_type(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         "Usage Format\n\nChoose the suitable option:",
-        reply_markup=get_single_select_keyboard(PROPERTY_USAGE_FORMAT, "prop_usage")
+        reply_markup=get_single_select_keyboard(PROPERTY_USAGE_FORMAT, "prop_usage", "prop_usage_back")
     )
     await state.set_state(Registration.property_usage)
+    await callback.answer()
+
+@router.callback_query(Registration.property_usage, F.data == "prop_usage_back")
+async def back_from_prop_usage(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_property_types", []))
+    await callback.message.edit_text(
+        "Type of Property\n\nPlease select:",
+        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
+    )
+    await state.set_state(Registration.property_type)
     await callback.answer()
 
 
@@ -681,9 +800,18 @@ async def select_property_usage(callback: CallbackQuery, state: FSMContext):
         await state.update_data(property_usage=target_item)
     await callback.message.edit_text(
         "Duration of Use\n\nAvailable options:",
-        reply_markup=get_single_select_keyboard(PROPERTY_DURATION, "prop_dur")
+        reply_markup=get_single_select_keyboard(PROPERTY_DURATION, "prop_dur", "prop_dur_back")
     )
     await state.set_state(Registration.property_duration)
+    await callback.answer()
+
+@router.callback_query(Registration.property_duration, F.data == "prop_dur_back")
+async def back_from_prop_duration(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Usage Format\n\nChoose the suitable option:",
+        reply_markup=get_single_select_keyboard(PROPERTY_USAGE_FORMAT, "prop_usage", "prop_usage_back")
+    )
+    await state.set_state(Registration.property_usage)
     await callback.answer()
 
 
@@ -695,9 +823,18 @@ async def select_property_duration(callback: CallbackQuery, state: FSMContext):
         await state.update_data(property_duration=target_item)
     await callback.message.edit_text(
         "Capacity\n\nNumber of people who can comfortably stay:",
-        reply_markup=get_single_select_keyboard(PROPERTY_CAPACITY, "prop_cap")
+        reply_markup=get_single_select_keyboard(PROPERTY_CAPACITY, "prop_cap", "prop_cap_back")
     )
     await state.set_state(Registration.property_capacity)
+    await callback.answer()
+
+@router.callback_query(Registration.property_capacity, F.data == "prop_cap_back")
+async def back_from_prop_capacity(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Duration of Use\n\nAvailable options:",
+        reply_markup=get_single_select_keyboard(PROPERTY_DURATION, "prop_dur", "prop_dur_back")
+    )
+    await state.set_state(Registration.property_duration)
     await callback.answer()
 
 
@@ -715,8 +852,18 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
     )
-    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip"))
+    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip", "cars_sec_back"))
     await state.set_state(Registration.cars_section)
+    await callback.answer()
+
+@router.callback_query(Registration.cars_section, F.data == "cars_sec_back")
+async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
+    # Back to Property Capacity
+    await callback.message.edit_text(
+        "Capacity\n\nNumber of people who can comfortably stay:",
+        reply_markup=get_single_select_keyboard(PROPERTY_CAPACITY, "prop_cap", "prop_cap_back")
+    )
+    await state.set_state(Registration.property_capacity)
     await callback.answer()
 
 
@@ -729,7 +876,7 @@ async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
-    await callback.message.edit_text(equipment_text, reply_markup=get_section_intro_keyboard("equipment_start", "equipment_skip"))
+    await callback.message.edit_text(equipment_text, reply_markup=get_section_intro_keyboard("equipment_start", "equipment_skip", "equip_sec_back"))
     await state.set_state(Registration.equipment_section)
     await callback.answer()
 
@@ -741,9 +888,21 @@ async def start_cars_section(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_car_cities", []))
     await callback.message.edit_text(
         "Location\n\nSelect your vehicle location:",
-        reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected)
+        reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back")
     )
     await state.set_state(Registration.car_location)
+    await callback.answer()
+
+@router.callback_query(Registration.car_location, F.data == "car_city_back")
+async def back_from_car_city(callback: CallbackQuery, state: FSMContext):
+    cars_text = (
+        "4|9 🩵 Cars and other vehicles\n\n"
+        "Please provide information about the cars you are willing to make available to community residents.\n\n"
+        "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
+        "to experience freedom, explore, and create new memories."
+    )
+    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip", "cars_sec_back"))
+    await state.set_state(Registration.cars_section)
     await callback.answer()
 
 
@@ -759,7 +918,7 @@ async def select_car_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_car_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back"))
     await callback.answer()
 
 
@@ -770,8 +929,10 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one city.", show_alert=True)
         return
 
-    await callback.message.edit_text(
-        "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):"
+    await callback.message.delete()
+    await callback.message.answer(
+        "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
+        reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.car_info)
     await callback.answer()
@@ -783,16 +944,32 @@ async def process_car_info(message: Message, state: FSMContext):
         # Go back to location
         data = await state.get_data()
         selected = set(data.get("selected_car_cities", []))
-        await message.answer("Location\n\nSelect your vehicle location:", reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected))
+        await message.answer("Location\n\nSelect your vehicle location:", reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back"))
         await state.set_state(Registration.car_location)
         return
 
     await state.update_data(car_info=message.text)
+
+    # Remove keyboard for inline next
+    await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
+
     await message.answer(
         "Usage Conditions\n\nChoose one:",
-        reply_markup=get_single_select_keyboard(CAR_USAGE_CONDITIONS, "car_usage")
+        reply_markup=get_single_select_keyboard(CAR_USAGE_CONDITIONS, "car_usage", "car_usage_back")
     )
     await state.set_state(Registration.car_usage)
+
+@router.callback_query(Registration.car_usage, F.data == "car_usage_back")
+async def back_from_car_usage(callback: CallbackQuery, state: FSMContext):
+    # Back to text input is tricky with callback.
+    # We send a message asking for input again.
+    await callback.message.delete()
+    await callback.message.answer(
+        "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.car_info)
+    await callback.answer()
 
 
 @router.callback_query(Registration.car_usage, F.data.startswith("car_usage:"))
@@ -803,10 +980,18 @@ async def select_car_usage(callback: CallbackQuery, state: FSMContext):
         await state.update_data(car_usage=target_item)
     await callback.message.edit_text(
         "Duration of Use\n\nAvailable options:",
-        reply_markup=get_single_select_keyboard(CAR_DURATION, "car_dur")
+        reply_markup=get_single_select_keyboard(CAR_DURATION, "car_dur", "car_dur_back")
     )
     await state.set_state(Registration.car_duration)
     await callback.answer()
+
+@router.callback_query(Registration.car_duration, F.data == "car_dur_back")
+async def back_from_car_duration(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Usage Conditions\n\nChoose one:",
+        reply_markup=get_single_select_keyboard(CAR_USAGE_CONDITIONS, "car_usage", "car_usage_back")
+    )
+    await state.set_state(Registration.car_usage)
 
 
 @router.callback_query(Registration.car_duration, F.data.startswith("car_dur:"))
@@ -819,9 +1004,18 @@ async def select_car_duration(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_car_conditions", []))
     await callback.message.edit_text(
         "Conditions:",
-        reply_markup=get_multiselect_keyboard(CAR_CONDITIONS, selected, "car_cond", "car_cond_done")
+        reply_markup=get_multiselect_keyboard(CAR_CONDITIONS, selected, "car_cond", "car_cond_done", "car_cond_back")
     )
     await state.set_state(Registration.car_conditions)
+    await callback.answer()
+
+@router.callback_query(Registration.car_conditions, F.data == "car_cond_back")
+async def back_from_car_conditions(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Duration of Use\n\nAvailable options:",
+        reply_markup=get_single_select_keyboard(CAR_DURATION, "car_dur", "car_dur_back")
+    )
+    await state.set_state(Registration.car_duration)
     await callback.answer()
 
 
@@ -837,7 +1031,7 @@ async def toggle_car_condition(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_car_conditions=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(CAR_CONDITIONS, selected, "car_cond", "car_cond_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(CAR_CONDITIONS, selected, "car_cond", "car_cond_done", "car_cond_back"))
     await callback.answer()
 
 
@@ -850,9 +1044,20 @@ async def finish_car_conditions(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         "Maximum Passengers:",
-        reply_markup=get_single_select_keyboard(CAR_PASSENGERS, "car_pass")
+        reply_markup=get_single_select_keyboard(CAR_PASSENGERS, "car_pass", "car_pass_back")
     )
     await state.set_state(Registration.car_passengers)
+    await callback.answer()
+
+@router.callback_query(Registration.car_passengers, F.data == "car_pass_back")
+async def back_from_car_passengers(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_car_conditions", []))
+    await callback.message.edit_text(
+        "Conditions:",
+        reply_markup=get_multiselect_keyboard(CAR_CONDITIONS, selected, "car_cond", "car_cond_done", "car_cond_back")
+    )
+    await state.set_state(Registration.car_conditions)
     await callback.answer()
 
 
@@ -869,8 +1074,17 @@ async def select_car_passengers(callback: CallbackQuery, state: FSMContext):
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
-    await callback.message.edit_text(equipment_text, reply_markup=get_section_intro_keyboard("equipment_start", "equipment_skip"))
+    await callback.message.edit_text(equipment_text, reply_markup=get_section_intro_keyboard("equipment_start", "equipment_skip", "equip_sec_back"))
     await state.set_state(Registration.equipment_section)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_section, F.data == "equip_sec_back")
+async def back_from_equip_section(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Maximum Passengers:",
+        reply_markup=get_single_select_keyboard(CAR_PASSENGERS, "car_pass", "car_pass_back")
+    )
+    await state.set_state(Registration.car_passengers)
     await callback.answer()
 
 
@@ -884,7 +1098,7 @@ async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
     )
-    await callback.message.edit_text(aircraft_text, reply_markup=get_section_intro_keyboard("aircraft_start", "aircraft_skip"))
+    await callback.message.edit_text(aircraft_text, reply_markup=get_section_intro_keyboard("aircraft_start", "aircraft_skip", "air_sec_back"))
     await state.set_state(Registration.aircraft_section)
     await callback.answer()
 
@@ -896,9 +1110,20 @@ async def start_equipment_section(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_equip_cities", []))
     await callback.message.edit_text(
         "Location\n\nSelect equipment location:",
-        reply_markup=get_cities_select_keyboard("equip_city", "equip_city_done", selected)
+        reply_markup=get_cities_select_keyboard("equip_city", "equip_city_done", selected, "equip_city_back")
     )
     await state.set_state(Registration.equipment_location)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_location, F.data == "equip_city_back")
+async def back_from_equip_location(callback: CallbackQuery, state: FSMContext):
+    equipment_text = (
+        "5|9 🩵 Equipment\n\n"
+        "Please provide information about the equipment you are willing to make available to community residents.\n\n"
+        "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
+    )
+    await callback.message.edit_text(equipment_text, reply_markup=get_section_intro_keyboard("equipment_start", "equipment_skip", "equip_sec_back"))
+    await state.set_state(Registration.equipment_section)
     await callback.answer()
 
 
@@ -914,7 +1139,7 @@ async def select_equipment_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_equip_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("equip_city", "equip_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("equip_city", "equip_city_done", selected, "equip_city_back"))
     await callback.answer()
 
 
@@ -928,9 +1153,20 @@ async def finish_equipment_location(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_equipment_types", []))
     await callback.message.edit_text(
         "Types of Equipment You Can Share\n\nSelect all that apply:",
-        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done")
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
     )
     await state.set_state(Registration.equipment_types)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_types, F.data == "equip_type_back")
+async def back_from_equip_types(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_equip_cities", []))
+    await callback.message.edit_text(
+        "Location\n\nSelect equipment location:",
+        reply_markup=get_cities_select_keyboard("equip_city", "equip_city_done", selected, "equip_city_back")
+    )
+    await state.set_state(Registration.equipment_location)
     await callback.answer()
 
 
@@ -946,7 +1182,7 @@ async def toggle_equipment_type(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_equipment_types=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back"))
     await callback.answer()
 
 
@@ -960,9 +1196,20 @@ async def finish_equipment_types(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_equipment_access", []))
     await callback.message.edit_text(
         "Equipment Access Format\n\nChoose one or multiple:",
-        reply_markup=get_multiselect_keyboard(EQUIPMENT_ACCESS_FORMAT, selected, "equip_acc", "equip_acc_done")
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_ACCESS_FORMAT, selected, "equip_acc", "equip_acc_done", "equip_acc_back")
     )
     await state.set_state(Registration.equipment_access)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_access, F.data == "equip_acc_back")
+async def back_from_equip_access(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_equipment_types", []))
+    await callback.message.edit_text(
+        "Types of Equipment You Can Share\n\nSelect all that apply:",
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
+    )
+    await state.set_state(Registration.equipment_types)
     await callback.answer()
 
 
@@ -978,7 +1225,7 @@ async def toggle_equipment_access(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_equipment_access=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_ACCESS_FORMAT, selected, "equip_acc", "equip_acc_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_ACCESS_FORMAT, selected, "equip_acc", "equip_acc_done", "equip_acc_back"))
     await callback.answer()
 
 
@@ -991,9 +1238,20 @@ async def finish_equipment_access(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         "Duration of Use:",
-        reply_markup=get_single_select_keyboard(EQUIPMENT_DURATION, "equip_dur")
+        reply_markup=get_single_select_keyboard(EQUIPMENT_DURATION, "equip_dur", "equip_dur_back")
     )
     await state.set_state(Registration.equipment_duration)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_duration, F.data == "equip_dur_back")
+async def back_from_equip_duration(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_equipment_access", []))
+    await callback.message.edit_text(
+        "Equipment Access Format\n\nChoose one or multiple:",
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_ACCESS_FORMAT, selected, "equip_acc", "equip_acc_done", "equip_acc_back")
+    )
+    await state.set_state(Registration.equipment_access)
     await callback.answer()
 
 
@@ -1007,9 +1265,18 @@ async def select_equipment_duration(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_equipment_responsibility", []))
     await callback.message.edit_text(
         "Responsibility and Safety:",
-        reply_markup=get_multiselect_keyboard(EQUIPMENT_RESPONSIBILITY, selected, "equip_resp", "equip_resp_done")
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_RESPONSIBILITY, selected, "equip_resp", "equip_resp_done", "equip_resp_back")
     )
     await state.set_state(Registration.equipment_responsibility)
+    await callback.answer()
+
+@router.callback_query(Registration.equipment_responsibility, F.data == "equip_resp_back")
+async def back_from_equip_resp(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Duration of Use:",
+        reply_markup=get_single_select_keyboard(EQUIPMENT_DURATION, "equip_dur", "equip_dur_back")
+    )
+    await state.set_state(Registration.equipment_duration)
     await callback.answer()
 
 
@@ -1025,7 +1292,7 @@ async def toggle_equipment_responsibility(callback: CallbackQuery, state: FSMCon
         else:
             selected.add(target_item)
         await state.update_data(selected_equipment_responsibility=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_RESPONSIBILITY, selected, "equip_resp", "equip_resp_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_RESPONSIBILITY, selected, "equip_resp", "equip_resp_done", "equip_resp_back"))
     await callback.answer()
 
 
@@ -1042,8 +1309,19 @@ async def finish_equipment_section(callback: CallbackQuery, state: FSMContext):
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
     )
-    await callback.message.edit_text(aircraft_text, reply_markup=get_section_intro_keyboard("aircraft_start", "aircraft_skip"))
+    await callback.message.edit_text(aircraft_text, reply_markup=get_section_intro_keyboard("aircraft_start", "aircraft_skip", "air_sec_back"))
     await state.set_state(Registration.aircraft_section)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_section, F.data == "air_sec_back")
+async def back_from_air_section(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_equipment_responsibility", []))
+    await callback.message.edit_text(
+        "Responsibility and Safety:",
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_RESPONSIBILITY, selected, "equip_resp", "equip_resp_done", "equip_resp_back")
+    )
+    await state.set_state(Registration.equipment_responsibility)
     await callback.answer()
 
 
@@ -1059,7 +1337,7 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
     )
-    await callback.message.edit_text(vessel_text, reply_markup=get_section_intro_keyboard("vessel_start", "vessel_skip"))
+    await callback.message.edit_text(vessel_text, reply_markup=get_section_intro_keyboard("vessel_start", "vessel_skip", "vessel_sec_back"))
     await state.set_state(Registration.vessel_section)
     await callback.answer()
 
@@ -1069,8 +1347,20 @@ async def start_aircraft_section(callback: CallbackQuery, state: FSMContext):
     # City first
     data = await state.get_data()
     selected = set(data.get("selected_air_cities", []))
-    await callback.message.edit_text("Location\n\nSelect aircraft location:", reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected))
+    await callback.message.edit_text("Location\n\nSelect aircraft location:", reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected, "air_city_back"))
     await state.set_state(Registration.aircraft_location)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_location, F.data == "air_city_back")
+async def back_from_air_city(callback: CallbackQuery, state: FSMContext):
+    aircraft_text = (
+        "6|9 🩵 Air Transport\n\n"
+        "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
+        "By opening access to such a unique asset, you take a special role within the community — "
+        "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
+    )
+    await callback.message.edit_text(aircraft_text, reply_markup=get_section_intro_keyboard("aircraft_start", "aircraft_skip", "air_sec_back"))
+    await state.set_state(Registration.aircraft_section)
     await callback.answer()
 
 
@@ -1086,7 +1376,7 @@ async def select_aircraft_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_air_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected, "air_city_back"))
     await callback.answer()
 
 
@@ -1101,9 +1391,17 @@ async def finish_aircraft_location(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_aircraft_types", []))
     await callback.message.edit_text(
         "Type of Aircraft\n\nSelect:",
-        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done")
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
     )
     await state.set_state(Registration.aircraft_type)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_type, F.data == "air_type_back")
+async def back_from_air_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_air_cities", []))
+    await callback.message.edit_text("Location\n\nSelect aircraft location:", reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected, "air_city_back"))
+    await state.set_state(Registration.aircraft_location)
     await callback.answer()
 
 
@@ -1119,7 +1417,7 @@ async def toggle_aircraft_type(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_aircraft_types=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back"))
     await callback.answer()
 
 
@@ -1132,9 +1430,20 @@ async def finish_aircraft_type(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         "Usage Format:",
-        reply_markup=get_single_select_keyboard(AIRCRAFT_USAGE_FORMAT, "air_usage")
+        reply_markup=get_single_select_keyboard(AIRCRAFT_USAGE_FORMAT, "air_usage", "air_usage_back")
     )
     await state.set_state(Registration.aircraft_usage)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_usage, F.data == "air_usage_back")
+async def back_from_air_usage(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_aircraft_types", []))
+    await callback.message.edit_text(
+        "Type of Aircraft\n\nSelect:",
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
+    )
+    await state.set_state(Registration.aircraft_type)
     await callback.answer()
 
 
@@ -1148,9 +1457,18 @@ async def select_aircraft_usage(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_aircraft_safety", []))
     await callback.message.edit_text(
         "Safety and Insurance:",
-        reply_markup=get_multiselect_keyboard(AIRCRAFT_SAFETY, selected, "air_safe", "air_safe_done")
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_SAFETY, selected, "air_safe", "air_safe_done", "air_safe_back")
     )
     await state.set_state(Registration.aircraft_safety)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_safety, F.data == "air_safe_back")
+async def back_from_air_safety(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Usage Format:",
+        reply_markup=get_single_select_keyboard(AIRCRAFT_USAGE_FORMAT, "air_usage", "air_usage_back")
+    )
+    await state.set_state(Registration.aircraft_usage)
     await callback.answer()
 
 
@@ -1166,7 +1484,7 @@ async def toggle_aircraft_safety(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_aircraft_safety=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_SAFETY, selected, "air_safe", "air_safe_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_SAFETY, selected, "air_safe", "air_safe_done", "air_safe_back"))
     await callback.answer()
 
 
@@ -1180,9 +1498,20 @@ async def finish_aircraft_safety(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_aircraft_expenses", []))
     await callback.message.edit_text(
         "Expense Coverage:",
-        reply_markup=get_multiselect_keyboard(AIRCRAFT_EXPENSES, selected, "air_exp", "air_exp_done")
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_EXPENSES, selected, "air_exp", "air_exp_done", "air_exp_back")
     )
     await state.set_state(Registration.aircraft_expenses)
+    await callback.answer()
+
+@router.callback_query(Registration.aircraft_expenses, F.data == "air_exp_back")
+async def back_from_air_expenses(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_aircraft_safety", []))
+    await callback.message.edit_text(
+        "Safety and Insurance:",
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_SAFETY, selected, "air_safe", "air_safe_done", "air_safe_back")
+    )
+    await state.set_state(Registration.aircraft_safety)
     await callback.answer()
 
 
@@ -1198,7 +1527,7 @@ async def toggle_aircraft_expenses(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_aircraft_expenses=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_EXPENSES, selected, "air_exp", "air_exp_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_EXPENSES, selected, "air_exp", "air_exp_done", "air_exp_back"))
     await callback.answer()
 
 
@@ -1217,8 +1546,19 @@ async def finish_aircraft_section(callback: CallbackQuery, state: FSMContext):
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
     )
-    await callback.message.edit_text(vessel_text, reply_markup=get_section_intro_keyboard("vessel_start", "vessel_skip"))
+    await callback.message.edit_text(vessel_text, reply_markup=get_section_intro_keyboard("vessel_start", "vessel_skip", "vessel_sec_back"))
     await state.set_state(Registration.vessel_section)
+    await callback.answer()
+
+@router.callback_query(Registration.vessel_section, F.data == "vessel_sec_back")
+async def back_from_vessel_section(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_aircraft_expenses", []))
+    await callback.message.edit_text(
+        "Expense Coverage:",
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_EXPENSES, selected, "air_exp", "air_exp_done", "air_exp_back")
+    )
+    await state.set_state(Registration.aircraft_expenses)
     await callback.answer()
 
 
@@ -1232,7 +1572,7 @@ async def skip_vessel_section(callback: CallbackQuery, state: FSMContext):
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
     )
-    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip"))
+    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
     await state.set_state(Registration.specialist_section)
     await callback.answer()
 
@@ -1242,8 +1582,20 @@ async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
     # City first
     data = await state.get_data()
     selected = set(data.get("selected_vessel_cities", []))
-    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected))
+    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
     await state.set_state(Registration.vessel_location)
+    await callback.answer()
+
+@router.callback_query(Registration.vessel_location, F.data == "vessel_city_back")
+async def back_from_vessel_location(callback: CallbackQuery, state: FSMContext):
+    vessel_text = (
+        "7|9 🩵 Water Transport / Vessels\n\n"
+        "Please provide information about the vessels you are willing to make available to community residents.\n\n"
+        "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
+        "but experiences, freedom and the joy of being on the water together."
+    )
+    await callback.message.edit_text(vessel_text, reply_markup=get_section_intro_keyboard("vessel_start", "vessel_skip", "vessel_sec_back"))
+    await state.set_state(Registration.vessel_section)
     await callback.answer()
 
 
@@ -1259,7 +1611,7 @@ async def select_vessel_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_vessel_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
     await callback.answer()
 
 
@@ -1270,25 +1622,63 @@ async def finish_vessel_location(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one city.", show_alert=True)
         return
 
+    # Updated: Multiselect for Vessel types
+    selected = set(data.get("selected_vessel_types", []))
     await callback.message.edit_text(
-        "Type of Vessel\n\nSpecify type:",
-        reply_markup=get_single_select_keyboard(VESSEL_TYPES, "vessel_type")
+        "Type of Vessel\n\nSelect all that apply:",
+        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
     )
     await state.set_state(Registration.vessel_type)
     await callback.answer()
 
+@router.callback_query(Registration.vessel_type, F.data == "vessel_type_back")
+async def back_from_vessel_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_vessel_cities", []))
+    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
+    await state.set_state(Registration.vessel_location)
+    await callback.answer()
+
 
 @router.callback_query(Registration.vessel_type, F.data.startswith("vessel_type:"))
-async def select_vessel_type(callback: CallbackQuery, state: FSMContext):
+async def toggle_vessel_type(callback: CallbackQuery, state: FSMContext):
     item_hash = callback.data.split(":")[1]
+    data = await state.get_data()
+    selected = set(data.get("selected_vessel_types", []))
     target_item = find_item_by_hash(VESSEL_TYPES, item_hash)
     if target_item:
-        await state.update_data(vessel_type=target_item)
+        if target_item in selected:
+            selected.remove(target_item)
+        else:
+            selected.add(target_item)
+        await state.update_data(selected_vessel_types=list(selected))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back"))
+    await callback.answer()
+
+
+@router.callback_query(Registration.vessel_type, F.data == "vessel_type_done")
+async def finish_vessel_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    if not data.get("selected_vessel_types", []):
+        await callback.answer("Please select at least one type.", show_alert=True)
+        return
+
     await callback.message.edit_text(
         "Usage Format:",
-        reply_markup=get_single_select_keyboard(VESSEL_USAGE_FORMAT, "vessel_usage")
+        reply_markup=get_single_select_keyboard(VESSEL_USAGE_FORMAT, "vessel_usage", "vessel_usage_back")
     )
     await state.set_state(Registration.vessel_usage)
+    await callback.answer()
+
+@router.callback_query(Registration.vessel_usage, F.data == "vessel_usage_back")
+async def back_from_vessel_usage(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_vessel_types", []))
+    await callback.message.edit_text(
+        "Type of Vessel\n\nSelect all that apply:",
+        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
+    )
+    await state.set_state(Registration.vessel_type)
     await callback.answer()
 
 
@@ -1302,9 +1692,18 @@ async def select_vessel_usage(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_vessel_safety", []))
     await callback.message.edit_text(
         "Safety and Documents:",
-        reply_markup=get_multiselect_keyboard(VESSEL_SAFETY, selected, "vessel_safe", "vessel_safe_done")
+        reply_markup=get_multiselect_keyboard(VESSEL_SAFETY, selected, "vessel_safe", "vessel_safe_done", "vessel_safe_back")
     )
     await state.set_state(Registration.vessel_safety)
+    await callback.answer()
+
+@router.callback_query(Registration.vessel_safety, F.data == "vessel_safe_back")
+async def back_from_vessel_safety(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Usage Format:",
+        reply_markup=get_single_select_keyboard(VESSEL_USAGE_FORMAT, "vessel_usage", "vessel_usage_back")
+    )
+    await state.set_state(Registration.vessel_usage)
     await callback.answer()
 
 
@@ -1320,7 +1719,7 @@ async def toggle_vessel_safety(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_vessel_safety=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_SAFETY, selected, "vessel_safe", "vessel_safe_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_SAFETY, selected, "vessel_safe", "vessel_safe_done", "vessel_safe_back"))
     await callback.answer()
 
 
@@ -1335,9 +1734,20 @@ async def finish_vessel_safety(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_vessel_financial", []))
     await callback.message.edit_text(
         "Financial Terms:",
-        reply_markup=get_multiselect_keyboard(VESSEL_FINANCIAL, selected, "vessel_fin", "vessel_fin_done")
+        reply_markup=get_multiselect_keyboard(VESSEL_FINANCIAL, selected, "vessel_fin", "vessel_fin_done", "vessel_fin_back")
     )
     await state.set_state(Registration.vessel_financial)
+    await callback.answer()
+
+@router.callback_query(Registration.vessel_financial, F.data == "vessel_fin_back")
+async def back_from_vessel_fin(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_vessel_safety", []))
+    await callback.message.edit_text(
+        "Safety and Documents:",
+        reply_markup=get_multiselect_keyboard(VESSEL_SAFETY, selected, "vessel_safe", "vessel_safe_done", "vessel_safe_back")
+    )
+    await state.set_state(Registration.vessel_safety)
     await callback.answer()
 
 
@@ -1353,7 +1763,7 @@ async def toggle_vessel_financial(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(target_item)
         await state.update_data(selected_vessel_financial=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_FINANCIAL, selected, "vessel_fin", "vessel_fin_done"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_FINANCIAL, selected, "vessel_fin", "vessel_fin_done", "vessel_fin_back"))
     await callback.answer()
 
 
@@ -1370,8 +1780,19 @@ async def finish_vessel_section(callback: CallbackQuery, state: FSMContext):
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
     )
-    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip"))
+    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
     await state.set_state(Registration.specialist_section)
+    await callback.answer()
+
+@router.callback_query(Registration.specialist_section, F.data == "spec_sec_back")
+async def back_from_spec_section(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_vessel_financial", []))
+    await callback.message.edit_text(
+        "Financial Terms:",
+        reply_markup=get_multiselect_keyboard(VESSEL_FINANCIAL, selected, "vessel_fin", "vessel_fin_done", "vessel_fin_back")
+    )
+    await state.set_state(Registration.vessel_financial)
     await callback.answer()
 
 
@@ -1385,7 +1806,7 @@ async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
     )
-    await callback.message.edit_text(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip"))
+    await callback.message.edit_text(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip", "art_sec_back"))
     await state.set_state(Registration.artwork_section)
     await callback.answer()
 
@@ -1394,9 +1815,21 @@ async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
 async def start_specialist_section(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         "Select the category of specialists you can recommend:",
-        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat")
+        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
     )
     await state.set_state(Registration.specialist_category)
+    await callback.answer()
+
+@router.callback_query(Registration.specialist_category, F.data == "spec_cat_back")
+async def back_from_spec_cat(callback: CallbackQuery, state: FSMContext):
+    specialist_text = (
+        "8|9 🩵 Specialists\n\n"
+        "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
+        "brought clarity, or simply made life easier.\n\n"
+        "Please list only those specialists you have personally worked with and can genuinely vouch for."
+    )
+    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
+    await state.set_state(Registration.specialist_section)
     await callback.answer()
 
 
@@ -1409,9 +1842,18 @@ async def process_specialist_category(callback: CallbackQuery, state: FSMContext
     category_name = SPECIALIST_CATEGORIES[category_key]["name"]
     await callback.message.edit_text(
         f"Category: {category_name}\n\nSelect the specialists you can recommend:",
-        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_back_cat")
+        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
     )
     await state.set_state(Registration.specialist_items)
+    await callback.answer()
+
+@router.callback_query(Registration.specialist_items, F.data == "spec_item_back")
+async def back_from_spec_items(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Select the category of specialists you can recommend:",
+        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+    )
+    await state.set_state(Registration.specialist_category)
     await callback.answer()
 
 
@@ -1430,7 +1872,7 @@ async def toggle_specialist_item(callback: CallbackQuery, state: FSMContext):
             selected.add(target_item)
         await state.update_data(selected_specialist_items=list(selected))
         await callback.message.edit_reply_markup(
-            reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_back_cat")
+            reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
         )
     await callback.answer()
 
@@ -1449,11 +1891,28 @@ async def finish_specialist_items(callback: CallbackQuery, state: FSMContext):
          await callback.answer("Please select at least one item.", show_alert=True)
          return
 
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         "Type of Connection:",
-        reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn")
+        reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn", "spec_conn_back")
     )
     await state.set_state(Registration.specialist_connection)
+    await callback.answer()
+
+@router.callback_query(Registration.specialist_connection, F.data == "spec_conn_back")
+async def back_from_spec_conn(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    category_key = data.get("current_specialist_category")
+    selected = set(data.get("selected_specialist_items", []))
+
+    # We need to restore inline keyboard, so we edit_text if possible, but previous was deleted.
+    # So we send new message.
+    await callback.message.delete()
+    await callback.message.answer(
+        f"Category selected. Select specialists:",
+        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+    )
+    await state.set_state(Registration.specialist_items)
     await callback.answer()
 
 
@@ -1463,7 +1922,9 @@ async def select_specialist_connection(callback: CallbackQuery, state: FSMContex
     target_item = find_item_by_hash(SPECIALIST_CONNECTION_TYPE, item_hash)
     if target_item:
         await state.update_data(specialist_connection=target_item)
-    await callback.message.edit_text("Specialist Name\n\nPlease type the full name or public working name:")
+
+    await callback.message.delete()
+    await callback.message.answer("Specialist Name\n\nPlease type the full name or public working name:", reply_markup=get_cancel_keyboard())
     await state.set_state(Registration.specialist_name)
     await callback.answer()
 
@@ -1471,7 +1932,7 @@ async def select_specialist_connection(callback: CallbackQuery, state: FSMContex
 @router.message(Registration.specialist_name, F.text)
 async def process_specialist_name(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await message.answer("Type of Connection:", reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn"))
+        await message.answer("Type of Connection:", reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn", "spec_conn_back"))
         await state.set_state(Registration.specialist_connection)
         return
 
@@ -1536,7 +1997,7 @@ async def add_another_specialist(callback: CallbackQuery, state: FSMContext):
     # Loop back to category
     await callback.message.edit_text(
         "Select the category of specialists you can recommend:",
-        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat")
+        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
     )
     await state.set_state(Registration.specialist_category)
     await callback.answer()
@@ -1550,8 +2011,30 @@ async def finish_specialist_loop(callback: CallbackQuery, state: FSMContext):
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
     )
-    await callback.message.edit_text(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip"))
+    await callback.message.edit_text(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip", "art_sec_back"))
     await state.set_state(Registration.artwork_section)
+    await callback.answer()
+
+@router.callback_query(Registration.artwork_section, F.data == "art_sec_back")
+async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
+    # Go back to specialist loop confirm? Or specialist start?
+    # Logic: if list is not empty, go to confirm. Else go to start.
+    data = await state.get_data()
+    if data.get("specialists_list"):
+         await callback.message.edit_text(
+            "Do you want to add another specialist?\n\nShare contacts of 3 people and get 1 free point for community exchanges 🩵",
+            reply_markup=get_confirmation_keyboard("add_spec")
+        )
+         await state.set_state(Registration.specialist_loop_confirm)
+    else:
+        specialist_text = (
+            "8|9 🩵 Specialists\n\n"
+            "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
+            "brought clarity, or simply made life easier.\n\n"
+            "Please list only those specialists you have personally worked with and can genuinely vouch for."
+        )
+        await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
+        await state.set_state(Registration.specialist_section)
     await callback.answer()
 
 
@@ -1569,9 +2052,21 @@ async def start_artwork_section(callback: CallbackQuery, state: FSMContext):
     # Select Art Form
     await callback.message.edit_text(
         "Form of Art\n\nSelect:",
-        reply_markup=get_single_select_keyboard(ART_FORMS, "art_form")
+        reply_markup=get_single_select_keyboard(ART_FORMS, "art_form", "art_form_back")
     )
     await state.set_state(Registration.art_form)
+    await callback.answer()
+
+@router.callback_query(Registration.art_form, F.data == "art_form_back")
+async def back_from_art_form(callback: CallbackQuery, state: FSMContext):
+    artwork_text = (
+        "9|9 🩵 Artworks\n\n"
+        "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
+        "this is a space to share it with the community.\n\n"
+        "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
+    )
+    await callback.message.edit_text(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip", "art_sec_back"))
+    await state.set_state(Registration.artwork_section)
     await callback.answer()
 
 
@@ -1584,9 +2079,18 @@ async def select_art_form(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(
         "Who is the author?",
-        reply_markup=get_single_select_keyboard(ART_AUTHOR_TYPE, "art_auth")
+        reply_markup=get_single_select_keyboard(ART_AUTHOR_TYPE, "art_auth", "art_auth_back")
     )
     await state.set_state(Registration.art_author)
+    await callback.answer()
+
+@router.callback_query(Registration.art_author, F.data == "art_auth_back")
+async def back_from_art_author(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Form of Art\n\nSelect:",
+        reply_markup=get_single_select_keyboard(ART_FORMS, "art_form", "art_form_back")
+    )
+    await state.set_state(Registration.art_form)
     await callback.answer()
 
 
@@ -1597,8 +2101,10 @@ async def select_art_author(callback: CallbackQuery, state: FSMContext):
     if target_item:
         await state.update_data(art_author=target_item)
 
-    await callback.message.edit_text(
-        "Author Name (or Pseudonym):"
+    await callback.message.delete()
+    await callback.message.answer(
+        "Author Name (or Pseudonym):",
+        reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.art_author_name)
     await callback.answer()
@@ -1606,12 +2112,35 @@ async def select_art_author(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Registration.art_author_name, F.text)
 async def process_art_author_name(message: Message, state: FSMContext):
+    if message.text == "🔙 Back":
+        await message.answer(
+            "Who is the author?",
+            reply_markup=get_single_select_keyboard(ART_AUTHOR_TYPE, "art_auth", "art_auth_back")
+        )
+        await state.set_state(Registration.art_author)
+        return
+
     await state.update_data(art_author_name=message.text)
+
+    # Remove previous keyboard if any (though get_cancel_keyboard is Reply)
+    await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
+
     await message.answer(
         "Location of the Artwork:",
-        reply_markup=get_cities_select_keyboard("art_city", "art_city_done")
+        reply_markup=get_cities_select_keyboard("art_city", "art_city_done", None, "art_city_back")
     )
     await state.set_state(Registration.art_location)
+
+@router.callback_query(Registration.art_location, F.data == "art_city_back")
+async def back_from_art_city(callback: CallbackQuery, state: FSMContext):
+    # Back to text input
+    await callback.message.delete()
+    await callback.message.answer(
+        "Author Name (or Pseudonym):",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.art_author_name)
+    await callback.answer()
 
 
 @router.callback_query(Registration.art_location, F.data.startswith("art_city:"))
@@ -1620,6 +2149,12 @@ async def select_art_city(callback: CallbackQuery, state: FSMContext):
     city = find_item_by_hash(CITIES, city_hash)
     if city:
         await state.update_data(art_location=city)
+    # Single select for art city? Or multi? Prompt said "Location" singular.
+    # Usually artwork is in one place.
+    # But `get_cities_select_keyboard` is multi-select capable.
+    # I'll treat it as single select if user clicks one, but the keyboard is built for multi.
+    # Let's assume single select is enough for Art Location based on typical logic.
+    # Update: prompt didn't specify multi for art.
     await callback.answer(f"Selected: {city}" if city else "")
 
 
@@ -1662,12 +2197,6 @@ async def finish_registration(message: Message, state: FSMContext, db: Database)
     )
 
     # Save answers (simple dump for now as per schema)
-    # Ideally we should iterate and save each section, but for now we dump all data
-    # or relevant parts. The instructions imply saving resources too.
-    # But since resources/lots are separate tables, we should ideally populate them.
-    # However, the user request focuses on registration flow.
-    # Let's save the raw answers for now so admins can review.
-
     await db.add_user_answer(user_id, "registration_data", json.dumps(data, default=str))
 
     summary = (

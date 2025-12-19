@@ -1,7 +1,7 @@
 
 SKILL_CATEGORIES = {
     "A": {
-        "name": "Business, Strategy, and Professional Services",
+        "name": "Business, Strategy & Pro Services",
         "items": [
             "Business consulting", "Startup mentorship", "Marketing and branding",
             "Sales and negotiations", "PR and communications", "Legal consultation",
@@ -33,7 +33,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "D": {
-        "name": "Personal Development, Body, and Mental Health",
+        "name": "Wellbeing & Mental health",
         "items": [
             "Psychology", "Body-oriented therapy", "Breathing practices",
             "Meditation and mindfulness", "Yoga", "Somatics", "Emotional intelligence",
@@ -51,7 +51,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "F": {
-        "name": "Languages and Cross-Cultural Communication",
+        "name": "Languages & Cross-Culture",
         "items": [
             "Language teaching", "Interview preparation", "Translation and localization"
         ]
@@ -60,7 +60,7 @@ SKILL_CATEGORIES = {
         "name": "Media and Reputation Management",
         "items": [
             "Production of shoots", "Press relations", "Copywriting",
-            "Publications in local and international media", "Personal branding",
+            "Media Publications", "Personal branding",
             "SMM and content strategy", "Creating Reels / TikTok",
             "Instagram growth strategies", "Media planning", "Crisis communication"
         ]
@@ -95,7 +95,7 @@ INTERACTION_FORMATS = [
 ]
 
 RESULT_TYPES = [
-    "Clear final result (design, project, strategy, plan)",
+    "Concrete Outcome (Design, Plan, Strategy)",
     "Practical skill",
     "Learning / skill improvement",
     "Support and guidance",
@@ -121,14 +121,14 @@ INTRO_CATEGORIES = {
     "media_culture": {
         "name": "Media, Culture, Art",
         "items": [
-            "Editorial staff of high-level print magazines",
-            "Program directors of international film festivals",
+            "Magazine Editorial Team",
+            "International Film Festival Team",
             "Heads or teams of art residencies",
             "Owners or curators of private galleries",
             "Art dealers with collector networks",
-            "Personal assistants of well-known artists/photographers",
+            "Well-known artists and photographers.",
             "Curators of major museum projects",
-            "Program directors of performance venues",
+            "Venue Program Directors",
             "Independent art fair organizers"
         ]
     },
@@ -191,10 +191,8 @@ INTRO_CATEGORIES = {
 
 INTRO_FORMATS = [
     "Warm introduction via message",
-    "Personal introduction at an event/meeting",
-    "Short group meeting (coffee shop intro)",
+    "Personal introduction at an event",
     "Joint call",
-    "Introduction via brief note/mini-profile",
     "Only for very relevant requests"
 ]
 
@@ -209,8 +207,8 @@ PROPERTY_TYPES = [
 ]
 
 PROPERTY_USAGE_FORMAT = [
-    "Exclusive stay (participant stays alone, without owner)",
-    "Stay in a separate space while co-located with owner/family"
+    "Exclusive stay - participant stays alone.",
+    "Private area in owner’s home"
 ]
 
 PROPERTY_DURATION = [
@@ -244,9 +242,9 @@ CAR_DURATION = [
 ]
 
 CAR_CONDITIONS = [
-    "Coverage of fuel and minor operational costs",
-    "Insurance or damage coverage agreement",
-    "Deposit presence/absence (optional)"
+    "Fuel & Minor Costs Covered",
+    "Insurance & Damage Coverage",
+    "Safe deposit"
 ]
 
 CAR_PASSENGERS = [

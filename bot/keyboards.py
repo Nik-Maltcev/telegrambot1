@@ -254,7 +254,7 @@ def get_skill_items_keyboard(category_key: str, selected: Set[str]) -> InlineKey
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="q_back_cat"))
     return builder.as_markup()
 
-def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str, done_callback: str) -> InlineKeyboardMarkup:
+def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str, done_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
     """Generic multiselect keyboard"""
     builder = InlineKeyboardBuilder()
     import hashlib
@@ -266,6 +266,8 @@ def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str
         builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
 
     builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()
 
 
@@ -292,15 +294,17 @@ def get_skip_keyboard(skip_callback: str, back_callback: str = None) -> InlineKe
     return builder.as_markup()
 
 
-def get_section_intro_keyboard(start_callback: str, skip_callback: str) -> InlineKeyboardMarkup:
+def get_section_intro_keyboard(start_callback: str, skip_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
     """Keyboard for section intro with start/skip options"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="✅ Fill this section", callback_data=start_callback))
     builder.row(InlineKeyboardButton(text="⏭ Skip", callback_data=skip_callback))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()
 
 
-def get_cities_select_keyboard(prefix: str, done_callback: str = None, selected: Set[str] = None) -> InlineKeyboardMarkup:
+def get_cities_select_keyboard(prefix: str, done_callback: str = None, selected: Set[str] = None, back_callback: str = None) -> InlineKeyboardMarkup:
     """Keyboard for city selection with multi-select support"""
     from bot.form_data import CITIES
     builder = InlineKeyboardBuilder()
@@ -329,6 +333,9 @@ def get_cities_select_keyboard(prefix: str, done_callback: str = None, selected:
 
     if done_callback:
         builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()
 
 

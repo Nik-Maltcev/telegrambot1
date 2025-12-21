@@ -25,7 +25,7 @@ class Database:
                 )
             """)
 
-            # Resources table
+            # Resources table (legacy/separate)
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS resources (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,19 +45,37 @@ class Database:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
                     type TEXT NOT NULL,  -- 'share' or 'seek'
+                    category TEXT,
                     title TEXT NOT NULL,
                     description TEXT,
+                    location_text TEXT,
+                    availability TEXT,
                     status TEXT DEFAULT 'pending',  -- 'pending', 'approved', 'rejected'
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users (user_id)
                 )
             """)
             
-            # Add status column if not exists (migration for existing DBs)
+            # Migrations for lots table
             try:
                 await db.execute("ALTER TABLE lots ADD COLUMN status TEXT DEFAULT 'approved'")
             except:
-                pass  # Column already exists
+                pass
+
+            try:
+                await db.execute("ALTER TABLE lots ADD COLUMN category TEXT")
+            except:
+                pass
+
+            try:
+                await db.execute("ALTER TABLE lots ADD COLUMN location_text TEXT")
+            except:
+                pass
+
+            try:
+                await db.execute("ALTER TABLE lots ADD COLUMN availability TEXT")
+            except:
+                pass
 
             # Open resources table (maps, accesses, specialists)
             await db.execute("""
@@ -230,14 +248,16 @@ class Database:
 
     # Lot methods
     async def add_lot(self, user_id: int, lot_type: str, title: str,
-                     description: str, status: str = "pending") -> Optional[int]:
+                     description: str, category: str = None,
+                     location_text: str = None, availability: str = None,
+                     status: str = "pending") -> Optional[int]:
         """Add new lot (share or seek), returns lot ID"""
         try:
             async with aiosqlite.connect(self.db_path) as db:
                 cursor = await db.execute("""
-                    INSERT INTO lots (user_id, type, title, description, status)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (user_id, lot_type, title, description, status))
+                    INSERT INTO lots (user_id, type, title, description, category, location_text, availability, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (user_id, lot_type, title, description, category, location_text, availability, status))
                 await db.commit()
                 return cursor.lastrowid
         except Exception as e:
@@ -253,6 +273,35 @@ class Database:
                 WHERE user_id = ? AND type = ?
                 ORDER BY created_at DESC
             """, (user_id, lot_type)) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def get_lots_by_category(self, category: str) -> List[Dict]:
+        """Get approved lots by category (of type 'share' usually, or both?)"""
+        # Assuming we only show 'share' lots in Resources section as per prompt context
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT l.*, u.name, u.instagram, u.points, u.username
+                FROM lots l
+                JOIN users u ON l.user_id = u.user_id
+                WHERE l.category = ? AND l.status = 'approved' AND l.type = 'share'
+                ORDER BY l.created_at DESC
+            """, (category,)) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def get_active_lots(self, lot_type: str) -> List[Dict]:
+        """Get all active approved lots by type"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT l.*, u.name, u.instagram, u.points, u.username
+                FROM lots l
+                JOIN users u ON l.user_id = u.user_id
+                WHERE l.type = ? AND l.status = 'approved'
+                ORDER BY l.created_at DESC
+            """, (lot_type,)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 

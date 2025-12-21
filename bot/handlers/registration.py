@@ -213,19 +213,75 @@ async def process_name(message: Message, state: FSMContext):
         await message.answer("Registration cancelled.", reply_markup=None)
         return
     await state.update_data(name=message.text)
-    await message.answer("Great! Now, please enter the city where you are usually located:", reply_markup=get_cancel_keyboard())
+
+    # Initialize empty selection for main city
+    await state.update_data(selected_main_cities=[])
+
+    # We use inline keyboard for multi-selection, so we need to remove the Reply keyboard (Back button)
+    # or keep it and handle text "Back".
+    # But get_cities_select_keyboard is inline.
+    # We send a message with the inline keyboard.
+    # We can also keep the Reply "Back" button active if we want, but it's cleaner to use inline back.
+    # Let's remove the Reply keyboard first to avoid confusion.
+    await message.answer("Great! Now, please select the city (or cities) where you are usually located:", reply_markup=ReplyKeyboardRemove())
+    await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
     await state.set_state(Registration.main_city)
 
 
 @router.message(Registration.main_city, F.text)
-async def process_main_city(message: Message, state: FSMContext):
+async def process_main_city_text(message: Message, state: FSMContext):
+    # This handler might catch text if user types instead of clicking
+    # If it is "Back", we go back.
     if message.text == "🔙 Back":
         await state.set_state(Registration.name)
         await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
         return
-    await state.update_data(main_city=message.text)
-    await message.answer("Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•", reply_markup=get_cancel_keyboard())
+
+    # If they typed a city, we can accept it, but we prefer selection
+    await message.answer("Please select your city from the list or press Done if you typed it (Wait, just use the buttons):", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
+
+@router.callback_query(Registration.main_city, F.data == "main_city_back")
+async def back_from_main_city(callback: CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
+    await state.set_state(Registration.name)
+    await callback.answer()
+
+@router.callback_query(Registration.main_city, F.data.startswith("main_city:"))
+async def select_main_city(callback: CallbackQuery, state: FSMContext):
+    city_hash = callback.data.split(":")[1]
+    city = find_item_by_hash(CITIES, city_hash)
+    if city:
+        data = await state.get_data()
+        selected = set(data.get("selected_main_cities", []))
+        if city in selected:
+            selected.remove(city)
+        else:
+            selected.add(city)
+        await state.update_data(selected_main_cities=list(selected))
+        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("main_city", "main_city_done", selected, "main_city_back"))
+    await callback.answer()
+
+@router.callback_query(Registration.main_city, F.data == "main_city_done")
+async def finish_main_city(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected_cities = data.get("selected_main_cities", [])
+
+    if not selected_cities:
+        await callback.answer("Please select at least one city.", show_alert=True)
+        return
+
+    # Join cities for display/storage (comma separated)
+    main_city_str = ", ".join(selected_cities)
+    await state.update_data(main_city=main_city_str)
+
+    await callback.message.delete() # Remove inline keyboard
+    await callback.message.answer(
+        "Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•",
+        reply_markup=get_cancel_keyboard()
+    )
     await state.set_state(Registration.about)
+    await callback.answer()
 
 
 @router.message(Registration.about, F.text)

@@ -17,7 +17,7 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
         KeyboardButton(text="📢 Channel")
     )
     builder.row(
-        KeyboardButton(text="🗂 Open Resources Database"),
+        KeyboardButton(text="🗺 MAPS"),
         KeyboardButton(text="👤 My Profile")
     )
     builder.row(
@@ -38,7 +38,7 @@ def get_admin_menu_keyboard() -> ReplyKeyboardMarkup:
         KeyboardButton(text="📢 Channel")
     )
     builder.row(
-        KeyboardButton(text="🗂 Open Resources Database"),
+        KeyboardButton(text="🗺 MAPS"),
         KeyboardButton(text="👤 My Profile")
     )
     builder.row(
@@ -83,38 +83,45 @@ def get_cities_keyboard() -> InlineKeyboardMarkup:
 
 def get_resource_categories_keyboard() -> InlineKeyboardMarkup:
     """Keyboard with resource categories"""
+    # Categories as requested
     categories = [
-        ("🏠 Real Estate", "res_cat:Real Estate"),
-        ("🚗 Cars", "res_cat:Cars"),
-        ("✈️ Aircrafts", "res_cat:Aircrafts"),
-        ("⛵ Boats", "res_cat:Boats"),
-        ("🔧 Equipment", "res_cat:Equipment"),
         ("🎓 Skills and Knowledge", "res_cat:Skills and Knowledge"),
-        ("✨ Unique Opportunities", "res_cat:Unique Opportunities"),
-        ("🎨 Works of Art", "res_cat:Works of Art"),
-        ("🤝 Personal Introduction", "res_cat:Personal Introduction to Specific Circles"),
+        ("🤝 Personal Introductions to Key People", "res_cat:Personal Introductions to Key People"),
+        ("🏠 Real Estate", "res_cat:Real Estate"),
+        ("🚗 Cars and Other Vehicles", "res_cat:Cars and Other Vehicles"),
+        ("🔧 Equipment", "res_cat:Equipment"),
+        ("✈️ Air Transport", "res_cat:Air Transport"),
+        ("⛵ Water Transport / Vessels", "res_cat:Water Transport / Vessels"),
+        ("👨‍💼 Specialists", "res_cat:Specialists"),
+        ("🎨 Artworks", "res_cat:Artworks"),
+        ("✨ Unique opportunities", "res_cat:Unique opportunities"),
     ]
 
     builder = InlineKeyboardBuilder()
     for text, callback_data in categories:
         builder.row(InlineKeyboardButton(text=text, callback_data=callback_data))
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_resources"))
+    # Removed "Back to Resources" as per new flow, or maybe keep it if needed.
+    # But new flow is Resources -> Categories.
+    # I'll change callback to back_to_menu if needed, but Resources menu usually has a back or main menu.
+    # Let's keep a Back button to Main Menu.
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 
 
 def get_lots_type_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard for selecting lot type"""
+    """Keyboard for selecting lot type - 4 options A, B, C, D"""
     builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="🎁 I Share", callback_data="lots:share"),
-        InlineKeyboardButton(text="🔍 I Seek", callback_data="lots:seek")
-    )
+    builder.row(InlineKeyboardButton(text="A. Offer a resource", callback_data="lots:offer_a"))
+    builder.row(InlineKeyboardButton(text="B. Browse active resources 🫧", callback_data="lots:browse_b"))
+    builder.row(InlineKeyboardButton(text="C. Post a request 👀", callback_data="lots:post_c"))
+    builder.row(InlineKeyboardButton(text="D. Help a resident", callback_data="lots:help_d"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 
 
 def get_create_lot_type_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard for selecting lot type to create"""
+    """Keyboard for selecting lot type to create - Deprecated or used internally?"""
+    # We might reuse this or use specific flows.
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="🎁 I Share", callback_data="create_lot:share"),
@@ -125,7 +132,15 @@ def get_create_lot_type_keyboard() -> InlineKeyboardMarkup:
 
 
 def get_open_resources_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard for open resources sections"""
+    """Keyboard for open resources sections - MAPS, etc."""
+    # Renamed/Restructured as per prompt "MAPS -> selection of city"
+    # Actually prompt says "Open resources database replace with MAPS -> select city".
+    # So "MAPS" handler will show cities directly.
+    # But if we keep this keyboard, it might be for other things?
+    # The prompt implies "Open resources database" button becomes "MAPS".
+    # So the handler for "MAPS" should just show cities.
+    # We can keep this if needed for other open resources, but prompt says "Open resources database replace with MAPS".
+    # I'll leave this for now but might not use it if I change handler logic.
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="🗺 Google Maps", callback_data="open:maps"))
     builder.row(InlineKeyboardButton(text="🔑 Access Links", callback_data="open:accesses"))
@@ -159,7 +174,7 @@ def get_resource_card_keyboard(owner_id: int, instagram: str = "") -> InlineKeyb
     builder.row(InlineKeyboardButton(text="🤝 Propose Deal", callback_data=f"deal:propose:{owner_id}"))
     if instagram:
         builder.row(InlineKeyboardButton(text="📸 Instagram", url=f"https://instagram.com/{instagram.lstrip('@')}"))
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_category"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_category_res"))
     return builder.as_markup()
 
 

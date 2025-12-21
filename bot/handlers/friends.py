@@ -16,8 +16,8 @@ async def show_friends_menu(message: Message, db: Database):
         return
 
     await message.answer(
-        "👥 Friends\n\n"
-        "Select a city to see community members:",
+        "👥 Friends -> Locations\n\n"
+        "Select a location to see community members:",
         reply_markup=get_cities_keyboard()
     )
 

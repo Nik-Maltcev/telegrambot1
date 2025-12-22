@@ -55,7 +55,7 @@ def get_cancel_keyboard() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-def get_cities_keyboard() -> InlineKeyboardMarkup:
+def get_cities_keyboard(prefix: str = "city") -> InlineKeyboardMarkup:
     """Keyboard with city buttons"""
     cities = [
         "New York", "Los Angeles", "San Francisco", "Miami",
@@ -69,15 +69,34 @@ def get_cities_keyboard() -> InlineKeyboardMarkup:
         "Tel Aviv", "Istanbul"
     ]
     builder = InlineKeyboardBuilder()
+    import hashlib
     # Create rows with 2 columns for better visibility
     for i in range(0, len(cities), 2):
         row_btns = []
-        row_btns.append(InlineKeyboardButton(text=cities[i], callback_data=f"city:{cities[i]}"))
+        # Use hash if prefix is not default to avoid length issues if prefix is long?
+        # But cities names are safe for now.
+        # Default prefix "city" + "San Francisco" < 64 chars.
+        # "lot_city" + "San Francisco" is fine.
+        row_btns.append(InlineKeyboardButton(text=cities[i], callback_data=f"{prefix}:{cities[i]}"))
         if i + 1 < len(cities):
-            row_btns.append(InlineKeyboardButton(text=cities[i+1], callback_data=f"city:{cities[i+1]}"))
+            row_btns.append(InlineKeyboardButton(text=cities[i+1], callback_data=f"{prefix}:{cities[i+1]}"))
         builder.row(*row_btns)
 
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_main_menu"))
+    # Back button logic might vary.
+    # If prefix is "city" (Friends), back to main.
+    # If "lot_city" (Lots), back to description?
+    # I'll add a generic back button, but handlers need to handle it or ignore it.
+    # Actually, `get_cancel_keyboard` is ReplyKeyboard.
+    # For inline, we usually have a specific back.
+    # I'll stick to a generic "Back" that sends "back_from_city_selection".
+    # Handlers will need to handle this.
+    # But wait, existing code for Friends handles "back_to_main_menu".
+    # I should preserve that if prefix is default.
+    back_cb = "back_to_main_menu"
+    if prefix == "lot_city":
+        back_cb = "back_to_lot_description"
+
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_cb))
     return builder.as_markup()
 
 
@@ -101,11 +120,6 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
     for text, value in categories:
         builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{value}"))
 
-    # Back button depends on context, but usually back to menu is safe
-    # If prefix is "res_cat", we are in resources, maybe back to main menu.
-    # If prefix is "lot_cat", we are in lots creation, maybe cancel or back to lots type.
-    # Let's use a generic back callback if possible, or just "back_to_menu".
-    # The handlers usually handle "back_to_menu".
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 

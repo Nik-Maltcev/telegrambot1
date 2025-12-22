@@ -158,6 +158,24 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             reply_markup=keyboard
         )
     else:
+        # Check if user is admin - admins bypass invite code and auto-register if desired,
+        # but here we follow standard flow or auto-reg?
+        # Prompt says "Access ... is controlled by an invite code, which is verified only after the user completes the mandatory registration questionnaire."
+        # Memory says "Administrators ... are automatically registered with placeholder data ... upon running /start".
+        if message.from_user.id in ADMIN_IDS:
+             # Auto-register admin
+             await db.add_user(
+                 user_id=message.from_user.id,
+                 username=message.from_user.username,
+                 name="Admin",
+                 main_city="Global",
+                 current_city="Global",
+                 about="Administrator",
+                 instagram="admin"
+             )
+             await message.answer("Admin auto-registered.", reply_markup=get_admin_menu_keyboard())
+             return
+
         await state.update_data(
             selected_skill_items=[], selected_offer_formats=[],
             selected_interaction_formats=[], selected_result_types=[],
@@ -217,12 +235,6 @@ async def process_name(message: Message, state: FSMContext):
     # Initialize empty selection for main city
     await state.update_data(selected_main_cities=[])
 
-    # We use inline keyboard for multi-selection, so we need to remove the Reply keyboard (Back button)
-    # or keep it and handle text "Back".
-    # But get_cities_select_keyboard is inline.
-    # We send a message with the inline keyboard.
-    # We can also keep the Reply "Back" button active if we want, but it's cleaner to use inline back.
-    # Let's remove the Reply keyboard first to avoid confusion.
     await message.answer("Great! Now, please select the city (or cities) where you are usually located:", reply_markup=ReplyKeyboardRemove())
     await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
     await state.set_state(Registration.main_city)
@@ -288,7 +300,7 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
 async def process_about(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
         await state.set_state(Registration.main_city)
-        await message.answer("Great! Now, please enter the city where you are usually located:", reply_markup=get_cancel_keyboard())
+        await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
         return
     await state.update_data(about=message.text)
     await message.answer("Please enter your Instagram username (or send '-' if you don't have one):", reply_markup=get_cancel_keyboard())
@@ -304,12 +316,6 @@ async def process_instagram(message: Message, state: FSMContext):
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)
 
-    # We remove the keyboard for processing, but immediately show inline keyboard for next step.
-    # The user asked for "Back" button on every question.
-    # For inline keyboards, we implement "Back" in the keyboard itself.
-    # We don't send ReplyKeyboardRemove because we want the user to be able to use standard keyboard if needed?
-    # No, skills selection is inline.
-
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
 
     skills_intro = (
@@ -323,13 +329,15 @@ async def process_instagram(message: Message, state: FSMContext):
         "• create or deliver a clear final result\n\n"
         "Select your Category of Expertise: You may select multiple options across different categories."
     )
-    # No back button here because previous step was text input.
-    # But wait, user might want to go back to Instagram input?
-    # The current library setup for get_skill_categories_keyboard doesn't take back_callback.
-    # We should add it.
     await message.answer(skills_intro, reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
 
+
+# ... (Skipping repeated handlers for brevity, they remain same until Artwork) ...
+# I will output the FULL file content, ensuring I don't break existing handlers.
+# Since I cannot copy-paste all 1000 lines easily without risk, I will focus on applying the change to `skip_artwork_section`, `process_art_photo` and adding `waiting_for_invite_code` handlers.
+# But `overwrite_file_with_block` requires full content. I must include everything.
+# I will use the memory of the file content I read + my changes.
 
 # --- Skills Section Handlers ---
 
@@ -389,7 +397,6 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Registration.offer_formats)
     await callback.answer()
 
-# Back from offer formats
 @router.callback_query(Registration.offer_formats, F.data == "q_fmt_back")
 async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Select your Category of Expertise: You may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
@@ -509,7 +516,6 @@ async def finish_skills_section(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one result type.", show_alert=True)
         return
 
-    # Move to Personal Introductions section
     intro_text = (
         "2|9 🩵 Personal Introductions to Key People\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
@@ -537,7 +543,6 @@ async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.intro_section, F.data == "intro_skip")
 async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
-    # Move to Real Estate section
     real_estate_text = (
         "3|9 🩵 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
@@ -696,10 +701,8 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one format.", show_alert=True)
         return
 
-    # Progress message
     await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
 
-    # Move to Real Estate section
     real_estate_text = (
         "3|9 🩵 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
@@ -712,7 +715,6 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.real_estate_section, F.data == "re_sec_back")
 async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
-    # Go back to intro section last step
     data = await state.get_data()
     selected = set(data.get("selected_intro_formats", []))
     await callback.message.edit_text(
@@ -740,7 +742,6 @@ async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.real_estate_section, F.data == "realestate_start")
 async def start_realestate_section(callback: CallbackQuery, state: FSMContext):
-    # City first
     data = await state.get_data()
     selected = set(data.get("selected_prop_cities", []))
     await callback.message.edit_text(
@@ -901,7 +902,6 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
     if target_item:
         await state.update_data(property_capacity=target_item)
 
-    # Move to Cars section
     cars_text = (
         "4|9 🩵 Cars and other vehicles\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
@@ -914,7 +914,6 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.cars_section, F.data == "cars_sec_back")
 async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
-    # Back to Property Capacity
     await callback.message.edit_text(
         "Capacity\n\nNumber of people who can comfortably stay:",
         reply_markup=get_single_select_keyboard(PROPERTY_CAPACITY, "prop_cap", "prop_cap_back")
@@ -939,7 +938,6 @@ async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.cars_section, F.data == "cars_start")
 async def start_cars_section(callback: CallbackQuery, state: FSMContext):
-    # City first
     data = await state.get_data()
     selected = set(data.get("selected_car_cities", []))
     await callback.message.edit_text(
@@ -997,7 +995,6 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
 @router.message(Registration.car_info, F.text)
 async def process_car_info(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        # Go back to location
         data = await state.get_data()
         selected = set(data.get("selected_car_cities", []))
         await message.answer("Location\n\nSelect your vehicle location:", reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back"))
@@ -1006,7 +1003,6 @@ async def process_car_info(message: Message, state: FSMContext):
 
     await state.update_data(car_info=message.text)
 
-    # Remove keyboard for inline next
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
 
     await message.answer(
@@ -1017,8 +1013,6 @@ async def process_car_info(message: Message, state: FSMContext):
 
 @router.callback_query(Registration.car_usage, F.data == "car_usage_back")
 async def back_from_car_usage(callback: CallbackQuery, state: FSMContext):
-    # Back to text input is tricky with callback.
-    # We send a message asking for input again.
     await callback.message.delete()
     await callback.message.answer(
         "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
@@ -1124,7 +1118,6 @@ async def select_car_passengers(callback: CallbackQuery, state: FSMContext):
     if target_item:
         await state.update_data(car_passengers=target_item)
 
-    # Move to Equipment section
     equipment_text = (
         "5|9 🩵 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
@@ -1161,7 +1154,6 @@ async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.equipment_section, F.data == "equipment_start")
 async def start_equipment_section(callback: CallbackQuery, state: FSMContext):
-    # City first
     data = await state.get_data()
     selected = set(data.get("selected_equip_cities", []))
     await callback.message.edit_text(
@@ -1400,7 +1392,6 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
 
 @router.callback_query(Registration.aircraft_section, F.data == "aircraft_start")
 async def start_aircraft_section(callback: CallbackQuery, state: FSMContext):
-    # City first
     data = await state.get_data()
     selected = set(data.get("selected_air_cities", []))
     await callback.message.edit_text("Location\n\nSelect aircraft location:", reply_markup=get_cities_select_keyboard("air_city", "air_city_done", selected, "air_city_back"))
@@ -1635,7 +1626,6 @@ async def skip_vessel_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.vessel_section, F.data == "vessel_start")
 async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
-    # City first
     data = await state.get_data()
     selected = set(data.get("selected_vessel_cities", []))
     await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
@@ -2097,9 +2087,14 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 # --- Artworks Section ---
 
 @router.callback_query(Registration.artwork_section, F.data == "artwork_skip")
-async def skip_artwork_section(callback: CallbackQuery, state: FSMContext, db: Database):
-    # Finalize registration
-    await finish_registration(callback.message, state, db)
+async def skip_artwork_section(callback: CallbackQuery, state: FSMContext):
+    # Transition to invite code instead of finish
+    await callback.message.delete()
+    await callback.message.answer(
+        "Almost done! Please enter your Invite Code:",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.waiting_for_invite_code)
     await callback.answer()
 
 
@@ -2205,12 +2200,6 @@ async def select_art_city(callback: CallbackQuery, state: FSMContext):
     city = find_item_by_hash(CITIES, city_hash)
     if city:
         await state.update_data(art_location=city)
-    # Single select for art city? Or multi? Prompt said "Location" singular.
-    # Usually artwork is in one place.
-    # But `get_cities_select_keyboard` is multi-select capable.
-    # I'll treat it as single select if user clicks one, but the keyboard is built for multi.
-    # Let's assume single select is enough for Art Location based on typical logic.
-    # Update: prompt didn't specify multi for art.
     await callback.answer(f"Selected: {city}" if city else "")
 
 
@@ -2223,26 +2212,56 @@ async def finish_art_location(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 @router.message(Registration.art_photo, F.photo)
-async def process_art_photo(message: Message, state: FSMContext, db: Database):
+async def process_art_photo(message: Message, state: FSMContext):
     # Save photo file_id
     photo_id = message.photo[-1].file_id
     await state.update_data(art_photo_id=photo_id)
-    await finish_registration(message, state, db)
+
+    # Go to invite code
+    await message.answer(
+        "Almost done! Please enter your Invite Code:",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.waiting_for_invite_code)
+
+
+@router.message(Registration.waiting_for_invite_code, F.text)
+async def process_invite_code(message: Message, state: FSMContext, db: Database):
+    if message.text == "🔙 Back":
+        # Back to photo upload?
+        await message.answer("Please upload a photo of the artwork (send as photo):")
+        await state.set_state(Registration.art_photo)
+        return
+
+    invite_code = message.text.strip()
+
+    # Verify invite code
+    # We need a method in DB to check invite code
+    is_valid = await db.is_valid_token(invite_code)
+
+    if is_valid:
+        await db.use_invite_token(invite_code)
+        await finish_registration(message, state, db)
+    else:
+        await message.answer("❌ Invalid invite code. Please try again or contact support.")
+
 
 async def finish_registration(message: Message, state: FSMContext, db: Database):
     data = await state.get_data()
 
     user_id = message.from_user.id
     name = data.get("name", "Unknown")
+    # main_city is stored as string in state if we joined it?
+    # In process_main_city, we did: main_city_str = ", ".join(selected_cities)
     main_city = data.get("main_city", "Unknown")
-    # current_city is removed, use main_city or default
-    current_city = main_city
+
+    current_city = main_city # Default to main
     about = data.get("about", "-")
     instagram = data.get("instagram", "-")
     username = message.from_user.username
 
     # Save user to DB
-    await db.add_user(
+    success = await db.add_user(
         user_id=user_id,
         username=username,
         name=name,
@@ -2252,17 +2271,23 @@ async def finish_registration(message: Message, state: FSMContext, db: Database)
         instagram=instagram
     )
 
-    # Save answers (simple dump for now as per schema)
-    await db.add_user_answer(user_id, "registration_data", json.dumps(data, default=str))
+    if success:
+        # Save answers
+        await db.add_user_answer(user_id, "registration_data", json.dumps(data, default=str))
 
-    summary = (
-        f"Registration completed!\n\n"
-        f"﹡Name - {name}\n"
-        f"﹡City - {main_city}\n"
-        f"﹡About - {about}\n"
-        f"﹡Instagram - {instagram}\n"
-        f"Points: 0"
-    )
+        summary = (
+            f"Registration completed!\n\n"
+            f"﹡Name - {name}\n"
+            f"﹡City - {main_city}\n"
+            f"﹡About - {about}\n"
+            f"﹡Instagram - {instagram}\n"
+            f"Points: 0"
+        )
 
-    await message.answer(summary, reply_markup=get_main_menu_keyboard())
-    await state.clear()
+        await message.answer(summary, reply_markup=get_main_menu_keyboard())
+        await state.clear()
+    else:
+        await message.answer("❌ Error saving registration data. Please try again or contact admin.", reply_markup=get_main_menu_keyboard())
+        # We don't clear state so they can retry? Or we clear and they start over?
+        # If add_user fails, it's a system error.
+        await state.clear()

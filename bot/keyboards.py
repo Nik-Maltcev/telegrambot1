@@ -81,29 +81,31 @@ def get_cities_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def get_resource_categories_keyboard() -> InlineKeyboardMarkup:
+def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardMarkup:
     """Keyboard with resource categories"""
     # Categories as requested
     categories = [
-        ("🎓 Skills and Knowledge", "res_cat:Skills and Knowledge"),
-        ("🤝 Personal Introductions to Key People", "res_cat:Personal Introductions to Key People"),
-        ("🏠 Real Estate", "res_cat:Real Estate"),
-        ("🚗 Cars and Other Vehicles", "res_cat:Cars and Other Vehicles"),
-        ("🔧 Equipment", "res_cat:Equipment"),
-        ("✈️ Air Transport", "res_cat:Air Transport"),
-        ("⛵ Water Transport / Vessels", "res_cat:Water Transport / Vessels"),
-        ("👨‍💼 Specialists", "res_cat:Specialists"),
-        ("🎨 Artworks", "res_cat:Artworks"),
-        ("✨ Unique opportunities", "res_cat:Unique opportunities"),
+        ("🎓 Skills and Knowledge", "Skills and Knowledge"),
+        ("🤝 Personal Introductions to Key People", "Personal Introductions to Key People"),
+        ("🏠 Real Estate", "Real Estate"),
+        ("🚗 Cars and Other Vehicles", "Cars and Other Vehicles"),
+        ("🔧 Equipment", "Equipment"),
+        ("✈️ Air Transport", "Air Transport"),
+        ("⛵ Water Transport / Vessels", "Water Transport / Vessels"),
+        ("👨‍💼 Specialists", "Specialists"),
+        ("🎨 Artworks", "Artworks"),
+        ("✨ Unique opportunities", "Unique opportunities"),
     ]
 
     builder = InlineKeyboardBuilder()
-    for text, callback_data in categories:
-        builder.row(InlineKeyboardButton(text=text, callback_data=callback_data))
-    # Removed "Back to Resources" as per new flow, or maybe keep it if needed.
-    # But new flow is Resources -> Categories.
-    # I'll change callback to back_to_menu if needed, but Resources menu usually has a back or main menu.
-    # Let's keep a Back button to Main Menu.
+    for text, value in categories:
+        builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{value}"))
+
+    # Back button depends on context, but usually back to menu is safe
+    # If prefix is "res_cat", we are in resources, maybe back to main menu.
+    # If prefix is "lot_cat", we are in lots creation, maybe cancel or back to lots type.
+    # Let's use a generic back callback if possible, or just "back_to_menu".
+    # The handlers usually handle "back_to_menu".
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 
@@ -133,14 +135,6 @@ def get_create_lot_type_keyboard() -> InlineKeyboardMarkup:
 
 def get_open_resources_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for open resources sections - MAPS, etc."""
-    # Renamed/Restructured as per prompt "MAPS -> selection of city"
-    # Actually prompt says "Open resources database replace with MAPS -> select city".
-    # So "MAPS" handler will show cities directly.
-    # But if we keep this keyboard, it might be for other things?
-    # The prompt implies "Open resources database" button becomes "MAPS".
-    # So the handler for "MAPS" should just show cities.
-    # We can keep this if needed for other open resources, but prompt says "Open resources database replace with MAPS".
-    # I'll leave this for now but might not use it if I change handler logic.
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="🗺 Google Maps", callback_data="open:maps"))
     builder.row(InlineKeyboardButton(text="🔑 Access Links", callback_data="open:accesses"))

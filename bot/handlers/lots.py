@@ -179,7 +179,8 @@ async def process_lot_category(callback: CallbackQuery, state: FSMContext):
     type_label = "Type of Resource"
     type_ex = "(e.g. consultation, introduction, equipment, access, skill, space)"
 
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         f"Selected: {category}\n\n"
         f"**{type_label}**\n"
         f"{type_ex}\n\n"

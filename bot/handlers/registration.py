@@ -397,6 +397,7 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Registration.offer_formats)
     await callback.answer()
 
+# Back from offer formats
 @router.callback_query(Registration.offer_formats, F.data == "q_fmt_back")
 async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Select your Category of Expertise: You may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
@@ -516,6 +517,7 @@ async def finish_skills_section(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one result type.", show_alert=True)
         return
 
+    # Move to Personal Introductions section
     intro_text = (
         "2|9 🩵 Personal Introductions to Key People\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
@@ -543,6 +545,7 @@ async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.intro_section, F.data == "intro_skip")
 async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
+    # Move to Real Estate section
     real_estate_text = (
         "3|9 🩵 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
@@ -701,8 +704,10 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one format.", show_alert=True)
         return
 
+    # Progress message
     await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
 
+    # Move to Real Estate section
     real_estate_text = (
         "3|9 🩵 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
@@ -715,6 +720,7 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.real_estate_section, F.data == "re_sec_back")
 async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
+    # Go back to intro section last step
     data = await state.get_data()
     selected = set(data.get("selected_intro_formats", []))
     await callback.message.edit_text(
@@ -742,6 +748,7 @@ async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.real_estate_section, F.data == "realestate_start")
 async def start_realestate_section(callback: CallbackQuery, state: FSMContext):
+    # City first
     data = await state.get_data()
     selected = set(data.get("selected_prop_cities", []))
     await callback.message.edit_text(
@@ -902,6 +909,7 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
     if target_item:
         await state.update_data(property_capacity=target_item)
 
+    # Move to Cars section
     cars_text = (
         "4|9 🩵 Cars and other vehicles\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
@@ -914,6 +922,7 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.cars_section, F.data == "cars_sec_back")
 async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
+    # Back to Property Capacity
     await callback.message.edit_text(
         "Capacity\n\nNumber of people who can comfortably stay:",
         reply_markup=get_single_select_keyboard(PROPERTY_CAPACITY, "prop_cap", "prop_cap_back")
@@ -938,6 +947,7 @@ async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.cars_section, F.data == "cars_start")
 async def start_cars_section(callback: CallbackQuery, state: FSMContext):
+    # City first
     data = await state.get_data()
     selected = set(data.get("selected_car_cities", []))
     await callback.message.edit_text(
@@ -995,6 +1005,7 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
 @router.message(Registration.car_info, F.text)
 async def process_car_info(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
+        # Go back to location
         data = await state.get_data()
         selected = set(data.get("selected_car_cities", []))
         await message.answer("Location\n\nSelect your vehicle location:", reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back"))
@@ -1003,6 +1014,7 @@ async def process_car_info(message: Message, state: FSMContext):
 
     await state.update_data(car_info=message.text)
 
+    # Remove keyboard for inline next
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
 
     await message.answer(
@@ -1013,6 +1025,8 @@ async def process_car_info(message: Message, state: FSMContext):
 
 @router.callback_query(Registration.car_usage, F.data == "car_usage_back")
 async def back_from_car_usage(callback: CallbackQuery, state: FSMContext):
+    # Back to text input is tricky with callback.
+    # We send a message asking for input again.
     await callback.message.delete()
     await callback.message.answer(
         "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
@@ -1118,6 +1132,7 @@ async def select_car_passengers(callback: CallbackQuery, state: FSMContext):
     if target_item:
         await state.update_data(car_passengers=target_item)
 
+    # Move to Equipment section
     equipment_text = (
         "5|9 🩵 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
@@ -1154,6 +1169,7 @@ async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.equipment_section, F.data == "equipment_start")
 async def start_equipment_section(callback: CallbackQuery, state: FSMContext):
+    # City first
     data = await state.get_data()
     selected = set(data.get("selected_equip_cities", []))
     await callback.message.edit_text(
@@ -1626,6 +1642,7 @@ async def skip_vessel_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.vessel_section, F.data == "vessel_start")
 async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
+    # City first
     data = await state.get_data()
     selected = set(data.get("selected_vessel_cities", []))
     await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))

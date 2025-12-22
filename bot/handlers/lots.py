@@ -159,18 +159,16 @@ async def start_add_lot_flow(callback: CallbackQuery, state: FSMContext, lot_typ
             "First, select a **Category**:"
         )
 
-    # Use resource categories keyboard, but we need to intercept the callback
-    # The get_resource_categories_keyboard returns callbacks like "res_cat:Category"
-    # We can reuse it but need to handle "res_cat:" in this state.
+    # Use unique prefix to avoid conflict with Resources section
     await callback.message.edit_text(
         text,
-        reply_markup=get_resource_categories_keyboard()
+        reply_markup=get_resource_categories_keyboard(prefix="lot_cat")
     )
     await state.set_state(AddLot.category)
     await callback.answer()
 
 
-@router.callback_query(AddLot.category, F.data.startswith("res_cat:"))
+@router.callback_query(AddLot.category, F.data.startswith("lot_cat:"))
 async def process_lot_category(callback: CallbackQuery, state: FSMContext):
     category = callback.data.split(":", 1)[1]
     await state.update_data(category=category)
@@ -195,7 +193,8 @@ async def process_lot_category(callback: CallbackQuery, state: FSMContext):
 @router.message(AddLot.type_text, F.text)
 async def process_lot_type_text(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await message.answer("Select a Category:", reply_markup=get_resource_categories_keyboard())
+        # Back to category
+        await message.answer("Select a Category:", reply_markup=get_resource_categories_keyboard(prefix="lot_cat"))
         await state.set_state(AddLot.category)
         return
 

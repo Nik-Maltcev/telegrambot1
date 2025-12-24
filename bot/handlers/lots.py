@@ -11,7 +11,8 @@ from bot.keyboards import (
     get_menu_keyboard,
     get_lot_moderation_keyboard,
     get_resource_categories_keyboard,
-    get_single_select_keyboard
+    get_single_select_keyboard,
+    get_cities_keyboard
 )
 from bot.config import ADMIN_IDS
 from datetime import datetime
@@ -179,6 +180,7 @@ async def process_lot_category(callback: CallbackQuery, state: FSMContext):
     type_label = "Type of Resource"
     type_ex = "(e.g. consultation, introduction, equipment, access, skill, space)"
 
+    # We switch to text input, so we must delete inline keyboard and send new message
     await callback.message.delete()
     await callback.message.answer(
         f"Selected: {category}\n\n"
@@ -199,8 +201,7 @@ async def process_lot_type_text(message: Message, state: FSMContext):
         await state.set_state(AddLot.category)
         return
 
-    await state.update_data(type_text=message.text) # We store this as title? Prompt says "Type of Resource", then "Description".
-    # But database has 'title'. I'll map Type -> Title.
+    await state.update_data(type_text=message.text)
 
     data = await state.get_data()
     lot_type = data.get("lot_type")
@@ -223,38 +224,60 @@ async def process_lot_description(message: Message, state: FSMContext):
 
     await state.update_data(description=message.text)
 
+    # Remove previous Reply keyboard before showing Inline city selection
+    await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
+
+    # Send city selection keyboard with prefix "lot_city"
     await message.answer(
-        "**Location**\n(city or online)",
-        reply_markup=get_cancel_keyboard()
+        "**Location**\n(Select city)",
+        reply_markup=get_cities_keyboard(prefix="lot_city")
     )
     await state.set_state(AddLot.location)
 
 
-@router.message(AddLot.location, F.text)
-async def process_lot_location(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
-        await message.answer("Description:", reply_markup=get_cancel_keyboard())
-        await state.set_state(AddLot.description)
-        return
-
-    await state.update_data(location=message.text)
+@router.callback_query(AddLot.location, F.data.startswith("lot_city:"))
+async def process_lot_city(callback: CallbackQuery, state: FSMContext):
+    """Handle city selection for Lot"""
+    city = callback.data.split(":", 1)[1]
+    await state.update_data(location=city)
 
     data = await state.get_data()
     lot_type = data.get("lot_type")
 
     avail_prompt = "Availability\n(specific dates, this week, next 14 days, flexible)" if lot_type == "share" else "When Needed\n(ASAP, specific dates, this week, next 14 days, flexible)"
 
-    await message.answer(
+    # Switch back to text input (Availability)
+    await callback.message.delete()
+    await callback.message.answer(
+        f"Selected Location: {city}\n\n"
         f"**{avail_prompt}**",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AddLot.availability)
+    await callback.answer()
+
+
+# Handle "Back" from City Selection
+@router.callback_query(AddLot.location, F.data == "back_to_lot_description")
+async def back_to_lot_description(callback: CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    await callback.message.answer(
+        "Description\n(briefly describe what exactly you’re offering and in what form)",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(AddLot.description)
+    await callback.answer()
 
 
 @router.message(AddLot.availability, F.text)
 async def process_lot_availability(message: Message, state: FSMContext, db: Database):
     if message.text == "🔙 Back":
-        await message.answer("Location:", reply_markup=get_cancel_keyboard())
+        # Back to Location selection
+        await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            "**Location**\n(Select city)",
+            reply_markup=get_cities_keyboard(prefix="lot_city")
+        )
         await state.set_state(AddLot.location)
         return
 
@@ -268,7 +291,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
         title=data['type_text'], # Using Type as Title
         description=data['description'],
         category=data['category'],
-        location_text=data['location'],
+        location_text=data['location'], # Storing city name here
         availability=availability,
         status="pending"
     )
@@ -287,11 +310,12 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
         )
 
         # Notify admins
-        from bot.main import bot
+        # FIX: Removed 'from bot.main import bot' to avoid circular import.
+        # Use message.bot instead.
         user = await db.get_user(message.from_user.id)
         for admin_id in ADMIN_IDS:
             try:
-                await bot.send_message(
+                await message.bot.send_message(
                     admin_id,
                     f"🆕 New lot pending moderation!\n\n"
                     f"👤 From: {user['name']} (@{message.from_user.username or 'no username'})\n"
@@ -303,8 +327,8 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
                     f"📅 Availability: {availability}",
                     reply_markup=get_lot_moderation_keyboard(lot_id)
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Failed to notify admin {admin_id}: {e}")
 
         # Show lots menu
         await message.answer(

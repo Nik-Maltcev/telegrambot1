@@ -417,9 +417,10 @@ async def approve_lot(callback: CallbackQuery, db: Database):
     await db.update_lot_status(lot_id, "approved")
 
     # Notify user
-    from bot.main import bot
+    # FIX: removed circular import "from bot.main import bot"
+    # Use callback.bot
     try:
-        await bot.send_message(
+        await callback.bot.send_message(
             lot['user_id'],
             f"✅ Your lot has been approved!\n\n"
             f"📌 {lot['title']}\n\n"
@@ -471,9 +472,9 @@ async def reject_lot(callback: CallbackQuery, db: Database):
     await db.update_lot_status(lot_id, "rejected")
 
     # Notify user
-    from bot.main import bot
+    # FIX: removed circular import
     try:
-        await bot.send_message(
+        await callback.bot.send_message(
             lot['user_id'],
             f"❌ Your lot was not approved.\n\n"
             f"📌 {lot['title']}\n\n"

@@ -319,7 +319,7 @@ async def process_instagram(message: Message, state: FSMContext):
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
 
     skills_intro = (
-        "1|9 🩵 Skills and Knowledge\n\n"
+        "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"
         "Please provide information about the skills, knowledge, and professional abilities "
         "you are willing to share with the community.\n\n"
         "Each of us carries unique mastery. Here you can list the areas where you can:\n"
@@ -519,7 +519,7 @@ async def finish_skills_section(callback: CallbackQuery, state: FSMContext):
 
     # Move to Personal Introductions section
     intro_text = (
-        "2|9 🩵 Personal Introductions to Key People\n\n"
+        "2|9 🤝🏻 Personal Introduction\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -547,7 +547,7 @@ async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
 async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
     # Move to Real Estate section
     real_estate_text = (
-        "3|9 🩵 Real Estate\n\n"
+        "3|9 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -569,7 +569,7 @@ async def start_intro_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.intro_category, F.data == "intro_cat_back")
 async def back_to_intro_section(callback: CallbackQuery, state: FSMContext):
     intro_text = (
-        "2|9 🩵 Personal Introductions to Key People\n\n"
+        "2|9 🤝🏻 Personal Introduction\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -709,7 +709,7 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
 
     # Move to Real Estate section
     real_estate_text = (
-        "3|9 🩵 Real Estate\n\n"
+        "3|9 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -736,7 +736,7 @@ async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.real_estate_section, F.data == "realestate_skip")
 async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
     cars_text = (
-        "4|9 🩵 Cars and other vehicles\n\n"
+        "4|9 🖤 Cars\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
@@ -761,7 +761,7 @@ async def start_realestate_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.property_location, F.data == "prop_city_back")
 async def back_from_prop_city(callback: CallbackQuery, state: FSMContext):
     real_estate_text = (
-        "3|9 🩵 Real Estate\n\n"
+        "3|9 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -911,7 +911,7 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
 
     # Move to Cars section
     cars_text = (
-        "4|9 🩵 Cars and other vehicles\n\n"
+        "4|9 🖤 Cars\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
@@ -936,7 +936,7 @@ async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.cars_section, F.data == "cars_skip")
 async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
     equipment_text = (
-        "5|9 🩵 Equipment\n\n"
+        "5|9 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -960,7 +960,7 @@ async def start_cars_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.car_location, F.data == "car_city_back")
 async def back_from_car_city(callback: CallbackQuery, state: FSMContext):
     cars_text = (
-        "4|9 🩵 Cars and other vehicles\n\n"
+        "4|9 🖤 Cars\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
@@ -1134,7 +1134,7 @@ async def select_car_passengers(callback: CallbackQuery, state: FSMContext):
 
     # Move to Equipment section
     equipment_text = (
-        "5|9 🩵 Equipment\n\n"
+        "5|9 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -1157,7 +1157,7 @@ async def back_from_equip_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.equipment_section, F.data == "equipment_skip")
 async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
     aircraft_text = (
-        "6|9 🩵 Air Transport\n\n"
+        "6|9 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1182,7 +1182,7 @@ async def start_equipment_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.equipment_location, F.data == "equip_city_back")
 async def back_from_equip_location(callback: CallbackQuery, state: FSMContext):
     equipment_text = (
-        "5|9 🩵 Equipment\n\n"
+        "5|9 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -1368,7 +1368,7 @@ async def finish_equipment_section(callback: CallbackQuery, state: FSMContext):
         return
 
     aircraft_text = (
-        "6|9 🩵 Air Transport\n\n"
+        "6|9 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1396,7 +1396,7 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
     await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
 
     vessel_text = (
-        "7|9 🩵 Water Transport / Vessels\n\n"
+        "7|9 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1417,7 +1417,7 @@ async def start_aircraft_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.aircraft_location, F.data == "air_city_back")
 async def back_from_air_city(callback: CallbackQuery, state: FSMContext):
     aircraft_text = (
-        "6|9 🩵 Air Transport\n\n"
+        "6|9 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1604,7 +1604,7 @@ async def finish_aircraft_section(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
 
     vessel_text = (
-        "7|9 🩵 Water Transport / Vessels\n\n"
+        "7|9 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1652,7 +1652,7 @@ async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.vessel_location, F.data == "vessel_city_back")
 async def back_from_vessel_location(callback: CallbackQuery, state: FSMContext):
     vessel_text = (
-        "7|9 🩵 Water Transport / Vessels\n\n"
+        "7|9 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1864,7 +1864,7 @@ async def back_from_spec_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.specialist_section, F.data == "specialist_skip")
 async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
     artwork_text = (
-        "9|9 🩵 Artworks\n\n"
+        "9|9 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
@@ -2069,7 +2069,7 @@ async def add_another_specialist(callback: CallbackQuery, state: FSMContext):
 async def finish_specialist_loop(callback: CallbackQuery, state: FSMContext):
     # Move to Artworks section
     artwork_text = (
-        "9|9 🩵 Artworks\n\n"
+        "9|9 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
@@ -2128,7 +2128,7 @@ async def start_artwork_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.art_form, F.data == "art_form_back")
 async def back_from_art_form(callback: CallbackQuery, state: FSMContext):
     artwork_text = (
-        "9|9 🩵 Artworks\n\n"
+        "9|9 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."

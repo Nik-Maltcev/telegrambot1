@@ -104,16 +104,16 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
     """Keyboard with resource categories"""
     # Categories as requested
     categories = [
-        ("🎓 Skills and Knowledge", "Skills and Knowledge"),
-        ("🤝 Personal Introductions to Key People", "Personal Introductions to Key People"),
-        ("🏠 Real Estate", "Real Estate"),
-        ("🚗 Cars and Other Vehicles", "Cars and Other Vehicles"),
-        ("🔧 Equipment", "Equipment"),
-        ("✈️ Air Transport", "Air Transport"),
-        ("⛵ Water Transport / Vessels", "Water Transport / Vessels"),
+        ("🗽 Real Estate", "Real Estate"),
+        ("🖤 Cars", "Cars and Other Vehicles"),
+        ("🛩️ Aircrafts", "Air Transport"),
+        ("💎 Boats", "Water Transport / Vessels"),
+        ("🎧 Equipment", "Equipment"),
+        ("🧑🏼‍💻 Skills and Knowledge", "Skills and Knowledge"),
+        ("🫆 Unique Opportunities", "Unique opportunities"),
+        ("🫧 Works of Art", "Artworks"),
+        ("🤝🏻 Personal Introduction", "Personal Introductions to Key People"),
         ("👨‍💼 Specialists", "Specialists"),
-        ("🎨 Artworks", "Artworks"),
-        ("✨ Unique opportunities", "Unique opportunities"),
     ]
 
     builder = InlineKeyboardBuilder()

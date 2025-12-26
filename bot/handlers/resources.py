@@ -38,15 +38,15 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
 
     # Category Descriptions
     category_descriptions = {
-        "Real Estate": "🏠 Real Estate\n\nProperties, apartments, houses, and real estate opportunities available for exchange or temporary use.",
-        "Cars and Other Vehicles": "🚗 Cars and Other Vehicles\n\nVehicles available for sharing, rent, or exchange within the community.",
-        "Air Transport": "✈️ Air Transport\n\nPrivate jets, helicopters, and aircraft available for community members.",
-        "Water Transport / Vessels": "⛵ Water Transport / Vessels\n\nYachts, boats, and watercraft available for exchange or use.",
-        "Equipment": "🔧 Equipment\n\nTools, machinery, and equipment available for sharing.",
-        "Skills and Knowledge": "🎓 Skills and Knowledge\n\nExpertise, mentoring, and educational resources offered by members.",
-        "Unique opportunities": "✨ Unique opportunities\n\nSpecial opportunities, access, and unique experiences.",
-        "Artworks": "🎨 Artworks\n\nArtwork, collectibles, and creative works available for viewing or exchange.",
-        "Personal Introductions to Key People": "🤝 Personal Introductions to Key People\n\nConnections and introductions to specific professional or social circles.",
+        "Real Estate": "🗽 Real Estate\n\nProperties, apartments, houses, and real estate opportunities available for exchange or temporary use.",
+        "Cars and Other Vehicles": "🖤 Cars\n\nVehicles available for sharing, rent, or exchange within the community.",
+        "Air Transport": "🛩️ Aircrafts\n\nPrivate jets, helicopters, and aircraft available for community members.",
+        "Water Transport / Vessels": "💎 Boats\n\nYachts, boats, and watercraft available for exchange or use.",
+        "Equipment": "🎧 Equipment\n\nTools, machinery, and equipment available for sharing.",
+        "Skills and Knowledge": "🧑🏼‍💻 Skills and Knowledge\n\nExpertise, mentoring, and educational resources offered by members.",
+        "Unique opportunities": "🫆 Unique Opportunities\n\nSpecial opportunities, access, and unique experiences.",
+        "Artworks": "🫧 Works of Art\n\nArtwork, collectibles, and creative works available for viewing or exchange.",
+        "Personal Introductions to Key People": "🤝🏻 Personal Introduction\n\nConnections and introductions to specific professional or social circles.",
         "Specialists": "👨‍💼 Specialists\n\nTrusted professionals and contacts recommended by members."
     }
 

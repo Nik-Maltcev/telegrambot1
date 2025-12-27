@@ -212,12 +212,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             "glad to be here with you.\n"
             "stay joyful 🩵\n"
             "xxAnna\n\n"
-            "🍒\n\n"
-            "please complete the questionnaire carefully.\n"
-            "9 sections, ~10 minutes.\n\n"
-            "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
-            "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
-            "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+            "🍒"
         )
         await message.answer(intro_text)
         await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
@@ -317,6 +312,15 @@ async def process_instagram(message: Message, state: FSMContext):
     await state.update_data(instagram=instagram)
 
     await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
+
+    warning_text = (
+        "please complete the questionnaire carefully. \n"
+        "9 sections, ~10 minutes. \n\n"
+        "incomplete submissions are not reviewed and will not be granted access to the Community. \n\n"
+        "the bot will send questions one by one — just reply in chat or choose the available options. \n\n"
+        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+    )
+    await message.answer(warning_text)
 
     skills_intro = (
         "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"

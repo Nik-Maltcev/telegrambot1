@@ -144,6 +144,21 @@ class Registration(StatesGroup):
     waiting_for_invite_code = State()
 
 
+@router.message(Registration.waiting_for_invite_code, F.text)
+async def process_invite_code_start(message: Message, state: FSMContext):
+    if message.text == "🔙 Back":
+        await state.clear()
+        await message.answer("Operation cancelled. Use /start to register.")
+        return
+
+    invite_code = message.text.strip()
+    if invite_code == "JOY":
+        await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
+        await state.set_state(Registration.name)
+    else:
+        await message.answer("❌ Invalid invite code. Please try again.")
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext, db: Database):
     """Handle /start command"""
@@ -215,15 +230,16 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             "🍒"
         )
         await message.answer(intro_text)
-        await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
-        await state.set_state(Registration.name)
+        await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
+        await state.set_state(Registration.waiting_for_invite_code)
 
 
 @router.message(Registration.name, F.text)
 async def process_name(message: Message, state: FSMContext):
     if message.text == "🔙 Back":
-        await state.clear()
-        await message.answer("Registration cancelled.", reply_markup=None)
+        # Back to invite code
+        await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
+        await state.set_state(Registration.waiting_for_invite_code)
         return
     await state.update_data(name=message.text)
 
@@ -2108,14 +2124,10 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 # --- Artworks Section ---
 
 @router.callback_query(Registration.artwork_section, F.data == "artwork_skip")
-async def skip_artwork_section(callback: CallbackQuery, state: FSMContext):
-    # Transition to invite code instead of finish
+async def skip_artwork_section(callback: CallbackQuery, state: FSMContext, db: Database):
+    # Finish registration
     await callback.message.delete()
-    await callback.message.answer(
-        "Almost done! Please enter your Invite Code:",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(Registration.waiting_for_invite_code)
+    await finish_registration(callback.message, state, db)
     await callback.answer()
 
 
@@ -2233,38 +2245,13 @@ async def finish_art_location(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 @router.message(Registration.art_photo, F.photo)
-async def process_art_photo(message: Message, state: FSMContext):
+async def process_art_photo(message: Message, state: FSMContext, db: Database):
     # Save photo file_id
     photo_id = message.photo[-1].file_id
     await state.update_data(art_photo_id=photo_id)
 
-    # Go to invite code
-    await message.answer(
-        "Almost done! Please enter your Invite Code:",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(Registration.waiting_for_invite_code)
-
-
-@router.message(Registration.waiting_for_invite_code, F.text)
-async def process_invite_code(message: Message, state: FSMContext, db: Database):
-    if message.text == "🔙 Back":
-        # Back to photo upload?
-        await message.answer("Please upload a photo of the artwork (send as photo):")
-        await state.set_state(Registration.art_photo)
-        return
-
-    invite_code = message.text.strip()
-
-    # Verify invite code
-    # We need a method in DB to check invite code
-    is_valid = await db.is_valid_token(invite_code)
-
-    if is_valid:
-        await db.use_invite_token(invite_code)
-        await finish_registration(message, state, db)
-    else:
-        await message.answer("❌ Invalid invite code. Please try again or contact support.")
+    # Finish registration
+    await finish_registration(message, state, db)
 
 
 async def finish_registration(message: Message, state: FSMContext, db: Database):

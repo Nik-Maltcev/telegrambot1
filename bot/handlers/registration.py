@@ -146,7 +146,7 @@ class Registration(StatesGroup):
 
 @router.message(Registration.waiting_for_invite_code, F.text)
 async def process_invite_code_start(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await state.clear()
         await message.answer("Operation cancelled. Use /start to register.")
         return
@@ -236,7 +236,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
 @router.message(Registration.name, F.text)
 async def process_name(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         # Back to invite code
         await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
         await state.set_state(Registration.waiting_for_invite_code)
@@ -255,7 +255,7 @@ async def process_name(message: Message, state: FSMContext):
 async def process_main_city_text(message: Message, state: FSMContext):
     # This handler might catch text if user types instead of clicking
     # If it is "Back", we go back.
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await state.set_state(Registration.name)
         await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
         return
@@ -309,7 +309,7 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Registration.about, F.text)
 async def process_about(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await state.set_state(Registration.main_city)
         await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
         return
@@ -320,7 +320,7 @@ async def process_about(message: Message, state: FSMContext):
 
 @router.message(Registration.instagram, F.text)
 async def process_instagram(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await state.set_state(Registration.about)
         await message.answer("Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•", reply_markup=get_cancel_keyboard())
         return
@@ -331,9 +331,9 @@ async def process_instagram(message: Message, state: FSMContext):
 
     warning_text = (
         "please complete the questionnaire carefully. \n"
-        "9 sections, ~10 minutes. \n\n"
-        "incomplete submissions are not reviewed and will not be granted access to the Community. \n\n"
-        "the bot will send questions one by one — just reply in chat or choose the available options. \n\n"
+        "9 sections, ~10 minutes. \n \n"
+        "incomplete submissions are not reviewed and will not be granted access to the Community. \n \n"
+        "the bot will send questions one by one — just reply in chat or choose the available options. \n \n"
         "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
     )
     await message.answer(warning_text)
@@ -1024,7 +1024,7 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Registration.car_info, F.text)
 async def process_car_info(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         # Go back to location
         data = await state.get_data()
         selected = set(data.get("selected_car_cities", []))
@@ -2014,7 +2014,7 @@ async def select_specialist_connection(callback: CallbackQuery, state: FSMContex
 
 @router.message(Registration.specialist_name, F.text)
 async def process_specialist_name(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await message.answer("Type of Connection:", reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn", "spec_conn_back"))
         await state.set_state(Registration.specialist_connection)
         return
@@ -2026,7 +2026,7 @@ async def process_specialist_name(message: Message, state: FSMContext):
 
 @router.message(Registration.specialist_contact, F.text)
 async def process_specialist_contact(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await message.answer("Specialist Name\n\nPlease type the full name or public working name:", reply_markup=get_cancel_keyboard())
         await state.set_state(Registration.specialist_name)
         return
@@ -2046,7 +2046,7 @@ async def process_specialist_contact(message: Message, state: FSMContext):
 
 @router.message(Registration.specialist_referral, F.text)
 async def process_specialist_referral(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await message.answer("Contact\n\nSpecify one or more (Telegram | WhatsApp | Email | Website | Social media):", reply_markup=get_cancel_keyboard())
         await state.set_state(Registration.specialist_contact)
         return
@@ -2196,7 +2196,7 @@ async def select_art_author(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Registration.art_author_name, F.text)
 async def process_art_author_name(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await message.answer(
             "Who is the author?",
             reply_markup=get_single_select_keyboard(ART_AUTHOR_TYPE, "art_auth", "art_auth_back")

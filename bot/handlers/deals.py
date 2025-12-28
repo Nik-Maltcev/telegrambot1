@@ -177,3 +177,10 @@ async def show_my_deals(message: Message, db: Database):
         )
 
     await message.answer(deals_text, reply_markup=keyboard)
+
+
+@router.message(F.text.in_({"🔙 Back", "Back"}))
+async def global_back_handler(message: Message):
+    """Fallback handler for Back button if state is lost."""
+    keyboard = get_menu_keyboard(message.from_user.id)
+    await message.answer("Returning to main menu...", reply_markup=keyboard)

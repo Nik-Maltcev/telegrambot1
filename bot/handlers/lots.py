@@ -195,7 +195,7 @@ async def process_lot_category(callback: CallbackQuery, state: FSMContext):
 
 @router.message(AddLot.type_text, F.text)
 async def process_lot_type_text(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         # Back to category
         await message.answer("Select a Category:", reply_markup=get_resource_categories_keyboard(prefix="lot_cat"))
         await state.set_state(AddLot.category)
@@ -217,7 +217,7 @@ async def process_lot_type_text(message: Message, state: FSMContext):
 
 @router.message(AddLot.description, F.text)
 async def process_lot_description(message: Message, state: FSMContext):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         await message.answer("Type of Resource:", reply_markup=get_cancel_keyboard())
         await state.set_state(AddLot.type_text)
         return
@@ -271,7 +271,7 @@ async def back_to_lot_description(callback: CallbackQuery, state: FSMContext):
 
 @router.message(AddLot.availability, F.text)
 async def process_lot_availability(message: Message, state: FSMContext, db: Database):
-    if message.text == "🔙 Back":
+    if message.text.strip() == "🔙 Back":
         # Back to Location selection
         await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
         await message.answer(

@@ -1,7 +1,7 @@
 
 SKILL_CATEGORIES = {
     "A": {
-        "name": "Business, Strategy & Pro Services",
+        "name": "Business & Strategy",
         "items": [
             "Business consulting", "Startup mentorship", "Marketing and branding",
             "Sales and negotiations", "PR and communications", "Legal consultation",
@@ -12,7 +12,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "B": {
-        "name": "Technology, IT, and Digital Professions",
+        "name": "IT & Digital",
         "items": [
             "UX/UI design", "Web development", "Mobile development", "AR/VR, metaverse",
             "3D modeling", "Animation", "Programming (Python, JS, Go, etc.)",
@@ -22,7 +22,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "C": {
-        "name": "Creativity and Art",
+        "name": "Creativity & Art",
         "items": [
             "Photography", "Videography", "Creative direction", "Editing", "Color grading",
             "Sound design", "Music production", "DJ", "Vocals", "Playing musical instruments",
@@ -33,7 +33,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "D": {
-        "name": "Wellbeing & Mental health",
+        "name": "Wellbeing",
         "items": [
             "Psychology", "Body-oriented therapy", "Breathing practices",
             "Meditation and mindfulness", "Yoga", "Somatics", "Emotional intelligence",
@@ -42,7 +42,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "E": {
-        "name": "Sports, Health, and Wellness",
+        "name": "Sports & Health",
         "items": [
             "Personal training", "Functional training", "Pilates", "Dance", "Stretching",
             "Home workouts", "Nutrition and dietetics", "Recovery after training",
@@ -51,13 +51,13 @@ SKILL_CATEGORIES = {
         ]
     },
     "F": {
-        "name": "Languages & Cross-Culture",
+        "name": "Languages",
         "items": [
             "Language teaching", "Interview preparation", "Translation and localization"
         ]
     },
     "G": {
-        "name": "Media and Reputation Management",
+        "name": "Media & PR",
         "items": [
             "Production of shoots", "Press relations", "Copywriting",
             "Media Publications", "Personal branding",
@@ -66,7 +66,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "H": {
-        "name": "Lifestyle & Practical Skills",
+        "name": "Lifestyle",
         "items": [
             "Cooking", "Barista / mixology", "Event organization", "Travel and routes",
             "Personal style and image", "Freelance mentorship", "Immigration navigation",
@@ -75,7 +75,7 @@ SKILL_CATEGORIES = {
         ]
     },
     "I": {
-        "name": "Eco and Social Projects",
+        "name": "Eco & Social",
         "items": [
             "Conscious consumption", "Eco-projects", "Social initiatives",
             "Volunteering", "Community building", "Mutual aid projects"
@@ -105,6 +105,7 @@ RESULT_TYPES = [
 
 # --- Cities list (used across multiple sections) ---
 CITIES = [
+    "Bali",
     "New York", "Los Angeles", "San Francisco", "Miami",
     "London", "Paris", "Berlin", "Hamburg", "Amsterdam",
     "Milan", "Rome", "Barcelona", "Copenhagen", "Stockholm", "Lisbon",
@@ -227,6 +228,16 @@ PROPERTY_CAPACITY = [
 ]
 
 # --- Cars ---
+VEHICLE_TYPES = [
+    "Car",
+    "Motorcycle / Scooter",
+    "Bicycle",
+    "Electric scooter",
+    "Van",
+    "Truck",
+    "SUV / 4x4"
+]
+
 CAR_USAGE_CONDITIONS = [
     "Exclusive use by participant",
     "Shared use with owner",

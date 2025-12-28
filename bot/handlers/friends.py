@@ -6,7 +6,7 @@ from bot.keyboards import get_cities_keyboard, get_user_card_keyboard, get_back_
 router = Router()
 
 
-@router.message(F.text == "👥 Friends")
+@router.message(F.text == "🫂Friends")
 async def show_friends_menu(message: Message, db: Database):
     """Show friends section - list of cities"""
     user = await db.get_user(message.from_user.id)

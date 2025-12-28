@@ -14,7 +14,7 @@ router = Router()
 # "Resources" flow: Categories -> List Lots (Share type)
 # We assume "Resources" displays active offers (Lots of type 'share') organized by category.
 
-@router.message(F.text == "📦 Resources")
+@router.message(F.text == "🪩Resources")
 async def show_resources_menu(message: Message, db: Database):
     """Show resources section - List Categories"""
     user = await db.get_user(message.from_user.id)
@@ -25,7 +25,7 @@ async def show_resources_menu(message: Message, db: Database):
 
     # Direct to categories
     await message.answer(
-        "📦 Resources\n\n"
+        "🪩Resources\n\n"
         "Select a category to browse resources:",
         reply_markup=get_resource_categories_keyboard()
     )
@@ -113,7 +113,7 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
 async def back_to_resources_menu(callback: CallbackQuery):
     """Go back to categories"""
     await callback.message.edit_text(
-        "📦 Resources\n\n"
+        "🪩Resources\n\n"
         "Select a category to browse resources:",
         reply_markup=get_resource_categories_keyboard()
     )

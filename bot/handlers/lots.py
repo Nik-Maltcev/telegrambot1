@@ -30,7 +30,7 @@ class AddLot(StatesGroup):
     availability = State() # Or "When Needed"
 
 
-@router.message(F.text == "🎯 Lots")
+@router.message(F.text == "🩵Lots")
 async def show_lots_menu(message: Message, db: Database):
     """Show lots section menu"""
     user = await db.get_user(message.from_user.id)
@@ -40,7 +40,7 @@ async def show_lots_menu(message: Message, db: Database):
         return
 
     await message.answer(
-        "🎯 Lots\n\n"
+        "🩵Lots\n\n"
         "Here you can manage what you share and what you're looking for.\n\n"
         "Select an option:",
         reply_markup=get_lots_type_keyboard()
@@ -332,7 +332,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
 
         # Show lots menu
         await message.answer(
-            "🎯 Lots\n\n"
+            "🩵Lots\n\n"
             "Here you can manage what you share and what you're looking for.\n\n"
             "Select an option:",
             reply_markup=get_lots_type_keyboard()
@@ -348,7 +348,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
 async def back_to_lots_menu(callback: CallbackQuery):
     """Go back to lots menu"""
     await callback.message.edit_text(
-        "🎯 Lots\n\n"
+        "🩵Lots\n\n"
         "Here you can manage what you share and what you're looking for.\n\n"
         "Select an option:",
         reply_markup=get_lots_type_keyboard()

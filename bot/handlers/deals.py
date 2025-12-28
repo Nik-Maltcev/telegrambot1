@@ -149,7 +149,7 @@ async def confirm_deal_completion(callback: CallbackQuery, db: Database):
         await callback.answer("Failed to confirm the deal.", show_alert=True)
 
 
-@router.message(F.text == "📈 My Deals")
+@router.message(F.text == "🍀My Deals")
 async def show_my_deals(message: Message, db: Database):
     """Show user's deal history."""
     deals = await db.get_user_deals(message.from_user.id)
@@ -159,7 +159,7 @@ async def show_my_deals(message: Message, db: Database):
         await message.answer("You have no deals yet.", reply_markup=keyboard)
         return
 
-    deals_text = "📈 My Deals\n\n"
+    deals_text = "🍀My Deals\n\n"
     for deal in deals:
         if deal['proposer_id'] == message.from_user.id:
             partner_name = deal['receiver_name']

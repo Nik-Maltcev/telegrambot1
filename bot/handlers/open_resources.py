@@ -5,7 +5,7 @@ from bot.keyboards import get_cities_keyboard, get_back_keyboard, get_cities_sel
 
 router = Router()
 
-@router.message(F.text == "🗺 MAPS")
+@router.message(F.text == "🌎Maps")
 async def show_maps_menu(message: Message, db: Database):
     """Show MAPS section - List of cities"""
     user = await db.get_user(message.from_user.id)
@@ -15,7 +15,7 @@ async def show_maps_menu(message: Message, db: Database):
 
     # Use map_city prefix to distinguish from Friends section (which uses city:)
     await message.answer(
-        "🗺 MAPS\n\n"
+        "🌎Maps\n\n"
         "Select a city to see the map resources:",
         reply_markup=get_cities_select_keyboard("map_city", None, set(), "back_to_menu")
     )
@@ -43,7 +43,7 @@ async def show_city_map(callback: CallbackQuery):
 
     # Placeholder link logic
     await callback.message.edit_text(
-        f"🗺 MAPS: {city}\n\n"
+        f"🌎Maps: {city}\n\n"
         f"The map resource for {city} is coming soon!\n"
         f"Stay tuned.",
         reply_markup=get_back_keyboard("back_to_maps")
@@ -55,7 +55,7 @@ async def show_city_map(callback: CallbackQuery):
 async def back_to_maps(callback: CallbackQuery):
     """Go back to maps menu"""
     await callback.message.edit_text(
-        "🗺 MAPS\n\n"
+        "🌎Maps\n\n"
         "Select a city to see the map resources:",
         reply_markup=get_cities_select_keyboard("map_city", None, set(), "back_to_menu")
     )

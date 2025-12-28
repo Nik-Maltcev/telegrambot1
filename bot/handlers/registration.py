@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from bot.database import Database
 from bot.keyboards import (
     get_main_menu_keyboard, get_admin_menu_keyboard, get_cancel_keyboard,
@@ -17,6 +17,7 @@ from bot.form_data import (
     CITIES, INTRO_CATEGORIES, INTRO_FORMATS,
     PROPERTY_TYPES, PROPERTY_USAGE_FORMAT, PROPERTY_DURATION, PROPERTY_CAPACITY,
     CAR_USAGE_CONDITIONS, CAR_DURATION, CAR_CONDITIONS, CAR_PASSENGERS,
+    VEHICLE_TYPES,
     EQUIPMENT_TYPES, EQUIPMENT_ACCESS_FORMAT, EQUIPMENT_DURATION, EQUIPMENT_RESPONSIBILITY,
     AIRCRAFT_TYPES, AIRCRAFT_USAGE_FORMAT, AIRCRAFT_SAFETY, AIRCRAFT_EXPENSES,
     VESSEL_TYPES, VESSEL_USAGE_FORMAT, VESSEL_SAFETY, VESSEL_FINANCIAL,
@@ -25,6 +26,7 @@ from bot.form_data import (
 )
 import json
 import hashlib
+import asyncio
 
 router = Router()
 
@@ -214,24 +216,56 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
         intro_text = (
             "Hi luv! and welcome to JOYSEEKERS 🩵\n\n"
-            "congrats! you’re lucky enough to be part of a closed community of successful pll who travel, do what they love, grow, and share resources and opportunities with each other.\n\n"
-            "JOYSEEKERS is all about trust and sharing.\n\n"
-            "here you can find friends around the world and access shared resources — from skills and introductions to specific circles to real estate, cars, and equipment.\n\n"
+            "congrats! you’re lucky enough to be part of a closed community of successful pll\n"
+            "who travel\n"
+            "do what they love\n"
+            "grow\n"
+            "and share resources and opportunities with each other\n\n"
+            "JOYSEEKERS is all about living in joy through mutual support.\n\n"
+            "Inside this space, you can:\n"
+            "connect with people worldwide\n"
+            "share and access community resources\n"
+            "exchange skills and expertise\n"
+            "receive trusted introductions\n"
+            "explore real estate opportunities\n"
+            "access shared assets like cars and equipment\n\n"
+            "when someone uses what you share, you earn a credit that can be used to unlock something in return — from the same or another member of the community.\n\n"
             "every resource is equal:\n"
-            "1 resource = 1 credit.\n\n"
-            "If someone uses what you share, you earn a credit to unlock something else in return.\n\n"
+            "1 resource = 1 credit\n\n"
             "want to know how it works?\n"
             "check our community channel after you finish the questionnaire — the link will pop up automatically.\n\n"
             "to get started, just fill out a short questionnaire and add the resources you’re open to sharing.\n"
             "after that and short approval by me all sections of the community will be unlocked for you.\n\n"
+            "Not everyone finds this space — and that’s what makes it meaningful.\n"
             "glad to be here with you.\n"
             "stay joyful 🩵\n"
-            "xxAnna\n\n"
-            "🍒"
+            "xxAnna"
         )
-        await message.answer(intro_text)
-        await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
-        await state.set_state(Registration.waiting_for_invite_code)
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
+        await message.answer(intro_text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data == "intro_sounds_good")
+async def process_intro_sounds_good(callback: CallbackQuery):
+    warning_text = (
+        "please complete the questionnaire carefully.\n"
+        "9 sections, ~10 minutes.\n\n"
+        "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
+        "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
+        "•••\n"
+        "once completed, you’ll receive a complimentary point — a personal gift from Anna to support your first exchange •••\n\n"
+        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+    )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="START", callback_data="intro_start")]])
+    await callback.message.answer(warning_text, reply_markup=keyboard)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "intro_start")
+async def process_intro_start(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
+    await state.set_state(Registration.waiting_for_invite_code)
+    await callback.answer()
 
 
 @router.message(Registration.name, F.text)
@@ -299,44 +333,19 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
     await state.update_data(main_city=main_city_str)
 
     await callback.message.delete() # Remove inline keyboard
-    await callback.message.answer(
-        "Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(Registration.about)
-    await callback.answer()
-
-
-@router.message(Registration.about, F.text)
-async def process_about(message: Message, state: FSMContext):
-    if message.text.strip() == "🔙 Back":
-        await state.set_state(Registration.main_city)
-        await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
-        return
-    await state.update_data(about=message.text)
-    await message.answer("Please enter your Instagram username (or send '-' if you don't have one):", reply_markup=get_cancel_keyboard())
+    await callback.message.answer("Please enter your Instagram username (or send '-' if you don't have one):", reply_markup=get_cancel_keyboard())
     await state.set_state(Registration.instagram)
+    await callback.answer()
 
 
 @router.message(Registration.instagram, F.text)
 async def process_instagram(message: Message, state: FSMContext):
     if message.text.strip() == "🔙 Back":
-        await state.set_state(Registration.about)
-        await message.answer("Tell us a bit about yourself (brief intro):\n\nFor example •Artist and community owner•", reply_markup=get_cancel_keyboard())
+        await state.set_state(Registration.main_city)
+        await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
         return
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)
-
-    await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
-
-    warning_text = (
-        "please complete the questionnaire carefully. \n"
-        "9 sections, ~10 minutes. \n \n"
-        "incomplete submissions are not reviewed and will not be granted access to the Community. \n \n"
-        "the bot will send questions one by one — just reply in chat or choose the available options. \n \n"
-        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
-    )
-    await message.answer(warning_text)
 
     skills_intro = (
         "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"
@@ -369,7 +378,7 @@ async def process_skill_category(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     selected_items = set(data.get("selected_skill_items", []))
     await callback.message.edit_text(
-        f"Category: {category_name}\n\nSelect specific skills/areas (you can select multiple):",
+        f"Category: {category_name}\n\nSelect specific skills/areas:\nYou can select multiple",
         reply_markup=get_skill_items_keyboard(category_key, selected_items)
     )
     await state.set_state(Registration.skill_items)
@@ -411,7 +420,7 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
 
     selected = set(data.get("selected_offer_formats", []))
     await callback.message.edit_text(
-        "Formats You Offer\n\nSelect the formats in which you can share your expertise (you can select multiple):",
+        "Formats You Offer\n\nSelect the formats in which you can share your expertise:\nYou can select multiple",
         reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
     )
     await state.set_state(Registration.offer_formats)
@@ -420,7 +429,7 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
 # Back from offer formats
 @router.callback_query(Registration.offer_formats, F.data == "q_fmt_back")
 async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Select your Category of Expertise: You may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
+    await callback.message.edit_text("Select your Category of Expertise:\nYou may select multiple options across different categories.", reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
     await callback.answer()
 
@@ -725,7 +734,9 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         return
 
     # Progress message
-    await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
+    msg = await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
+    await asyncio.sleep(4)
+    await msg.delete()
 
     # Move to Real Estate section
     real_estate_text = (
@@ -1013,44 +1024,46 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one city.", show_alert=True)
         return
 
-    await callback.message.delete()
-    await callback.message.answer(
-        "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
-        reply_markup=get_cancel_keyboard()
+    await callback.message.edit_text(
+        "Please specify type of the vehicle:",
+        reply_markup=get_single_select_keyboard(VEHICLE_TYPES, "car_type", "car_type_back")
     )
     await state.set_state(Registration.car_info)
     await callback.answer()
 
 
-@router.message(Registration.car_info, F.text)
-async def process_car_info(message: Message, state: FSMContext):
-    if message.text.strip() == "🔙 Back":
-        # Go back to location
-        data = await state.get_data()
-        selected = set(data.get("selected_car_cities", []))
-        await message.answer("Location\n\nSelect your vehicle location:", reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back"))
-        await state.set_state(Registration.car_location)
-        return
+@router.callback_query(Registration.car_info, F.data == "car_type_back")
+async def back_from_car_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_car_cities", []))
+    await callback.message.edit_text(
+        "Location\n\nSelect your vehicle location:",
+        reply_markup=get_cities_select_keyboard("car_city", "car_city_done", selected, "car_city_back")
+    )
+    await state.set_state(Registration.car_location)
+    await callback.answer()
 
-    await state.update_data(car_info=message.text)
 
-    # Remove keyboard for inline next
-    await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
+@router.callback_query(Registration.car_info, F.data.startswith("car_type:"))
+async def select_vehicle_type(callback: CallbackQuery, state: FSMContext):
+    item_hash = callback.data.split(":")[1]
+    target_item = find_item_by_hash(VEHICLE_TYPES, item_hash)
+    if target_item:
+        await state.update_data(car_info=target_item) # Storing type as car_info
 
-    await message.answer(
+    await callback.message.edit_text(
         "Usage Conditions\n\nChoose one:",
         reply_markup=get_single_select_keyboard(CAR_USAGE_CONDITIONS, "car_usage", "car_usage_back")
     )
     await state.set_state(Registration.car_usage)
+    await callback.answer()
+
 
 @router.callback_query(Registration.car_usage, F.data == "car_usage_back")
 async def back_from_car_usage(callback: CallbackQuery, state: FSMContext):
-    # Back to text input is tricky with callback.
-    # We send a message asking for input again.
-    await callback.message.delete()
-    await callback.message.answer(
-        "Vehicle Brand, Model & Year\n\nPlease type the info (e.g., Toyota Fortuner 2021):",
-        reply_markup=get_cancel_keyboard()
+    await callback.message.edit_text(
+        "Please specify type of the vehicle:",
+        reply_markup=get_single_select_keyboard(VEHICLE_TYPES, "car_type", "car_type_back")
     )
     await state.set_state(Registration.car_info)
     await callback.answer()
@@ -2187,7 +2200,7 @@ async def select_art_author(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.delete()
     await callback.message.answer(
-        "Author Name (or Pseudonym):",
+        "Author Name\nOr Pseudonym:",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.art_author_name)
@@ -2206,9 +2219,6 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
     await state.update_data(art_author_name=message.text)
 
-    # Remove previous keyboard if any (though get_cancel_keyboard is Reply)
-    await message.answer("Processing...", reply_markup=ReplyKeyboardRemove())
-
     await message.answer(
         "Location of the Artwork:",
         reply_markup=get_cities_select_keyboard("art_city", "art_city_done", None, "art_city_back")
@@ -2220,7 +2230,7 @@ async def back_from_art_city(callback: CallbackQuery, state: FSMContext):
     # Back to text input
     await callback.message.delete()
     await callback.message.answer(
-        "Author Name (or Pseudonym):",
+        "Author Name\nOr Pseudonym:",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.art_author_name)
@@ -2240,7 +2250,7 @@ async def select_art_city(callback: CallbackQuery, state: FSMContext):
 async def finish_art_location(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     # Check if we need photo
-    await callback.message.edit_text("Please upload a photo of the artwork (send as photo):")
+    await callback.message.edit_text("Please upload a photo of the artwork\nSend as photo:")
     await state.set_state(Registration.art_photo)
     await callback.answer()
 

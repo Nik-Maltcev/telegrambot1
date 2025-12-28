@@ -7,7 +7,7 @@ from bot.config import ADMIN_IDS, CHANNEL_USERNAME
 router = Router()
 
 
-@router.message(F.text == "👤 My Profile")
+@router.message(F.text == "🗿My Profile")
 async def show_profile(message: Message, db: Database):
     """Show user profile"""
     user = await db.get_user(message.from_user.id)
@@ -31,7 +31,7 @@ async def show_profile(message: Message, db: Database):
     await message.answer(profile_text, reply_markup=keyboard)
 
 
-@router.message(F.text == "📢 Channel")
+@router.message(F.text == "⚡️Channel")
 async def show_channel(message: Message):
     """Show channel link"""
     keyboard = get_menu_keyboard(message.from_user.id)

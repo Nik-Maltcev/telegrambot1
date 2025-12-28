@@ -9,19 +9,19 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Main menu keyboard"""
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text="👥 Friends"),
-        KeyboardButton(text="📦 Resources")
+        KeyboardButton(text="🫂Friends"),
+        KeyboardButton(text="🪩Resources")
     )
     builder.row(
-        KeyboardButton(text="🎯 Lots"),
-        KeyboardButton(text="📢 Channel")
+        KeyboardButton(text="🩵Lots"),
+        KeyboardButton(text="⚡️Channel")
     )
     builder.row(
-        KeyboardButton(text="🗺 MAPS"),
-        KeyboardButton(text="👤 My Profile")
+        KeyboardButton(text="🌎Maps"),
+        KeyboardButton(text="🗿My Profile")
     )
     builder.row(
-        KeyboardButton(text="📈 My Deals")
+        KeyboardButton(text="🍀My Deals")
     )
     return builder.as_markup(resize_keyboard=True)
 
@@ -30,20 +30,20 @@ def get_admin_menu_keyboard() -> ReplyKeyboardMarkup:
     """Admin menu keyboard"""
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text="👥 Friends"),
-        KeyboardButton(text="📦 Resources")
+        KeyboardButton(text="🫂Friends"),
+        KeyboardButton(text="🪩Resources")
     )
     builder.row(
-        KeyboardButton(text="🎯 Lots"),
-        KeyboardButton(text="📢 Channel")
+        KeyboardButton(text="🩵Lots"),
+        KeyboardButton(text="⚡️Channel")
     )
     builder.row(
-        KeyboardButton(text="🗺 MAPS"),
-        KeyboardButton(text="👤 My Profile")
+        KeyboardButton(text="🌎Maps"),
+        KeyboardButton(text="🗿My Profile")
     )
     builder.row(
-        KeyboardButton(text="📈 My Deals"),
-        KeyboardButton(text="⚙️ Admin Panel")
+        KeyboardButton(text="🍀My Deals"),
+        KeyboardButton(text="⚙️Admin Panel")
     )
     return builder.as_markup(resize_keyboard=True)
 
@@ -57,29 +57,19 @@ def get_cancel_keyboard() -> ReplyKeyboardMarkup:
 
 def get_cities_keyboard(prefix: str = "city") -> InlineKeyboardMarkup:
     """Keyboard with city buttons"""
-    cities = [
-        "New York", "Los Angeles", "San Francisco", "Miami",
-        "London", "Paris", "Berlin", "Hamburg", "Amsterdam",
-        "Milan", "Rome", "Barcelona", "Copenhagen", "Stockholm", "Lisbon",
-        "Vienna", "Zurich", "Prague", "Budapest", "Warsaw", "Moscow",
-        "Bangkok", "Singapore", "Hong Kong", "Tokyo", "Seoul",
-        "Shanghai", "Beijing", "Dubai",
-        "Sydney", "Melbourne",
-        "Mexico City", "São Paulo", "Buenos Aires", "Rio de Janeiro",
-        "Tel Aviv", "Istanbul"
-    ]
+    from bot.form_data import CITIES
     builder = InlineKeyboardBuilder()
     import hashlib
     # Create rows with 2 columns for better visibility
-    for i in range(0, len(cities), 2):
+    for i in range(0, len(CITIES), 2):
         row_btns = []
         # Use hash if prefix is not default to avoid length issues if prefix is long?
         # But cities names are safe for now.
         # Default prefix "city" + "San Francisco" < 64 chars.
         # "lot_city" + "San Francisco" is fine.
-        row_btns.append(InlineKeyboardButton(text=cities[i], callback_data=f"{prefix}:{cities[i]}"))
-        if i + 1 < len(cities):
-            row_btns.append(InlineKeyboardButton(text=cities[i+1], callback_data=f"{prefix}:{cities[i+1]}"))
+        row_btns.append(InlineKeyboardButton(text=CITIES[i], callback_data=f"{prefix}:{CITIES[i]}"))
+        if i + 1 < len(CITIES):
+            row_btns.append(InlineKeyboardButton(text=CITIES[i+1], callback_data=f"{prefix}:{CITIES[i+1]}"))
         builder.row(*row_btns)
 
     # Back button logic might vary.
@@ -113,7 +103,6 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
         ("🫆 Unique Opportunities", "Unique opportunities"),
         ("🫧 Works of Art", "Artworks"),
         ("🤝🏻 Personal Introduction", "Personal Introductions to Key People"),
-        ("👨‍💼 Specialists", "Specialists"),
     ]
 
     builder = InlineKeyboardBuilder()
@@ -127,10 +116,10 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
 def get_lots_type_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for selecting lot type - 4 options A, B, C, D"""
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="A. Offer a resource", callback_data="lots:offer_a"))
-    builder.row(InlineKeyboardButton(text="B. Browse active resources 🫧", callback_data="lots:browse_b"))
-    builder.row(InlineKeyboardButton(text="C. Post a request 👀", callback_data="lots:post_c"))
-    builder.row(InlineKeyboardButton(text="D. Help a resident", callback_data="lots:help_d"))
+    builder.row(InlineKeyboardButton(text="Offer a resource", callback_data="lots:offer_a"))
+    builder.row(InlineKeyboardButton(text="Browse active resources", callback_data="lots:browse_b"))
+    builder.row(InlineKeyboardButton(text="Post a request", callback_data="lots:post_c"))
+    builder.row(InlineKeyboardButton(text="Help a resident", callback_data="lots:help_d"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 

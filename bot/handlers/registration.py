@@ -154,7 +154,7 @@ async def process_invite_code_start(message: Message, state: FSMContext):
         return
 
     invite_code = message.text.strip()
-    if invite_code == "JOY":
+    if invite_code.upper() == "JOY":
         await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
         await state.set_state(Registration.name)
     else:
@@ -175,24 +175,6 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             reply_markup=keyboard
         )
     else:
-        # Check if user is admin - admins bypass invite code and auto-register if desired,
-        # but here we follow standard flow or auto-reg?
-        # Prompt says "Access ... is controlled by an invite code, which is verified only after the user completes the mandatory registration questionnaire."
-        # Memory says "Administrators ... are automatically registered with placeholder data ... upon running /start".
-        if message.from_user.id in ADMIN_IDS:
-             # Auto-register admin
-             await db.add_user(
-                 user_id=message.from_user.id,
-                 username=message.from_user.username,
-                 name="Admin",
-                 main_city="Global",
-                 current_city="Global",
-                 about="Administrator",
-                 instagram="admin"
-             )
-             await message.answer("Admin auto-registered.", reply_markup=get_admin_menu_keyboard())
-             return
-
         await state.update_data(
             selected_skill_items=[], selected_offer_formats=[],
             selected_interaction_formats=[], selected_result_types=[],
@@ -215,31 +197,17 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
         )
 
         intro_text = (
-            "Hi luv! and welcome to JOYSEEKERS 🩵\n\n"
-            "congrats! you’re lucky enough to be part of a closed community of successful pll\n"
-            "who travel\n"
-            "do what they love\n"
-            "grow\n"
-            "and share resources and opportunities with each other\n\n"
-            "JOYSEEKERS is all about living in joy through mutual support.\n\n"
-            "Inside this space, you can:\n"
-            "connect with people worldwide\n"
-            "share and access community resources\n"
-            "exchange skills and expertise\n"
-            "receive trusted introductions\n"
-            "explore real estate opportunities\n"
-            "access shared assets like cars and equipment\n\n"
-            "when someone uses what you share, you earn a credit that can be used to unlock something in return — from the same or another member of the community.\n\n"
-            "every resource is equal:\n"
-            "1 resource = 1 credit\n\n"
-            "want to know how it works?\n"
-            "check our community channel after you finish the questionnaire — the link will pop up automatically.\n\n"
-            "to get started, just fill out a short questionnaire and add the resources you’re open to sharing.\n"
-            "after that and short approval by me all sections of the community will be unlocked for you.\n\n"
-            "Not everyone finds this space — and that’s what makes it meaningful.\n"
+            "hi luv! and welcome to joyseekers 🩵\n\n"
+            "you’re now part of a closed community of people who travel, do what they love, grow — and support each other through shared resources and opportunities.\n\n"
+            "inside joyseekers you can connect worldwide, exchange skills, receive trusted introductions, explore real estate, and access shared assets like cars or equipment.\n\n"
+            "the system is simple:\n"
+            "1 shared resource = 1 credit, which you can use to unlock something in return.\n\n"
+            "to get started, just fill out a short questionnaire and add what you’re open to sharing.\n"
+            "after a quick approval by me, all sections will be unlocked.\n\n"
+            "not everyone finds this space — and that’s what makes it special.\n"
             "glad to be here with you.\n"
             "stay joyful 🩵\n"
-            "xxAnna"
+            "xx anna"
         )
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
         await message.answer(intro_text, reply_markup=keyboard)

@@ -105,6 +105,7 @@ RESULT_TYPES = [
 
 # --- Cities list (used across multiple sections) ---
 CITIES = [
+    "Online",
     "Bali",
     "New York", "Los Angeles", "San Francisco", "Miami",
     "London", "Paris", "Berlin", "Hamburg", "Amsterdam",

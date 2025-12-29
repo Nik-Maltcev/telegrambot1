@@ -18,14 +18,13 @@ async def show_profile(message: Message, db: Database):
         return
 
     profile_text = (
-        f"👤 Your Profile\n\n"
+        f"⚫️ Your Profile\n\n"
         f"Name: {user['name']}\n"
-        f"Main City: {user['main_city']}\n"
-        f"Current City: {user['current_city']}\n"
+        f"City: {user['main_city']}\n"
         f"About: {user['about']}\n"
         f"Instagram: {user['instagram'] if user['instagram'] else 'Not provided'}\n"
-        f"💰 Points: {user['points']}\n"
-        f"📅 Registered: {user['registered_at'][:10]}"
+        f"Points: {user['points']}\n"
+        f"Registered: {user['registered_at'][:10]}"
     )
 
     await message.answer(profile_text, reply_markup=keyboard)

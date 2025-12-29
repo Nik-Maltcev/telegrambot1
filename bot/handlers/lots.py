@@ -177,16 +177,12 @@ async def process_lot_category(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     lot_type = data.get("lot_type")
 
-    type_label = "Type of Resource"
-    type_ex = "(e.g. consultation, introduction, equipment, access, skill, space)"
-
     # We switch to text input, so we must delete inline keyboard and send new message
     await callback.message.delete()
     await callback.message.answer(
         f"Selected: {category}\n\n"
-        f"**{type_label}**\n"
-        f"{type_ex}\n\n"
-        f"Please type the resource type:",
+        f"Type of Resource\n"
+        f"e.g. consultation, introduction, equipment, access, skill, space",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AddLot.type_text)
@@ -206,10 +202,10 @@ async def process_lot_type_text(message: Message, state: FSMContext):
     data = await state.get_data()
     lot_type = data.get("lot_type")
 
-    desc_prompt = "Description\n(briefly describe what exactly you’re offering and in what form)" if lot_type == "share" else "Description\n(briefly describe what you’re looking for and in what form)"
+    desc_prompt = "Description\nbriefly describe what exactly you’re offering and in what form" if lot_type == "share" else "Description\nbriefly describe what you’re looking for and in what form"
 
     await message.answer(
-        f"**{desc_prompt}**",
+        f"{desc_prompt}",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AddLot.description)
@@ -229,7 +225,7 @@ async def process_lot_description(message: Message, state: FSMContext):
 
     # Send city selection keyboard with prefix "lot_city"
     await message.answer(
-        "**Location**\n(Select city)",
+        "Location\ncity or online",
         reply_markup=get_cities_keyboard(prefix="lot_city")
     )
     await state.set_state(AddLot.location)
@@ -244,13 +240,13 @@ async def process_lot_city(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     lot_type = data.get("lot_type")
 
-    avail_prompt = "Availability\n(specific dates, this week, next 14 days, flexible)" if lot_type == "share" else "When Needed\n(ASAP, specific dates, this week, next 14 days, flexible)"
+    avail_prompt = "Availability\nspecific dates, this week, next 14 days, flexible" if lot_type == "share" else "When Needed\nASAP, specific dates, this week, next 14 days, flexible"
 
     # Switch back to text input (Availability)
     await callback.message.delete()
     await callback.message.answer(
         f"Selected Location: {city}\n\n"
-        f"**{avail_prompt}**",
+        f"{avail_prompt}",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AddLot.availability)
@@ -275,7 +271,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
         # Back to Location selection
         await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
         await message.answer(
-            "**Location**\n(Select city)",
+            "Location\ncity or online",
             reply_markup=get_cities_keyboard(prefix="lot_city")
         )
         await state.set_state(AddLot.location)

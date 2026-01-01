@@ -478,3 +478,16 @@ class Database:
             """, (user_id, user_id)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    async def get_all_registration_data(self) -> List[Dict]:
+        """Get all users' registration data (questionnaire answers) with user info."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT ua.user_id, ua.answer_data, u.name, u.username, u.instagram, u.points, u.main_city
+                FROM user_answers ua
+                JOIN users u ON ua.user_id = u.user_id
+                WHERE ua.question_slug = 'registration_data'
+            """) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]

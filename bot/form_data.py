@@ -85,9 +85,8 @@ SKILL_CATEGORIES = {
 
 OFFER_FORMATS = [
     "Professional consultations", "Access to courses / materials", "Educational practices",
-    "Workshops", "Professional coaching", "Career consultations", "Individual programs",
-    "Music lessons", "Language lessons", "Marketing and business strategy training",
-    "Culinary and creative workshops", "Project or task implementation"
+    "Workshops", "Professional coaching", "Individual programs",
+    "Project or task implementation"
 ]
 
 INTERACTION_FORMATS = [
@@ -106,16 +105,17 @@ RESULT_TYPES = [
 # --- Cities list (used across multiple sections) ---
 CITIES = [
     "Online",
-    "Bali",
-    "New York", "Los Angeles", "San Francisco", "Miami",
-    "London", "Paris", "Berlin", "Hamburg", "Amsterdam",
-    "Milan", "Rome", "Barcelona", "Copenhagen", "Stockholm", "Lisbon",
-    "Vienna", "Zurich", "Prague", "Budapest", "Warsaw", "Moscow",
-    "Bangkok", "Singapore", "Hong Kong", "Tokyo", "Seoul",
-    "Shanghai", "Beijing", "Dubai",
-    "Sydney", "Melbourne",
-    "Mexico City", "São Paulo", "Buenos Aires", "Rio de Janeiro",
-    "Tel Aviv", "Istanbul"
+    "New York 🇺🇸", "Los Angeles 🇺🇸", "San Francisco 🇺🇸", "Miami 🇺🇸",
+    "London 🇬🇧", "Paris 🇫🇷", "Berlin 🇩🇪", "Hamburg 🇩🇪",
+    "Amsterdam 🇳🇱", "Rotterdam 🇳🇱", "Milan 🇮🇹", "Rome 🇮🇹",
+    "Barcelona 🇪🇸", "Copenhagen 🇩🇰", "Stockholm 🇸🇪", "Lisbon 🇵🇹",
+    "Vienna 🇦🇹", "Zurich 🇨🇭", "Prague 🇨🇿", "Budapest 🇭🇺",
+    "Warsaw 🇵🇱", "Moscow 🇷🇺",
+    "Bangkok 🇹🇭", "Singapore 🇸🇬", "Hong Kong 🇭🇰", "Tokyo 🇯🇵", "Seoul 🇰🇷",
+    "Shanghai 🇨🇳", "Beijing 🇨🇳", "Dubai 🇦🇪",
+    "Sydney 🇦🇺", "Melbourne 🇦🇺",
+    "Mexico City 🇲🇽", "São Paulo 🇧🇷", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
+    "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩"
 ]
 
 # --- Personal Introductions ---

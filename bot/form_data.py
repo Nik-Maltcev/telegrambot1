@@ -158,7 +158,7 @@ INTRO_CATEGORIES = {
     "business_influence": {
         "name": "Business & Influence",
         "items": [
-            "Founders of private clubs (entrepreneur, creative, investor)",
+            "Founders of private clubs",
             "Partners of boutique funds and family offices",
             "Founders of startups with strong communities",
             "Heads of digital platforms with industry networks",

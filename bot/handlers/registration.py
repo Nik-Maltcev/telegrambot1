@@ -214,23 +214,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
 
 @router.callback_query(F.data == "intro_sounds_good")
-async def process_intro_sounds_good(callback: CallbackQuery):
-    warning_text = (
-        "please complete the questionnaire carefully.\n"
-        "9 sections, ~10 minutes.\n\n"
-        "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
-        "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
-        "•••\n"
-        "once completed, you’ll receive a complimentary point — a personal gift from Anna to support your first exchange •••\n\n"
-        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
-    )
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="START", callback_data="intro_start")]])
-    await callback.message.answer(warning_text, reply_markup=keyboard)
-    await callback.answer()
-
-
-@router.callback_query(F.data == "intro_start")
-async def process_intro_start(callback: CallbackQuery, state: FSMContext):
+async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
     await state.set_state(Registration.waiting_for_invite_code)
     await callback.answer()
@@ -314,6 +298,15 @@ async def process_instagram(message: Message, state: FSMContext):
         return
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)
+
+    warning_text = (
+        "please complete the questionnaire carefully.\n"
+        "9 sections, ~10 minutes.\n\n"
+        "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
+        "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
+        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+    )
+    await message.answer(warning_text)
 
     skills_intro = (
         "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"

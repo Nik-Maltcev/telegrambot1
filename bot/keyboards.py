@@ -239,8 +239,7 @@ def get_skill_categories_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for selecting skill category (Single Choice)"""
     builder = InlineKeyboardBuilder()
     for key, data in SKILL_CATEGORIES.items():
-        # Truncate long names if necessary or use code
-        text = f"{key}. {data['name']}"
+        text = data['name']
         builder.row(InlineKeyboardButton(text=text, callback_data=f"q_cat:{key}"))
 
     return builder.as_markup()

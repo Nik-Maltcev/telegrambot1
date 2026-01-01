@@ -201,6 +201,20 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
 @router.callback_query(F.data == "intro_sounds_good")
 async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
+    warning_text = (
+        "please complete the questionnaire carefully.\n"
+        "9 sections, ~10 minutes.\n\n"
+        "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
+        "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
+        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+    )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="OK", callback_data="warning_ok")]])
+    await callback.message.answer(warning_text, reply_markup=keyboard)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "warning_ok")
+async def process_warning_ok(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
     await state.set_state(Registration.name)
     await callback.answer()
@@ -299,14 +313,22 @@ async def process_instagram(message: Message, state: FSMContext):
     instagram = message.text if message.text != "-" else ""
     await state.update_data(instagram=instagram)
 
-    warning_text = (
-        "please complete the questionnaire carefully.\n"
-        "9 sections, ~10 minutes.\n\n"
-        "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
-        "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
-        "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
+    # Ask for About info
+    await message.answer(
+        "Tell us a bit about yourself (brief intro)\nFor example: Artist and community owner",
+        reply_markup=get_cancel_keyboard()
     )
-    await message.answer(warning_text)
+    await state.set_state(Registration.about)
+
+
+@router.message(Registration.about, F.text)
+async def process_about(message: Message, state: FSMContext):
+    if message.text.strip() == "🔙 Back":
+        await state.set_state(Registration.instagram)
+        await message.answer("Please enter your Instagram username (or send '-' if you don't have one):", reply_markup=get_cancel_keyboard())
+        return
+    
+    await state.update_data(about=message.text)
 
     skills_intro = (
         "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"
@@ -322,12 +344,6 @@ async def process_instagram(message: Message, state: FSMContext):
     await message.answer(skills_intro, reply_markup=get_skill_categories_keyboard())
     await state.set_state(Registration.skill_category)
 
-
-# ... (Skipping repeated handlers for brevity, they remain same until Artwork) ...
-# I will output the FULL file content, ensuring I don't break existing handlers.
-# Since I cannot copy-paste all 1000 lines easily without risk, I will focus on applying the change to `skip_artwork_section`, `process_art_photo` and adding `waiting_for_invite_code` handlers.
-# But `overwrite_file_with_block` requires full content. I must include everything.
-# I will use the memory of the file content I read + my changes.
 
 # --- Skills Section Handlers ---
 
@@ -2275,11 +2291,11 @@ async def finish_registration(message: Message, state: FSMContext, db: Database)
         await db.add_user_answer(user_id, "registration_data", json.dumps(data, default=str))
 
         summary = (
-            f"Registration completed!\n\n"
-            f"﹡Name - {name}\n"
-            f"﹡City - {main_city}\n"
-            f"﹡About - {about}\n"
-            f"﹡Instagram - {instagram}\n"
+            f"⚫️ Registration completed!\n\n"
+            f"Name: {name}\n"
+            f"City: {main_city}\n"
+            f"About: {about}\n"
+            f"Instagram: {instagram}\n"
             f"Points: 0"
         )
 

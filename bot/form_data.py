@@ -95,7 +95,7 @@ INTERACTION_FORMATS = [
 ]
 
 RESULT_TYPES = [
-    "Concrete Outcome (Design, Plan, Strategy)",
+    "Concrete outcome: design, plan, etc.",
     "Practical skill",
     "Learning / skill improvement",
     "Support and guidance",

@@ -144,21 +144,7 @@ class Registration(StatesGroup):
 
     # Final step
     waiting_for_invite_code = State()
-
-
-@router.message(Registration.waiting_for_invite_code, F.text)
-async def process_invite_code_start(message: Message, state: FSMContext):
-    if message.text.strip() == "🔙 Back":
-        await state.clear()
-        await message.answer("Operation cancelled. Use /start to register.")
-        return
-
-    invite_code = message.text.strip()
-    if invite_code.upper() == "JOY":
-        await message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
-        await state.set_state(Registration.name)
-    else:
-        await message.answer("❌ Invalid invite code. Please try again.")
+    final_invite_code = State()
 
 
 @router.message(CommandStart())
@@ -215,17 +201,31 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 
 @router.callback_query(F.data == "intro_sounds_good")
 async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
-    await state.set_state(Registration.waiting_for_invite_code)
+    await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
+    await state.set_state(Registration.name)
     await callback.answer()
 
 
 @router.message(Registration.name, F.text)
 async def process_name(message: Message, state: FSMContext):
     if message.text.strip() == "🔙 Back":
-        # Back to invite code
-        await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
-        await state.set_state(Registration.waiting_for_invite_code)
+        # Back to Intro
+        intro_text = (
+            "hi luv! and welcome to joyseekers 🩵\n\n"
+            "you’re now part of a closed community of people who travel, do what they love, grow — and support each other through shared resources and opportunities.\n\n"
+            "inside joyseekers you can connect worldwide, exchange skills, receive trusted introductions, explore real estate, and access shared assets like cars or equipment.\n\n"
+            "the system is simple:\n"
+            "1 shared resource = 1 credit, which you can use to unlock something in return.\n\n"
+            "to get started, just fill out a short questionnaire and add what you’re open to sharing.\n"
+            "after a quick approval by me, all sections will be unlocked.\n\n"
+            "not everyone finds this space — and that’s what makes it special.\n"
+            "glad to be here with you.\n"
+            "stay joyful 🩵\n"
+            "xx anna"
+        )
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
+        await message.answer(intro_text, reply_markup=keyboard)
+        await state.clear()
         return
     await state.update_data(name=message.text)
 
@@ -2099,9 +2099,8 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.artwork_section, F.data == "artwork_skip")
 async def skip_artwork_section(callback: CallbackQuery, state: FSMContext, db: Database):
-    # Finish registration
-    await callback.message.delete()
-    await finish_registration(callback.message, state, db)
+    await callback.message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
+    await state.set_state(Registration.final_invite_code)
     await callback.answer()
 
 
@@ -2221,8 +2220,29 @@ async def process_art_photo(message: Message, state: FSMContext, db: Database):
     photo_id = message.photo[-1].file_id
     await state.update_data(art_photo_id=photo_id)
 
-    # Finish registration
-    await finish_registration(message, state, db)
+    await message.answer("Please enter the invite code:", reply_markup=get_cancel_keyboard())
+    await state.set_state(Registration.final_invite_code)
+
+
+@router.message(Registration.final_invite_code, F.text)
+async def process_final_invite_code(message: Message, state: FSMContext, db: Database):
+    if message.text.strip() == "🔙 Back":
+        # Go back to artwork section start?
+        artwork_text = (
+            "9|9 🫧 Works of Art\n\n"
+            "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
+            "this is a space to share it with the community.\n\n"
+            "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
+        )
+        await message.answer(artwork_text, reply_markup=get_section_intro_keyboard("artwork_start", "artwork_skip", "art_sec_back"))
+        await state.set_state(Registration.artwork_section)
+        return
+
+    invite_code = message.text.strip()
+    if invite_code.upper() == "JOY":
+        await finish_registration(message, state, db)
+    else:
+        await message.answer("❌ Invalid invite code. Please try again.")
 
 
 async def finish_registration(message: Message, state: FSMContext, db: Database):

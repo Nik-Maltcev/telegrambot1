@@ -36,7 +36,7 @@ def is_admin(user_id: int) -> bool:
     return user_id in ADMIN_IDS
 
 
-@router.message(F.text == "⚙️ Admin Panel")
+@router.message(F.text == "⚙️Admin Panel")
 async def show_admin_panel(message: Message):
     """Show admin panel (only for admins)"""
     if not is_admin(message.from_user.id):

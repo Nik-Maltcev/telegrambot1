@@ -159,7 +159,7 @@ def get_user_card_keyboard(user_id: int, instagram: str = "") -> InlineKeyboardM
     if instagram:
         builder.row(InlineKeyboardButton(text="📸 Instagram", url=f"https://instagram.com/{instagram.lstrip('@')}"))
     builder.row(InlineKeyboardButton(text="💬 Contact", url=f"tg://user?id={user_id}"))
-    builder.row(InlineKeyboardButton(text="🤝 Propose Deal", callback_data=f"deal:propose:{user_id}"))
+    builder.row(InlineKeyboardButton(text="🤝 Deal", callback_data=f"deal:propose:{user_id}"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_friends"))
     return builder.as_markup()
 
@@ -168,7 +168,7 @@ def get_resource_card_keyboard(owner_id: int, instagram: str = "") -> InlineKeyb
     """Keyboard for resource card"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="💬 Request / Contact", url=f"tg://user?id={owner_id}"))
-    builder.row(InlineKeyboardButton(text="🤝 Propose Deal", callback_data=f"deal:propose:{owner_id}"))
+    builder.row(InlineKeyboardButton(text="🤝 Deal", callback_data=f"deal:propose:{owner_id}"))
     if instagram:
         builder.row(InlineKeyboardButton(text="📸 Instagram", url=f"https://instagram.com/{instagram.lstrip('@')}"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_category_res"))

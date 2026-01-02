@@ -293,8 +293,8 @@ EQUIPMENT_ACCESS_FORMAT = [
     "Only with owner's presence",
     "Only under owner's supervision",
     "Only after instruction",
-    "Use only for community projects",
-    "Possible commercial use (by agreement)"
+    "Community projects only",
+    "Commercial use possible"
 ]
 
 EQUIPMENT_DURATION = [

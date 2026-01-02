@@ -146,47 +146,47 @@ INTRO_CATEGORIES = {
     "fashion_luxury": {
         "name": "Fashion & Luxury Industry",
         "items": [
-            "Buyers and procurement managers of luxury boutiques",
-            "Heads of fashion houses (PR, community, special projects)",
-            "Fashion week producers (Paris, Milan, NY, London)",
-            "Directors and production team members in fashion",
-            "Owners of niche brands",
+            "Luxury boutique buyers",
+            "Fashion house heads",
+            "Fashion week producers",
+            "Fashion production directors",
+            "Niche brand owners",
             "Watchmakers & owners",
-            "Jewelers or owners of private workshops"
+            "Private workshop jewelers"
         ]
     },
     "business_influence": {
         "name": "Business & Influence",
         "items": [
-            "Founders of private clubs",
-            "Partners of boutique funds and family offices",
-            "Founders of startups with strong communities",
-            "Heads of digital platforms with industry networks",
-            "Organizers of CEO dinners and mastermind gatherings",
-            "Owners of niche media platforms",
-            "Organizers of international business forums",
-            "Members of boards in niche companies"
+            "Private club founders",
+            "Boutique fund partners",
+            "Startup founders",
+            "Digital platform heads",
+            "CEO dinner organizers",
+            "Niche media owners",
+            "Business forum organizers",
+            "Board members"
         ]
     },
     "travel_access": {
         "name": "Travel, Mobility & Special Access",
         "items": [
-            "Organizers of private travel experiences",
-            "Founders of retreat centers",
-            "Owners of boats, yachts, small private vessels",
-            "Representatives of private aviation circles",
-            "Heads of private traveler clubs",
-            "Organizers of VIP access to sports events",
-            "Directors of cultural centers abroad"
+            "Private travel organizers",
+            "Retreat center founders",
+            "Boat/yacht owners",
+            "Private aviation reps",
+            "Private traveler club heads",
+            "VIP sports access organizers",
+            "Cultural center directors"
         ]
     },
     "rare_professions": {
         "name": "Specific and Rare Professions / Access",
         "items": [
-            "Architects leading unique social/cultural projects",
-            "Heads of university research labs",
-            "Heads of charitable foundations with international networks",
-            "Representatives of diplomatic or cultural missions"
+            "Architects of unique projects",
+            "University research lab heads",
+            "Charitable foundation heads",
+            "Diplomatic representatives"
         ]
     }
 }

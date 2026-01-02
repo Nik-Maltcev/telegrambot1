@@ -2219,6 +2219,10 @@ async def select_art_city(callback: CallbackQuery, state: FSMContext):
     city = find_item_by_hash(CITIES, city_hash)
     if city:
         await state.update_data(art_location=city)
+        # Update keyboard to show selection
+        await callback.message.edit_reply_markup(
+            reply_markup=get_cities_select_keyboard("art_city", "art_city_done", {city}, "art_city_back")
+        )
     await callback.answer(f"Selected: {city}" if city else "")
 
 

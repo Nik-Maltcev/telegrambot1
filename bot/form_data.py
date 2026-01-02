@@ -372,7 +372,7 @@ VESSEL_SAFETY = [
 
 VESSEL_FINANCIAL = [
     "Refundable deposit",
-    "Coverage of minor expenses and potential damage",
+    "Minor expenses & damage coverage",
     "Fuel paid by user",
     "Mooring fee paid by user"
 ]

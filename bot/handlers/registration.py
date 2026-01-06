@@ -710,11 +710,6 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one format.", show_alert=True)
         return
 
-    # Progress message
-    msg = await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
-    await asyncio.sleep(4)
-    await msg.delete()
-
     # Move to Real Estate section
     real_estate_text = (
         "3|9 🗽 Real Estate\n\n"
@@ -722,7 +717,7 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
     )
-    await callback.message.answer(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip", "re_sec_back"))
+    await callback.message.edit_text(real_estate_text, reply_markup=get_section_intro_keyboard("realestate_start", "realestate_skip", "re_sec_back"))
     await state.set_state(Registration.real_estate_section)
     await callback.answer()
 
@@ -916,6 +911,11 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
     target_item = find_item_by_hash(PROPERTY_CAPACITY, item_hash)
     if target_item:
         await state.update_data(property_capacity=target_item)
+
+    # Progress message
+    msg = await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
+    await asyncio.sleep(4)
+    await msg.delete()
 
     # Move to Cars section
     cars_text = (

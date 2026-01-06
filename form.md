@@ -174,12 +174,7 @@ N, [07.12.2025 17:27]
  • Educational practices
  • Workshops
  • Professional coaching
- • Career consultations
  • Individual programs
- • Music lessons
- • Language lessons
- • Marketing and business strategy training
- • Culinary and creative workshops
  • Project or task implementation
 
 ⸻

@@ -723,14 +723,35 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.real_estate_section, F.data == "re_sec_back")
 async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
-    # Go back to intro section last step
+    # Go back to intro section last step or start if skipped
     data = await state.get_data()
     selected = set(data.get("selected_intro_formats", []))
-    await callback.message.edit_text(
-        "Intro Format\n\nSpecify the format of introduction you are comfortable with:",
-        reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
-    )
-    await state.set_state(Registration.intro_format)
+
+    # Check if intro was skipped (selected_intro_formats would be empty if we didn't go through it)
+    # But selected is initialized to empty list in cmd_start.
+    # A better check is if we have intro categories or if we can rely on selected_intro_formats being populated only if we went there.
+    # However, if user went there but selected nothing? No, finish_intro_section requires selection.
+
+    # If selected_intro_formats is empty, it means we likely skipped.
+    if not selected:
+        # Back to Intro Start
+        intro_text = (
+            "2|9 🤝🏻 Personal Introduction\n\n"
+            "In almost every life story, there is a moment when someone opened a door for us.\n\n"
+            "Here, you can describe the key people in your orbit — founders, creators, innovators, "
+            "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
+            "Sharing information about them does not commit you to making an introduction."
+        )
+        await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
+        await state.set_state(Registration.intro_section)
+    else:
+        # Back to Intro Format
+        await callback.message.edit_text(
+            "Intro Format\n\nSpecify the format of introduction you are comfortable with:",
+            reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
+        )
+        await state.set_state(Registration.intro_format)
+
     await callback.answer()
 
 
@@ -907,25 +928,36 @@ async def back_from_prop_capacity(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.property_capacity, F.data.startswith("prop_cap:"))
 async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    # Prevent double clicks/race conditions
+    if data.get("processing_capacity"):
+        await callback.answer()
+        return
+
     item_hash = callback.data.split(":")[1]
     target_item = find_item_by_hash(PROPERTY_CAPACITY, item_hash)
+
     if target_item:
-        await state.update_data(property_capacity=target_item)
+        await state.update_data(property_capacity=target_item, processing_capacity=True)
 
-    # Progress message
-    msg = await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
-    await asyncio.sleep(4)
-    await msg.delete()
+    try:
+        # Progress message
+        msg = await callback.message.answer("wooo-hoo! \nyou’re doing great — already completed a third! 👏🏻 just a little more to go.")
+        await asyncio.sleep(4)
+        await msg.delete()
 
-    # Move to Cars section
-    cars_text = (
-        "4|9 🖤 Cars\n\n"
-        "Please provide information about the cars you are willing to make available to community residents.\n\n"
-        "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
-        "to experience freedom, explore, and create new memories."
-    )
-    await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip", "cars_sec_back"))
-    await state.set_state(Registration.cars_section)
+        # Move to Cars section
+        cars_text = (
+            "4|9 🖤 Cars\n\n"
+            "Please provide information about the cars you are willing to make available to community residents.\n\n"
+            "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
+            "to experience freedom, explore, and create new memories."
+        )
+        await callback.message.edit_text(cars_text, reply_markup=get_section_intro_keyboard("cars_start", "cars_skip", "cars_sec_back"))
+        await state.set_state(Registration.cars_section)
+    finally:
+        await state.update_data(processing_capacity=False)
+
     await callback.answer()
 
 @router.callback_query(Registration.cars_section, F.data == "cars_sec_back")

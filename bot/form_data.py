@@ -83,6 +83,10 @@ SKILL_CATEGORIES = {
     }
 }
 
+ALL_SKILLS = []
+for cat in SKILL_CATEGORIES.values():
+    ALL_SKILLS.extend(cat['items'])
+
 OFFER_FORMATS = [
     "Professional consultations", "Access to courses / materials", "Educational practices",
     "Workshops", "Professional coaching", "Individual programs",

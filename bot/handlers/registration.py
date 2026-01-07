@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, User
 from bot.database import Database
 from bot.keyboards import (
     get_main_menu_keyboard, get_admin_menu_keyboard, get_cancel_keyboard,
@@ -2214,7 +2214,7 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.artwork_section, F.data == "artwork_skip")
 async def skip_artwork_section(callback: CallbackQuery, state: FSMContext, db: Database):
-    await finish_registration(callback.message, state, db)
+    await finish_registration(callback.message, callback.from_user, state, db)
     await callback.answer()
 
 
@@ -2338,15 +2338,15 @@ async def process_art_photo(message: Message, state: FSMContext, db: Database):
     photo_id = message.photo[-1].file_id
     await state.update_data(art_photo_id=photo_id)
 
-    await finish_registration(message, state, db)
+    await finish_registration(message, message.from_user, state, db)
 
 
 
 
-async def finish_registration(message: Message, state: FSMContext, db: Database):
+async def finish_registration(message: Message, user: User, state: FSMContext, db: Database):
     data = await state.get_data()
 
-    user_id = message.from_user.id
+    user_id = user.id
     name = data.get("name", "Unknown")
     # main_city is stored as string in state if we joined it?
     # In process_main_city, we did: main_city_str = ", ".join(selected_cities)
@@ -2355,7 +2355,7 @@ async def finish_registration(message: Message, state: FSMContext, db: Database)
     current_city = main_city # Default to main
     about = data.get("about", "-")
     instagram = data.get("instagram", "-")
-    username = message.from_user.username
+    username = user.username
 
     # Save user to DB
     success = await db.add_user(

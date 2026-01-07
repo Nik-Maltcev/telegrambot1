@@ -176,6 +176,8 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
             selected_vessel_cities=[], selected_intro_cities=[],
             # Specialists list initialization
             specialists_list=[],
+            # Vehicle types multi-select
+            selected_vehicle_types=[],
             # Aircraft types multi-select
             selected_aircraft_types=[],
             # Vessel types multi-select
@@ -1033,9 +1035,10 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
         await callback.answer("Please select at least one city.", show_alert=True)
         return
 
+    selected = set(data.get("selected_vehicle_types", []))
     await callback.message.edit_text(
         "Please specify type of the vehicle:",
-        reply_markup=get_single_select_keyboard(VEHICLE_TYPES, "car_type", "car_type_back")
+        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
     )
     await state.set_state(Registration.car_info)
     await callback.answer()
@@ -1054,11 +1057,33 @@ async def back_from_car_type(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(Registration.car_info, F.data.startswith("car_type:"))
-async def select_vehicle_type(callback: CallbackQuery, state: FSMContext):
+async def toggle_vehicle_type(callback: CallbackQuery, state: FSMContext):
     item_hash = callback.data.split(":")[1]
+    data = await state.get_data()
+    selected = set(data.get("selected_vehicle_types", []))
     target_item = find_item_by_hash(VEHICLE_TYPES, item_hash)
     if target_item:
-        await state.update_data(car_info=target_item) # Storing type as car_info
+        if target_item in selected:
+            selected.remove(target_item)
+        else:
+            selected.add(target_item)
+        await state.update_data(selected_vehicle_types=list(selected))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back"))
+    await callback.answer()
+
+
+@router.callback_query(Registration.car_info, F.data == "car_type_done")
+async def finish_vehicle_type(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected_types = data.get("selected_vehicle_types", [])
+
+    if not selected_types:
+        await callback.answer("Please select at least one type.", show_alert=True)
+        return
+
+    # Join types for display/storage (comma separated)
+    car_info_str = ", ".join(selected_types)
+    await state.update_data(car_info=car_info_str)
 
     await callback.message.edit_text(
         "Usage Conditions\n\nChoose one:",
@@ -1070,9 +1095,11 @@ async def select_vehicle_type(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.car_usage, F.data == "car_usage_back")
 async def back_from_car_usage(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = set(data.get("selected_vehicle_types", []))
     await callback.message.edit_text(
         "Please specify type of the vehicle:",
-        reply_markup=get_single_select_keyboard(VEHICLE_TYPES, "car_type", "car_type_back")
+        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
     )
     await state.set_state(Registration.car_info)
     await callback.answer()

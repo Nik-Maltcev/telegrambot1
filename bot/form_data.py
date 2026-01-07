@@ -97,8 +97,6 @@ RESULT_TYPES = [
     "Concrete outcome: design, plan, etc.",
     "Practical skill",
     "Learning / skill improvement",
-    "Support and guidance",
-    "1:1 consultation",
     "Other form of result"
 ]
 

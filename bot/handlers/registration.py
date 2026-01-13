@@ -10,7 +10,7 @@ from bot.keyboards import (
     get_paginated_multiselect_keyboard,
     get_single_select_keyboard, get_skip_keyboard, get_section_intro_keyboard,
     get_cities_select_keyboard, get_category_keyboard, get_category_items_keyboard,
-    get_confirmation_keyboard
+    get_confirmation_keyboard, get_vessel_locations_keyboard
 )
 from bot.config import ADMIN_IDS
 from bot.form_data import (
@@ -21,7 +21,7 @@ from bot.form_data import (
     VEHICLE_TYPES,
     EQUIPMENT_TYPES, EQUIPMENT_ACCESS_FORMAT, EQUIPMENT_DURATION, EQUIPMENT_RESPONSIBILITY,
     AIRCRAFT_TYPES, AIRCRAFT_USAGE_FORMAT, AIRCRAFT_SAFETY, AIRCRAFT_EXPENSES,
-    VESSEL_TYPES, VESSEL_USAGE_FORMAT, VESSEL_SAFETY, VESSEL_FINANCIAL,
+    VESSEL_TYPES, VESSEL_USAGE_FORMAT, VESSEL_SAFETY, VESSEL_FINANCIAL, VESSEL_LOCATIONS,
     SPECIALIST_CATEGORIES, SPECIALIST_CONNECTION_TYPE,
     ART_FORMS, ART_AUTHOR_TYPE
 )
@@ -141,7 +141,7 @@ class Registration(StatesGroup):
     art_author = State()
     art_author_name = State()
     art_location = State()
-    art_photo = State() # New state
+    art_link = State() # Link to artwork
 
     # Maps section (share Google Maps)
     maps_section = State()
@@ -1769,7 +1769,7 @@ async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
     # City first
     data = await state.get_data()
     selected = set(data.get("selected_vessel_cities", []))
-    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
+    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_vessel_locations_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
     await state.set_state(Registration.vessel_location)
     await callback.answer()
 
@@ -1789,7 +1789,7 @@ async def back_from_vessel_location(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.vessel_location, F.data.startswith("vessel_city:"))
 async def select_vessel_city(callback: CallbackQuery, state: FSMContext):
     city_hash = callback.data.split(":")[1]
-    city = find_item_by_hash(CITIES, city_hash)
+    city = find_item_by_hash(VESSEL_LOCATIONS, city_hash)
     if city:
         data = await state.get_data()
         selected = set(data.get("selected_vessel_cities", []))
@@ -1798,7 +1798,7 @@ async def select_vessel_city(callback: CallbackQuery, state: FSMContext):
         else:
             selected.add(city)
         await state.update_data(selected_vessel_cities=list(selected))
-        await callback.message.edit_reply_markup(reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_vessel_locations_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
     await callback.answer()
 
 
@@ -1822,7 +1822,7 @@ async def finish_vessel_location(callback: CallbackQuery, state: FSMContext):
 async def back_from_vessel_type(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     selected = set(data.get("selected_vessel_cities", []))
-    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_cities_select_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
+    await callback.message.edit_text("Location and Sailing Area:", reply_markup=get_vessel_locations_keyboard("vessel_city", "vessel_city_done", selected, "vessel_city_back"))
     await state.set_state(Registration.vessel_location)
     await callback.answer()
 
@@ -2309,8 +2309,8 @@ async def process_art_author_name(message: Message, state: FSMContext):
     await state.update_data(art_author_name=message.text)
 
     # Skip location, go directly to photo
-    await message.answer("Please upload a photo of the artwork\nSend as photo:", reply_markup=ReplyKeyboardRemove())
-    await state.set_state(Registration.art_photo)
+    await message.answer("Please add a link to your work (Instagram, Google Drive, etc.):", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(Registration.art_link)
 
 @router.callback_query(Registration.art_location, F.data == "art_city_back")
 async def back_from_art_city(callback: CallbackQuery, state: FSMContext):
@@ -2341,15 +2341,22 @@ async def select_art_city(callback: CallbackQuery, state: FSMContext):
 async def finish_art_location(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     # Check if we need photo
-    await callback.message.edit_text("Please upload a photo of the artwork\nSend as photo:")
-    await state.set_state(Registration.art_photo)
+    await callback.message.edit_text("Please add a link to your work (Instagram, Google Drive, etc.):")
+    await state.set_state(Registration.art_link)
     await callback.answer()
 
-@router.message(Registration.art_photo, F.photo)
-async def process_art_photo(message: Message, state: FSMContext, db: Database):
-    # Save photo file_id
-    photo_id = message.photo[-1].file_id
-    await state.update_data(art_photo_id=photo_id)
+@router.message(Registration.art_link, F.text)
+async def process_art_link(message: Message, state: FSMContext, db: Database):
+    if message.text.strip() == "🔙 Back":
+        await message.answer(
+            "Author Name\nOr Pseudonym:",
+            reply_markup=get_cancel_keyboard()
+        )
+        await state.set_state(Registration.art_author_name)
+        return
+    
+    # Save link
+    await state.update_data(art_link=message.text.strip())
 
     # Move to Maps section
     maps_intro = (
@@ -2369,8 +2376,8 @@ async def process_art_photo(message: Message, state: FSMContext, db: Database):
 async def back_from_maps_section(callback: CallbackQuery, state: FSMContext):
     # Back to art photo
     await callback.message.delete()
-    await callback.message.answer("Please upload a photo of the artwork\nSend as photo:", reply_markup=ReplyKeyboardRemove())
-    await state.set_state(Registration.art_photo)
+    await callback.message.answer("Please add a link to your work (Instagram, Google Drive, etc.):", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(Registration.art_link)
     await callback.answer()
 
 

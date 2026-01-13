@@ -365,6 +365,23 @@ VESSEL_TYPES = [
     "Jet Ski"
 ]
 
+VESSEL_LOCATIONS = [
+    "Barcelona 🇪🇸", "Ibiza 🇪🇸", "Mallorca 🇪🇸",
+    "French Riviera 🇫🇷", "Monaco 🇲🇨", "Cannes 🇫🇷", "Nice 🇫🇷",
+    "Amalfi Coast 🇮🇹", "Capri 🇮🇹", "Sardinia 🇮🇹",
+    "Athens 🇬🇷", "Mykonos 🇬🇷", "Cyclades 🇬🇷",
+    "Split 🇭🇷", "Hvar 🇭🇷",
+    "Istanbul 🇹🇷", "Lisbon 🇵🇹",
+    "Amsterdam 🇳🇱", "Rotterdam 🇳🇱",
+    "Copenhagen 🇩🇰", "Stockholm 🇸🇪",
+    "Miami 🇺🇸", "Los Angeles 🇺🇸", "New York 🇺🇸",
+    "Dubai 🇦🇪",
+    "Phuket 🇹🇭", "Koh Samui 🇹🇭",
+    "Bali 🇮🇩", "Singapore 🇸🇬", "Hong Kong 🇭🇰",
+    "Sydney 🇦🇺", "Melbourne 🇦🇺",
+    "Rio de Janeiro 🇧🇷", "Tel Aviv 🇮🇱"
+]
+
 VESSEL_USAGE_FORMAT = [
     "Exclusive (full control of vessel)",
     "Shared with owner"

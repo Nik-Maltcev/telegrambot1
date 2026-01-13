@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from typing import List, Dict, Set, Any
 from bot.config import ADMIN_IDS
-from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, RESULT_TYPES
+from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, RESULT_TYPES, VESSEL_LOCATIONS
 
 
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -342,6 +342,40 @@ def get_cities_select_keyboard(prefix: str, done_callback: str = None, selected:
             text2 = f"{'✅ ' if is_selected2 else ''}{city2}"
             city_hash2 = hashlib.md5(city2.encode()).hexdigest()[:8]
             row_btns.append(InlineKeyboardButton(text=text2, callback_data=f"{prefix}:{city_hash2}"))
+
+        builder.row(*row_btns)
+
+    if done_callback:
+        builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
+def get_vessel_locations_keyboard(prefix: str, done_callback: str = None, selected: Set[str] = None, back_callback: str = None) -> InlineKeyboardMarkup:
+    """Keyboard for vessel/boat location selection with multi-select support"""
+    builder = InlineKeyboardBuilder()
+    import hashlib
+
+    selected = selected or set()
+
+    # Create rows with 2 columns
+    for i in range(0, len(VESSEL_LOCATIONS), 2):
+        row_btns = []
+
+        loc1 = VESSEL_LOCATIONS[i]
+        is_selected1 = loc1 in selected
+        text1 = f"{'✅ ' if is_selected1 else ''}{loc1}"
+        loc_hash1 = hashlib.md5(loc1.encode()).hexdigest()[:8]
+        row_btns.append(InlineKeyboardButton(text=text1, callback_data=f"{prefix}:{loc_hash1}"))
+
+        if i + 1 < len(VESSEL_LOCATIONS):
+            loc2 = VESSEL_LOCATIONS[i+1]
+            is_selected2 = loc2 in selected
+            text2 = f"{'✅ ' if is_selected2 else ''}{loc2}"
+            loc_hash2 = hashlib.md5(loc2.encode()).hexdigest()[:8]
+            row_btns.append(InlineKeyboardButton(text=text2, callback_data=f"{prefix}:{loc_hash2}"))
 
         builder.row(*row_btns)
 

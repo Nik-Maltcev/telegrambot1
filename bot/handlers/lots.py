@@ -280,7 +280,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
     data = await state.get_data()
     availability = message.text
 
-    # Save lot
+    # Save lot - now auto-approved without moderation
     lot_id = await db.add_lot(
         user_id=message.from_user.id,
         lot_type=data['lot_type'],
@@ -289,7 +289,7 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
         category=data['category'],
         location_text=data['location'], # Storing city name here
         availability=availability,
-        status="pending"
+        status="approved"  # Auto-approve without moderation
     )
 
     await state.clear()
@@ -298,33 +298,12 @@ async def process_lot_availability(message: Message, state: FSMContext, db: Data
         type_emoji = "🎁" if data['lot_type'] == "share" else "🔍"
 
         await message.answer(
-            f"✅ Lot submitted for moderation!\n\n"
+            f"✅ Your lot has been published!\n\n"
             f"{type_emoji} **{data['type_text']}**\n"
             f"🏷 {data['category']}\n"
-            f"⏳ An admin will review your lot soon.",
+            f"It's now visible to other community members.",
             reply_markup=get_menu_keyboard(message.from_user.id)
         )
-
-        # Notify admins
-        # FIX: Removed 'from bot.main import bot' to avoid circular import.
-        # Use message.bot instead.
-        user = await db.get_user(message.from_user.id)
-        for admin_id in ADMIN_IDS:
-            try:
-                await message.bot.send_message(
-                    admin_id,
-                    f"🆕 New lot pending moderation!\n\n"
-                    f"👤 From: {user['name']} (@{message.from_user.username or 'no username'})\n"
-                    f"📋 Type: {type_emoji} {data['lot_type']}\n"
-                    f"🏷 Category: {data['category']}\n"
-                    f"📌 Title: {data['type_text']}\n"
-                    f"📝 Description: {data['description']}\n"
-                    f"📍 Location: {data['location']}\n"
-                    f"📅 Availability: {availability}",
-                    reply_markup=get_lot_moderation_keyboard(lot_id)
-                )
-            except Exception as e:
-                logger.error(f"Failed to notify admin {admin_id}: {e}")
 
         # Show lots menu
         await message.answer(

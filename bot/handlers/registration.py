@@ -143,6 +143,12 @@ class Registration(StatesGroup):
     art_location = State()
     art_photo = State() # New state
 
+    # Maps section (share Google Maps)
+    maps_section = State()
+    maps_city = State()
+    maps_link = State()
+    maps_add_more = State()
+
     # Initial step
     waiting_for_invite_code = State()
 
@@ -185,7 +191,7 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
             "not everyone finds this space — and that’s what makes it special.\n"
             "glad to be here with you.\n"
             "stay joyful 🩵\n"
-            "xx anna"
+            "xx Anna"
         )
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
         await message.answer(intro_text, reply_markup=keyboard)
@@ -215,7 +221,7 @@ async def cmd_start(message: Message, state: FSMContext, db: Database):
 async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
     warning_text = (
         "please complete the questionnaire carefully.\n"
-        "9 sections, ~10 minutes.\n\n"
+        "10 sections, ~10 minutes.\n\n"
         "incomplete submissions are not reviewed and will not be granted access to the Community.\n\n"
         "the bot will send questions one by one — just reply in chat or choose the available options.\n\n"
         "you can update or change your information at any time by contacting our manager via direct messages @papacaralya"
@@ -247,7 +253,7 @@ async def process_name(message: Message, state: FSMContext):
             "not everyone finds this space — and that’s what makes it special.\n"
             "glad to be here with you.\n"
             "stay joyful 🩵\n"
-            "xx anna"
+            "xx Anna"
         )
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
         await message.answer(intro_text, reply_markup=keyboard)
@@ -327,7 +333,7 @@ async def process_instagram(message: Message, state: FSMContext):
 
     # Ask for About info
     await message.answer(
-        "Tell us a bit about yourself (brief intro)\nFor example: Artist and community owner",
+        "Tell us a bit about yourself\nDescribe it shortly — just a few words.\nIn one of the next questions, you'll be able to share more details.\n\nExamples:\nArtist · Community creator\nFounder · Creative entrepreneur\nDJ · Music curator",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.about)
@@ -343,7 +349,7 @@ async def process_about(message: Message, state: FSMContext):
     await state.update_data(about=message.text)
 
     skills_intro = (
-        "1|9 🧑🏼‍💻 Skills and Knowledge\n\n"
+        "1|10 🧑🏼‍💻 Skills and Knowledge\n\n"
         "Please provide information about the skills, knowledge, and professional abilities "
         "you are willing to share with the community.\n\n"
         "Each of us carries unique mastery. Here you can list the areas where you can:\n"
@@ -367,7 +373,7 @@ async def process_about(message: Message, state: FSMContext):
 async def back_from_skill_category(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await callback.message.answer(
-        "Tell us a bit about yourself (brief intro)\nFor example: Artist and community owner",
+        "Tell us a bit about yourself\nDescribe it shortly — just a few words.\nIn one of the next questions, you'll be able to share more details.\n\nExamples:\nArtist · Community creator\nFounder · Creative entrepreneur\nDJ · Music curator",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(Registration.about)
@@ -567,7 +573,7 @@ async def finish_skills_section(callback: CallbackQuery, state: FSMContext):
 
     # Move to Personal Introductions section
     intro_text = (
-        "2|9 🤝🏻 Personal Introduction\n\n"
+        "2|10 🤝🏻 Personal Introduction\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -595,7 +601,7 @@ async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
 async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
     # Move to Real Estate section
     real_estate_text = (
-        "3|9 🗽 Real Estate\n\n"
+        "3|10 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -617,7 +623,7 @@ async def start_intro_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.intro_category, F.data == "intro_cat_back")
 async def back_to_intro_section(callback: CallbackQuery, state: FSMContext):
     intro_text = (
-        "2|9 🤝🏻 Personal Introduction\n\n"
+        "2|10 🤝🏻 Personal Introduction\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -677,9 +683,13 @@ async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
          await callback.answer("Please select at least one item.", show_alert=True)
          return
 
-    selected = set(data.get("selected_intro_cities", []))
-    await callback.message.edit_text("Select your location:", reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected, "intro_city_back"))
-    await state.set_state(Registration.intro_location)
+    # Skip location, go directly to format
+    selected = set(data.get("selected_intro_formats", []))
+    await callback.message.edit_text(
+        "Intro Format\n\nSpecify the format of introduction you are comfortable with:",
+        reply_markup=get_multiselect_keyboard(INTRO_FORMATS, selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
+    )
+    await state.set_state(Registration.intro_format)
     await callback.answer()
 
 @router.callback_query(Registration.intro_location, F.data == "intro_city_back")
@@ -722,10 +732,15 @@ async def finish_intro_location(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.intro_format, F.data == "intro_fmt_back")
 async def back_from_intro_format(callback: CallbackQuery, state: FSMContext):
+    # Go back to intro items selection
     data = await state.get_data()
-    selected = set(data.get("selected_intro_cities", []))
-    await callback.message.edit_text("Select your location:", reply_markup=get_cities_select_keyboard("intro_city", "intro_city_done", selected, "intro_city_back"))
-    await state.set_state(Registration.intro_location)
+    category_key = data.get("current_intro_category")
+    selected = set(data.get("selected_intro_items", []))
+    await callback.message.edit_text(
+        "Select the people you can introduce:",
+        reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat")
+    )
+    await state.set_state(Registration.intro_items)
     await callback.answer()
 
 
@@ -754,7 +769,7 @@ async def finish_intro_section(callback: CallbackQuery, state: FSMContext):
 
     # Move to Real Estate section
     real_estate_text = (
-        "3|9 🗽 Real Estate\n\n"
+        "3|10 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -778,7 +793,7 @@ async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
     if not selected:
         # Back to Intro Start
         intro_text = (
-            "2|9 🤝🏻 Personal Introduction\n\n"
+            "2|10 🤝🏻 Personal Introduction\n\n"
             "In almost every life story, there is a moment when someone opened a door for us.\n\n"
             "Here, you can describe the key people in your orbit — founders, creators, innovators, "
             "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -802,7 +817,7 @@ async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.real_estate_section, F.data == "realestate_skip")
 async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
     cars_text = (
-        "4|9 🖤 Cars\n\n"
+        "4|10 🖤 Cars\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
@@ -827,7 +842,7 @@ async def start_realestate_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.property_location, F.data == "prop_city_back")
 async def back_from_prop_city(callback: CallbackQuery, state: FSMContext):
     real_estate_text = (
-        "3|9 🗽 Real Estate\n\n"
+        "3|10 🗽 Real Estate\n\n"
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
         "Please list only the properties you are willing to share free of charge."
@@ -990,7 +1005,7 @@ async def select_property_capacity(callback: CallbackQuery, state: FSMContext):
 
         # Move to Cars section
         cars_text = (
-            "4|9 🖤 Cars\n\n"
+            "4|10 🖤 Cars\n\n"
             "Please provide information about the cars you are willing to make available to community residents.\n\n"
             "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
             "to experience freedom, explore, and create new memories."
@@ -1018,7 +1033,7 @@ async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.cars_section, F.data == "cars_skip")
 async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
     equipment_text = (
-        "5|9 🎧 Equipment\n\n"
+        "5|10 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -1042,7 +1057,7 @@ async def start_cars_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.car_location, F.data == "car_city_back")
 async def back_from_car_city(callback: CallbackQuery, state: FSMContext):
     cars_text = (
-        "4|9 🖤 Cars\n\n"
+        "4|10 🖤 Cars\n\n"
         "Please provide information about the cars you are willing to make available to community residents.\n\n"
         "By sharing your car, you're offering more than just a vehicle — you're giving someone the chance "
         "to experience freedom, explore, and create new memories."
@@ -1243,7 +1258,7 @@ async def select_car_passengers(callback: CallbackQuery, state: FSMContext):
 
     # Move to Equipment section
     equipment_text = (
-        "5|9 🎧 Equipment\n\n"
+        "5|10 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -1266,7 +1281,7 @@ async def back_from_equip_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.equipment_section, F.data == "equipment_skip")
 async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
     aircraft_text = (
-        "6|9 🛩️ Aircrafts\n\n"
+        "6|10 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1291,7 +1306,7 @@ async def start_equipment_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.equipment_location, F.data == "equip_city_back")
 async def back_from_equip_location(callback: CallbackQuery, state: FSMContext):
     equipment_text = (
-        "5|9 🎧 Equipment\n\n"
+        "5|10 🎧 Equipment\n\n"
         "Please provide information about the equipment you are willing to make available to community residents.\n\n"
         "By providing clear details about the resources you're open to sharing, you help the community grow stronger."
     )
@@ -1477,7 +1492,7 @@ async def finish_equipment_section(callback: CallbackQuery, state: FSMContext):
         return
 
     aircraft_text = (
-        "6|9 🛩️ Aircrafts\n\n"
+        "6|10 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1505,7 +1520,7 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
     await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
 
     vessel_text = (
-        "7|9 💎 Boats\n\n"
+        "7|10 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1526,7 +1541,7 @@ async def start_aircraft_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.aircraft_location, F.data == "air_city_back")
 async def back_from_air_city(callback: CallbackQuery, state: FSMContext):
     aircraft_text = (
-        "6|9 🛩️ Aircrafts\n\n"
+        "6|10 🛩️ Aircrafts\n\n"
         "Please provide information about the aircraft you are willing to make available to community residents.\n\n"
         "By opening access to such a unique asset, you take a special role within the community — "
         "inspiring others, elevating shared values, and creating moments that simply cannot happen without you."
@@ -1713,7 +1728,7 @@ async def finish_aircraft_section(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
 
     vessel_text = (
-        "7|9 💎 Boats\n\n"
+        "7|10 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1739,7 +1754,7 @@ async def back_from_vessel_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.vessel_section, F.data == "vessel_skip")
 async def skip_vessel_section(callback: CallbackQuery, state: FSMContext):
     specialist_text = (
-        "8|9 🩵 Specialists\n\n"
+        "8|10 🩵 Specialists\n\n"
         "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
@@ -1761,7 +1776,7 @@ async def start_vessel_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.vessel_location, F.data == "vessel_city_back")
 async def back_from_vessel_location(callback: CallbackQuery, state: FSMContext):
     vessel_text = (
-        "7|9 💎 Boats\n\n"
+        "7|10 💎 Boats\n\n"
         "Please provide information about the vessels you are willing to make available to community residents.\n\n"
         "We don't measure value in feet, engines, or length. What we share here is not \"status\" — "
         "but experiences, freedom and the joy of being on the water together."
@@ -1947,7 +1962,7 @@ async def finish_vessel_section(callback: CallbackQuery, state: FSMContext):
         return
 
     specialist_text = (
-        "8|9 🩵 Specialists\n\n"
+        "8|10 🩵 Specialists\n\n"
         "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
@@ -1973,7 +1988,7 @@ async def back_from_spec_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.specialist_section, F.data == "specialist_skip")
 async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
     artwork_text = (
-        "9|9 🫧 Works of Art\n\n"
+        "9|10 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
@@ -1995,7 +2010,7 @@ async def start_specialist_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.specialist_category, F.data == "spec_cat_back")
 async def back_from_spec_cat(callback: CallbackQuery, state: FSMContext):
     specialist_text = (
-        "8|9 🩵 Specialists\n\n"
+        "8|10 🩵 Specialists\n\n"
         "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
@@ -2178,7 +2193,7 @@ async def add_another_specialist(callback: CallbackQuery, state: FSMContext):
 async def finish_specialist_loop(callback: CallbackQuery, state: FSMContext):
     # Move to Artworks section
     artwork_text = (
-        "9|9 🫧 Works of Art\n\n"
+        "9|10 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
@@ -2200,7 +2215,7 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
          await state.set_state(Registration.specialist_loop_confirm)
     else:
         specialist_text = (
-            "8|9 🩵 Specialists\n\n"
+            "8|10 🩵 Specialists\n\n"
             "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
             "brought clarity, or simply made life easier.\n\n"
             "Please list only those specialists you have personally worked with and can genuinely vouch for."
@@ -2231,7 +2246,7 @@ async def start_artwork_section(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Registration.art_form, F.data == "art_form_back")
 async def back_from_art_form(callback: CallbackQuery, state: FSMContext):
     artwork_text = (
-        "9|9 🫧 Works of Art\n\n"
+        "9|10 🫧 Works of Art\n\n"
         "If you're an artist, photographer, or creator — and your work carries meaning and intention — "
         "this is a space to share it with the community.\n\n"
         "By offering your work to fellow residents, you let it find a home where it will be genuinely seen and appreciated."
@@ -2293,11 +2308,9 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
     await state.update_data(art_author_name=message.text)
 
-    await message.answer(
-        "Location of the Artwork:",
-        reply_markup=get_cities_select_keyboard("art_city", "art_city_done", None, "art_city_back")
-    )
-    await state.set_state(Registration.art_location)
+    # Skip location, go directly to photo
+    await message.answer("Please upload a photo of the artwork\nSend as photo:", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(Registration.art_photo)
 
 @router.callback_query(Registration.art_location, F.data == "art_city_back")
 async def back_from_art_city(callback: CallbackQuery, state: FSMContext):
@@ -2338,9 +2351,124 @@ async def process_art_photo(message: Message, state: FSMContext, db: Database):
     photo_id = message.photo[-1].file_id
     await state.update_data(art_photo_id=photo_id)
 
-    await finish_registration(message, message.from_user, state, db)
+    # Move to Maps section
+    maps_intro = (
+        "10|10 🗺 Share Your Map\n\n"
+        "In this section, you can share folder links to your favorite places on Google Maps.\n\n"
+        "Before posting, please name the folder according to the city where the places are located "
+        "and make sure there are no personal addresses.\n\n"
+        "A few words about why this place is worth visiting would be great!"
+    )
+    await message.answer(maps_intro, reply_markup=get_section_intro_keyboard("maps_start", "maps_skip", "maps_sec_back"))
+    await state.set_state(Registration.maps_section)
 
 
+# --- Maps Section Handlers ---
+
+@router.callback_query(Registration.maps_section, F.data == "maps_sec_back")
+async def back_from_maps_section(callback: CallbackQuery, state: FSMContext):
+    # Back to art photo
+    await callback.message.delete()
+    await callback.message.answer("Please upload a photo of the artwork\nSend as photo:", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(Registration.art_photo)
+    await callback.answer()
+
+
+@router.callback_query(Registration.maps_section, F.data == "maps_skip")
+async def skip_maps_section(callback: CallbackQuery, state: FSMContext, db: Database):
+    await callback.message.delete()
+    await finish_registration(callback.message, callback.from_user, state, db)
+    await callback.answer()
+
+
+@router.callback_query(Registration.maps_section, F.data == "maps_start")
+async def start_maps_section(callback: CallbackQuery, state: FSMContext):
+    # Initialize maps list
+    await state.update_data(user_maps=[])
+    await callback.message.edit_text(
+        "Select the city for your map:",
+        reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
+    )
+    await state.set_state(Registration.maps_city)
+    await callback.answer()
+
+
+@router.callback_query(Registration.maps_city, F.data == "maps_city_back")
+async def back_from_maps_city(callback: CallbackQuery, state: FSMContext):
+    maps_intro = (
+        "10|10 🗺 Share Your Map\n\n"
+        "In this section, you can share folder links to your favorite places on Google Maps.\n\n"
+        "Before posting, please name the folder according to the city where the places are located "
+        "and make sure there are no personal addresses.\n\n"
+        "A few words about why this place is worth visiting would be great!"
+    )
+    await callback.message.edit_text(maps_intro, reply_markup=get_section_intro_keyboard("maps_start", "maps_skip", "maps_sec_back"))
+    await state.set_state(Registration.maps_section)
+    await callback.answer()
+
+
+@router.callback_query(Registration.maps_city, F.data.startswith("maps_city:"))
+async def select_maps_city(callback: CallbackQuery, state: FSMContext):
+    city_hash = callback.data.split(":")[1]
+    city = find_item_by_hash(CITIES, city_hash)
+    if city:
+        await state.update_data(current_map_city=city)
+        await callback.message.delete()
+        await callback.message.answer(
+            f"City: {city}\n\nNow send the Google Maps link:",
+            reply_markup=get_cancel_keyboard()
+        )
+        await state.set_state(Registration.maps_link)
+    await callback.answer()
+
+
+@router.message(Registration.maps_link, F.text)
+async def process_maps_link(message: Message, state: FSMContext, db: Database):
+    if message.text.strip() == "🔙 Back":
+        await message.answer(
+            "Select the city for your map:",
+            reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
+        )
+        await state.set_state(Registration.maps_city)
+        return
+
+    link = message.text.strip()
+    data = await state.get_data()
+    city = data.get("current_map_city", "Unknown")
+    user_maps = data.get("user_maps", [])
+    
+    # Add map to list
+    user_maps.append({"city": city, "link": link})
+    await state.update_data(user_maps=user_maps)
+
+    # Ask if want to add more
+    from aiogram.utils.keyboard import InlineKeyboardBuilder
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="➕ Add another map", callback_data="maps_add_more"))
+    builder.row(InlineKeyboardButton(text="✅ Done", callback_data="maps_done"))
+    
+    await message.answer(
+        f"✅ Map added: {city}\n\nWould you like to add another map?",
+        reply_markup=builder.as_markup()
+    )
+    await state.set_state(Registration.maps_add_more)
+
+
+@router.callback_query(Registration.maps_add_more, F.data == "maps_add_more")
+async def add_more_maps(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Select the city for your map:",
+        reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
+    )
+    await state.set_state(Registration.maps_city)
+    await callback.answer()
+
+
+@router.callback_query(Registration.maps_add_more, F.data == "maps_done")
+async def finish_maps_section(callback: CallbackQuery, state: FSMContext, db: Database):
+    await callback.message.delete()
+    await finish_registration(callback.message, callback.from_user, state, db)
+    await callback.answer()
 
 
 async def finish_registration(message: Message, user: User, state: FSMContext, db: Database):

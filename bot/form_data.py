@@ -59,7 +59,7 @@ SKILL_CATEGORIES = {
     "G": {
         "name": "Media & PR",
         "items": [
-            "Production of shoots", "Press relations", "Copywriting",
+            "Photo & video production", "Press relations", "Copywriting",
             "Media Publications", "Personal branding",
             "SMM and content strategy", "Creating Reels / TikTok",
             "Instagram growth strategies", "Media planning", "Crisis communication"
@@ -117,7 +117,8 @@ CITIES = [
     "Shanghai 🇨🇳", "Beijing 🇨🇳", "Dubai 🇦🇪",
     "Sydney 🇦🇺", "Melbourne 🇦🇺",
     "Mexico City 🇲🇽", "São Paulo 🇧🇷", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
-    "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩"
+    "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩",
+    "Baku 🇦🇿", "Tbilisi 🇬🇪"
 ]
 
 # --- Personal Introductions ---
@@ -207,7 +208,9 @@ PROPERTY_TYPES = [
     "Townhouse",
     "Loft / Studio",
     "Apartment in a complex",
-    "Room (shared living)"
+    "Room (shared living)",
+    "Commercial property",
+    "Land"
 ]
 
 PROPERTY_USAGE_FORMAT = [
@@ -404,6 +407,24 @@ SPECIALIST_CATEGORIES = {
             "Psychologists, mental health coaches"
         ]
     },
+    "health_energy": {
+        "name": "Health / Energy",
+        "items": [
+            "Functional doctors",
+            "Wellness specialists",
+            "Somatic therapists",
+            "Nutrition coaches"
+        ]
+    },
+    "performance": {
+        "name": "Performance",
+        "items": [
+            "Performance coaches",
+            "Focus & time coaches",
+            "Burnout specialists",
+            "Habit designers"
+        ]
+    },
     "art_creative": {
         "name": "Art & Creative Industry",
         "items": [
@@ -431,7 +452,10 @@ SPECIALIST_CATEGORIES = {
         "name": "Personal Brand & PR",
         "items": [
             "PR agents (Europe / US / Asia)",
-            "Media strategy specialists"
+            "Media strategy specialists",
+            "Brand strategists",
+            "Content creators",
+            "Community builders"
         ]
     },
     "lifestyle_travel": {
@@ -439,15 +463,26 @@ SPECIALIST_CATEGORIES = {
         "items": [
             "Concierge services",
             "Luxury travel agents",
-            "Relocation specialists"
+            "Relocation specialists",
+            "Travel designers",
+            "Retreat & event hosts"
         ]
     },
     "real_estate_spec": {
-        "name": "Real Estate",
+        "name": "Real Estate / Living",
         "items": [
             "Agents for rent/purchase worldwide",
             "Real estate investment specialists (yield-analysis)",
-            "Property management specialists"
+            "Property management specialists",
+            "Property managers",
+            "Interior stylists"
+        ]
+    },
+    "community": {
+        "name": "Community",
+        "items": [
+            "Community facilitators",
+            "Networking hosts"
         ]
     }
 }

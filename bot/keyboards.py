@@ -100,7 +100,6 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
         ("💎 Boats", "Water Transport / Vessels"),
         ("🎧 Equipment", "Equipment"),
         ("🧑🏼‍💻 Skills and Knowledge", "Skills and Knowledge"),
-        ("🫆 Unique Opportunities", "Unique opportunities"),
         ("🫧 Works of Art", "Artworks"),
         ("🤝🏻 Personal Introduction", "Personal Introductions to Key People"),
     ]

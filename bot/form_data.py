@@ -93,16 +93,7 @@ OFFER_FORMATS = [
     "Project or task implementation"
 ]
 
-INTERACTION_FORMATS = [
-    "Online", "Offline", "Both"
-]
 
-RESULT_TYPES = [
-    "Concrete outcome: design, plan, etc.",
-    "Practical skill",
-    "Learning / skill improvement",
-    "Other form of result"
-]
 
 # --- Cities list (used across multiple sections) ---
 CITIES = [
@@ -194,12 +185,7 @@ INTRO_CATEGORIES = {
     }
 }
 
-INTRO_FORMATS = [
-    "Warm introduction via message",
-    "Personal introduction at an event",
-    "Joint call",
-    "Only for very relevant requests"
-]
+
 
 # --- Real Estate ---
 PROPERTY_TYPES = [
@@ -213,26 +199,6 @@ PROPERTY_TYPES = [
     "Land"
 ]
 
-PROPERTY_USAGE_FORMAT = [
-    "Exclusive stay - participant stays alone.",
-    "Private area in owner’s home"
-]
-
-PROPERTY_DURATION = [
-    "2–3 days",
-    "1 week",
-    "Several weeks",
-    "Several months",
-    "Situational (by agreement)"
-]
-
-PROPERTY_CAPACITY = [
-    "1",
-    "1–2",
-    "3–4",
-    "4+"
-]
-
 # --- Cars ---
 VEHICLE_TYPES = [
     "Car",
@@ -244,32 +210,7 @@ VEHICLE_TYPES = [
     "SUV / 4x4"
 ]
 
-CAR_USAGE_CONDITIONS = [
-    "Exclusive use by participant",
-    "Shared use with owner",
-    "Use only with driver"
-]
 
-CAR_DURATION = [
-    "Single trip",
-    "2–3 days",
-    "Up to a week",
-    "Several months",
-    "Situational (pre-discussed)"
-]
-
-CAR_CONDITIONS = [
-    "Fuel & Minor Costs Covered",
-    "Insurance & Damage Coverage",
-    "Safe deposit"
-]
-
-CAR_PASSENGERS = [
-    "1",
-    "2",
-    "3",
-    "4+"
-]
 
 # --- Equipment ---
 EQUIPMENT_TYPES = [
@@ -293,29 +234,7 @@ EQUIPMENT_TYPES = [
     "Other"
 ]
 
-EQUIPMENT_ACCESS_FORMAT = [
-    "Can take independently",
-    "Only with owner's presence",
-    "Only under owner's supervision",
-    "Only after instruction",
-    "Community projects only",
-    "Commercial use possible"
-]
 
-EQUIPMENT_DURATION = [
-    "Up to 1 day",
-    "1–7 days",
-    "Long-term (week or more)",
-    "Individually discussed"
-]
-
-EQUIPMENT_RESPONSIBILITY = [
-    "Deposit",
-    "Passport copy",
-    "Insurance",
-    "Damage compensation agreement",
-    "Other"
-]
 
 # --- Air Transport ---
 AIRCRAFT_TYPES = [
@@ -336,23 +255,7 @@ AIRCRAFT_TYPES = [
     "Autogyro"
 ]
 
-AIRCRAFT_USAGE_FORMAT = [
-    "Exclusive (fully provided)",
-    "Shared with owner (accompanied flight)"
-]
 
-AIRCRAFT_SAFETY = [
-    "Aircraft insurance",
-    "Third-party liability insurance",
-    "Passenger insurance"
-]
-
-AIRCRAFT_EXPENSES = [
-    "Fuel coverage",
-    "Maintenance, parking, airport fees",
-    "Minor operational expenses",
-    "Damage coverage agreement"
-]
 
 # --- Water Transport ---
 VESSEL_TYPES = [
@@ -382,22 +285,7 @@ VESSEL_LOCATIONS = [
     "Rio de Janeiro 🇧🇷", "Tel Aviv 🇮🇱"
 ]
 
-VESSEL_USAGE_FORMAT = [
-    "Exclusive (full control of vessel)",
-    "Shared with owner"
-]
 
-VESSEL_SAFETY = [
-    "Mandatory insurance",
-    "Operating license"
-]
-
-VESSEL_FINANCIAL = [
-    "Refundable deposit",
-    "Minor expenses & damage coverage",
-    "Fuel paid by user",
-    "Mooring fee paid by user"
-]
 
 # --- Specialists ---
 SPECIALIST_CATEGORIES = {
@@ -523,7 +411,3 @@ ART_FORMS = [
     "Other"
 ]
 
-ART_AUTHOR_TYPE = [
-    "Me",
-    "Other artist"
-]

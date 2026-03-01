@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from typing import List, Dict, Set, Any
 from bot.config import ADMIN_IDS
-from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, INTERACTION_FORMATS, RESULT_TYPES, VESSEL_LOCATIONS
+from bot.form_data import SKILL_CATEGORIES, OFFER_FORMATS, VESSEL_LOCATIONS
 
 
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:

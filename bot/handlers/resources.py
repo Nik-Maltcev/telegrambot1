@@ -14,37 +14,37 @@ CATEGORY_DATA_MAPPING = {
     "Skills and Knowledge": {
         "items_key": "selected_skill_items",
         "cities_key": None,  # Skills are not location-specific in questionnaire
-        "extra_keys": ["selected_offer_formats", "selected_interaction_formats", "selected_result_types"]
+        "extra_keys": ["selected_offer_formats", "selected_result_types"]
     },
     "Personal Introductions to Key People": {
         "items_key": "selected_intro_items",
         "cities_key": "selected_intro_cities",
-        "extra_keys": ["selected_intro_formats"]
+        "extra_keys": []
     },
     "Real Estate": {
         "items_key": "selected_property_types",
         "cities_key": "selected_prop_cities",
-        "extra_keys": ["property_usage", "property_duration", "property_capacity"]
+        "extra_keys": []
     },
     "Cars and Other Vehicles": {
         "items_key": "car_info",  # Single value
         "cities_key": "selected_car_cities",
-        "extra_keys": ["car_usage", "car_duration", "car_passengers"]
+        "extra_keys": []
     },
     "Equipment": {
         "items_key": "selected_equipment_types",
         "cities_key": "selected_equip_cities",
-        "extra_keys": ["selected_equipment_access", "equipment_duration"]
+        "extra_keys": []
     },
     "Air Transport": {
         "items_key": "selected_aircraft_types",
         "cities_key": "selected_air_cities",
-        "extra_keys": ["aircraft_usage"]
+        "extra_keys": []
     },
     "Water Transport / Vessels": {
         "items_key": "selected_vessel_types",
         "cities_key": "selected_vessel_cities",
-        "extra_keys": ["vessel_usage"]
+        "extra_keys": []
     },
     "Specialists": {
         "items_key": "specialists_list",
@@ -54,7 +54,7 @@ CATEGORY_DATA_MAPPING = {
     "Artworks": {
         "items_key": "art_form",
         "cities_key": "art_location",
-        "extra_keys": ["art_author", "art_author_name"]
+        "extra_keys": ["art_author_name", "art_link"]
     }
 }
 

@@ -212,23 +212,69 @@ async def process_lot_type_text(message: Message, state: FSMContext):
 
 
 @router.message(AddLot.description, F.text)
-async def process_lot_description(message: Message, state: FSMContext):
-    if message.text.strip() == "🔙 Back":
-        await message.answer("Type of Resource:", reply_markup=get_cancel_keyboard())
-        await state.set_state(AddLot.type_text)
+async def process_lot_description(message: Message, state: FSMContext, db: Database):
+    if message.text.strip() == "\U0001f519 Back":
+        # Go back to lots menu
+        await message.answer(
+            "\U0001f499Lots\n\n"
+            "Here you can manage what you share and what you\u2019re looking for.\n\n"
+            "Select an option:",
+            reply_markup=get_lots_type_keyboard()
+        )
+        await state.clear()
         return
 
-    await state.update_data(description=message.text)
+    # Parse the template text
+    text = message.text.strip()
+    data = await state.get_data()
+    lot_type = data.get("lot_type", "share")
 
-    # Remove previous Reply keyboard before showing Inline city selection
-    await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
+    # Try to extract fields from the template
+    import re as _re
+    type_match = _re.search(r"Type of Resource[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
+    desc_match = _re.search(r"Description[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
+    loc_match = _re.search(r"Location[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
+    avail_key = "Availability" if lot_type == "share" else "When Needed"
+    avail_match = _re.search(rf"{avail_key}[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
 
-    # Send city selection keyboard with prefix "lot_city"
-    await message.answer(
-        "Location\ncity or online",
-        reply_markup=get_cities_keyboard(prefix="lot_city")
+    title = type_match.group(1).strip() if type_match else text[:100]
+    description = desc_match.group(1).strip() if desc_match else text
+    location = loc_match.group(1).strip() if loc_match else ""
+    availability = avail_match.group(1).strip() if avail_match else ""
+
+    # Save lot
+    lot_id = await db.add_lot(
+        user_id=message.from_user.id,
+        lot_type=lot_type,
+        title=title,
+        description=description,
+        category="",
+        location_text=location,
+        availability=availability,
+        status="approved"
     )
-    await state.set_state(AddLot.location)
+
+    await state.clear()
+
+    if lot_id:
+        type_emoji = "\U0001f381" if lot_type == "share" else "\U0001f50d"
+        await message.answer(
+            f"\u2705 Your lot has been published!\n\n"
+            f"{type_emoji} **{title}**\n"
+            f"It\u2019s now visible to other community members.",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
+        await message.answer(
+            "\U0001f499Lots\n\n"
+            "Here you can manage what you share and what you\u2019re looking for.\n\n"
+            "Select an option:",
+            reply_markup=get_lots_type_keyboard()
+        )
+    else:
+        await message.answer(
+            "\u274c Failed to add lot. Please try again.",
+            reply_markup=get_menu_keyboard(message.from_user.id)
+        )
 
 
 @router.callback_query(AddLot.location, F.data.startswith("lot_city:"))

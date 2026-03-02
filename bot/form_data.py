@@ -107,7 +107,7 @@ CITIES = [
     "Bangkok 🇹🇭", "Singapore 🇸🇬", "Hong Kong 🇭🇰", "Tokyo 🇯🇵", "Seoul 🇰🇷",
     "Shanghai 🇨🇳", "Beijing 🇨🇳", "Dubai 🇦🇪",
     "Sydney 🇦🇺", "Melbourne 🇦🇺",
-    "Mexico City 🇲🇽", "São Paulo 🇧🇷", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
+    "Mexico City 🇲🇽", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
     "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩",
     "Baku 🇦🇿", "Tbilisi 🇬🇪"
 ]
@@ -194,7 +194,7 @@ PROPERTY_TYPES = [
     "Townhouse",
     "Loft / Studio",
     "Apartment in a complex",
-    "Room (shared living)",
+    "Room in a shared home",
     "Commercial property",
     "Land"
 ]
@@ -309,25 +309,46 @@ SPECIALIST_CATEGORIES = {
         "items": [
             "Doctors and health specialists",
             "Body-performance specialists",
-            "Psychologists, mental health coaches"
+            "Psychologists, mental health coaches",
+            "Functional medicine experts",
+            "Longevity & preventive health",
+            "Osteopaths / chiropractors",
+            "Sports recovery therapists",
+            "Clinical nutritionists",
+            "Mobility & posture specialists",
+            "Medical diagnostics experts"
         ]
     },
-    "health_energy": {
-        "name": "Health / Energy",
+    "wellbeing": {
+        "name": "Wellbeing",
         "items": [
-            "Functional doctors",
             "Wellness specialists",
             "Somatic therapists",
-            "Nutrition coaches"
+            "Nutrition coaches",
+            "Senior psychologists",
+            "Somatic therapy experts",
+            "Sleep optimization pros",
+            "Nervous system experts",
+            "Recovery & regeneration",
+            "Stress resilience experts"
         ]
     },
-    "performance": {
-        "name": "Performance",
+    "human_potential": {
+        "name": "Human potential",
         "items": [
             "Performance coaches",
             "Focus & time coaches",
             "Burnout specialists",
-            "Habit designers"
+            "Habit designers",
+            "Burnout recovery specialists",
+            "Life transition coaches",
+            "Purpose & direction mentors",
+            "Decision-making advisors",
+            "Personal strategy consultants",
+            "Resilience coaches",
+            "Flow state facilitators",
+            "Founder psychology advisors",
+            "Identity shift mentors"
         ]
     },
     "art_creative": {
@@ -338,7 +359,18 @@ SPECIALIST_CATEGORIES = {
             "Art dealers",
             "Professional photographers / videographers",
             "Sound producers",
-            "High-level designers (fashion / graphic / UX)"
+            "High-level designers (fashion / graphic / UX)",
+            "Art fair insiders",
+            "Collectors",
+            "Collection advisors",
+            "Cultural institution leaders",
+            "Residency program directors",
+            "Art investment consultants",
+            "Music supervisors",
+            "Independent label founders",
+            "Festival programmers",
+            "Talent bookers",
+            "Cultural network connectors"
         ]
     },
     "business_startups": {
@@ -347,10 +379,21 @@ SPECIALIST_CATEGORIES = {
             "Marketing strategists",
             "Bloggers / digital personalities producers",
             "SMM managers",
-            "SEO / Ads US–Europe",
+            "SEO / Ads US\u2013Europe",
             "Online course launch consultants",
             "Sales and funnel specialists",
-            "Business coaches"
+            "Business coaches",
+            "Venture capital connectors",
+            "Market entry strategists",
+            "Cross-border expansion experts",
+            "Investor relations advisors",
+            "Capital raise strategists",
+            "Startup ecosystem navigators",
+            "Government relations advisors",
+            "Licensing & compliance advisors",
+            "Business model architects",
+            "B2B growth strategists",
+            "Distribution channel builders"
         ]
     },
     "personal_brand": {
@@ -360,7 +403,15 @@ SPECIALIST_CATEGORIES = {
             "Media strategy specialists",
             "Brand strategists",
             "Content creators",
-            "Community builders"
+            "Community builders",
+            "Executive presence coaches",
+            "Media placement consultants",
+            "Influence partnership advisors",
+            "Podcast booking strategists",
+            "Editorial strategy advisors",
+            "Digital reputation architects",
+            "High-profile networking advisors",
+            "Awards & recognition strategists"
         ]
     },
     "lifestyle_travel": {
@@ -370,24 +421,36 @@ SPECIALIST_CATEGORIES = {
             "Luxury travel agents",
             "Relocation specialists",
             "Travel designers",
-            "Retreat & event hosts"
+            "Retreat & event hosts",
+            "Residency & visa strategists",
+            "Property search consultants",
+            "Second-home setup advisors",
+            "Family relocation planners",
+            "Experiential travel curators",
+            "On-ground fixers (local experts)"
         ]
     },
     "real_estate_spec": {
-        "name": "Real Estate / Living",
+        "name": "Real Estate",
         "items": [
             "Agents for rent/purchase worldwide",
             "Real estate investment specialists (yield-analysis)",
             "Property management specialists",
             "Property managers",
-            "Interior stylists"
+            "Off-market property brokers",
+            "Real estate legal advisors",
+            "Private market deal sourcers"
         ]
     },
-    "community": {
-        "name": "Community",
+    "complex_problem_solvers": {
+        "name": "Complex Problem Solvers",
         "items": [
-            "Community facilitators",
-            "Networking hosts"
+            "Special situations advisors",
+            "Negotiation specialists",
+            "Crisis navigation experts",
+            "Behind-the-scenes fixers",
+            "Cross-border problem solvers",
+            "Access & escalation connectors"
         ]
     }
 }

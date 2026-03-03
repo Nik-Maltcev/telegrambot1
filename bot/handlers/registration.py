@@ -274,35 +274,20 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
         )
 
 
-        intro_text = (
-
-            "hi luv! and welcome to joyseekers 🩵\n\n"
-
-            "you’re now part of a closed community of people who travel, do what they love, grow — and support each other through shared resources and opportunities.\n\n"
-
-            "inside joyseekers you can connect worldwide, exchange skills, receive trusted introductions, explore real estate, and access shared assets like cars or equipment.\n\n"
-
-            "the system is simple:\n"
-
-            "1 shared resource = 1 credit, which you can use to unlock something in return.\n\n"
-
-            "to get started, just fill out a short questionnaire and add what you’re open to sharing.\n"
-
-            "after a quick approval by me, all sections will be unlocked.\n\n"
-
-            "not everyone finds this space — and that’s what makes it special.\n"
-
-            "glad to be here with you.\n"
-
-            "stay joyful 🩵\n"
-
-            "xx Anna"
-
-        )
+        # Send welcome images as media group
+        images_dir = pathlib.Path(__file__).parent.parent / "images"
+        media = [
+            InputMediaPhoto(media=FSInputFile(images_dir / "1.JPG")),
+            InputMediaPhoto(media=FSInputFile(images_dir / "2.JPG")),
+            InputMediaPhoto(media=FSInputFile(images_dir / "3.JPG")),
+            InputMediaPhoto(media=FSInputFile(images_dir / "4.JPG")),
+            InputMediaPhoto(media=FSInputFile(images_dir / "5.JPG")),
+            InputMediaPhoto(media=FSInputFile(images_dir / "6.JPG")),
+        ]
+        await message.answer_media_group(media)
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
-
-        await message.answer(intro_text, reply_markup=keyboard)
+        await message.answer("\u200b", reply_markup=keyboard)
 
     else:
 

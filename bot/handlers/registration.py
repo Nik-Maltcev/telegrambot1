@@ -580,7 +580,7 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
 
-        await message.answer("\u200b", reply_markup=keyboard)
+        await message.answer("👇 Click below to continue:", reply_markup=keyboard)
 
 
 

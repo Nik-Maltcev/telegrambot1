@@ -122,6 +122,7 @@ class Registration(StatesGroup):
     skill_items = State()
 
     offer_formats = State()
+    result_type = State()
 
 
     # Personal Introductions section

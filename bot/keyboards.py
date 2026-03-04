@@ -116,9 +116,9 @@ def get_lots_type_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for selecting lot type - 4 options A, B, C, D"""
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Offer a resource", callback_data="lots:offer_a"))
-    builder.row(InlineKeyboardButton(text="Browse active resources", callback_data="lots:browse_b"))
-    builder.row(InlineKeyboardButton(text="Post a request", callback_data="lots:post_c"))
-    builder.row(InlineKeyboardButton(text="Help a resident", callback_data="lots:help_d"))
+    builder.row(InlineKeyboardButton(text="Browse active resources 🫧", callback_data="lots:browse_b"))
+    builder.row(InlineKeyboardButton(text="Post a request 👀", callback_data="lots:post_c"))
+    builder.row(InlineKeyboardButton(text="Help a resident 🤍", callback_data="lots:help_d"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 

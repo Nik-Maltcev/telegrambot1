@@ -73,7 +73,7 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
         else:
             instructions = (
                 "Here you can browse all active requests shared by our residents.\n"
-                "If you’re able to help by providing a resource, access, or connection, contact the resident directly. Once the request is fulfilled, you’ll receive 1 point.\n\n"
+                "If you’re able to help by providing a resource, access, or connection, contact the resident directly. Once the request is fulfilled, you’ll receive 1 point\n\n"
             )
 
         if not lots:
@@ -149,66 +149,53 @@ async def start_add_lot_flow(callback: CallbackQuery, state: FSMContext, lot_typ
 
     if lot_type == "share":
         text = (
-            "Here you can share a resource you have available right now — a skill, service, access, or any other support you’re ready to offer at this moment.\n"
-            "Describe your resource according to the short form below and send it to the chat. Your resource will appear in the list of active offers, and once it’s used, you’ll receive a point.\n\n"
-            "First, select a **Category**:"
+            "Here you can describe a resource you want to share RIGHT NOW to receive 1 point in exchange — a skill, service, access, or any other support you’re ready to offer\n\n"
+            "Describe your resource according to the short form below (IT'S IMPORTANT) and send it to the chat. Your resource will appear in the list of active offers, and once it’s used, you’ll receive a point.\n\n"
+            "Copy this text and fill in the information following the example in brackets 👇🏻\n\n"
+            "Type of Resource:\n"
+            "(e.g. consultation, introduction, equipment, access, skill, space)\n"
+            "Description:\n"
+            "(briefly describe what exactly you’re offering and in what form)\n"
+            "Location:\n"
+            "(city or online)\n"
+            "Availability:\n"
+            "(specific dates, this week, next 14 days, flexible)\n\n"
+            "EXAMPLE:\n"
+            "Type of Resource: english lessons\n"
+            "Description: 60 minutes 4 times per month\n"
+            "Location: Online\n"
+            "Availability: Only this month"
         )
     else:
         text = (
-            "Here you can post a request for a resource, support, skill, or access you’re currently looking for.\n"
-            "Describe what you need, where, and how soon. Your request will appear in the list of active requests so other members can respond or help.\n\n"
-            "First, select a **Category**:"
+            "Here you can describe a resource, support, skill, or access you’re currently looking for.\n\n"
+            "Describe your request according to the short form below (IT'S IMPORTANT) and send it to the chat. Your request will appear in the list of active requests so other members can respond or help.\n\n"
+            "Copy this text and fill in the information following the example in brackets 👇🏻\n\n"
+            "Type of Resource:\n"
+            "(e.g. consultation, introduction, equipment, access, skill, space)\n"
+            "Description:\n"
+            "(briefly describe what you’re looking for and in what form)\n"
+            "Location:\n"
+            "(city or online)\n"
+            "When Needed:\n"
+            "(ASAP, specific dates, this week, next 14 days, flexible)\n\n"
+            "EXAMPLE:\n"
+            "Type of Resource: english lessons\n"
+            "Description: 60 minutes 4 times per month\n"
+            "Location: Online\n"
+            "When Needed: Only this month"
         )
 
     # Use unique prefix to avoid conflict with Resources section
     await callback.message.edit_text(
         text,
-        reply_markup=get_resource_categories_keyboard(prefix="lot_cat")
-    )
-    await state.set_state(AddLot.category)
-    await callback.answer()
-
-
-@router.callback_query(AddLot.category, F.data.startswith("lot_cat:"))
-async def process_lot_category(callback: CallbackQuery, state: FSMContext):
-    category = callback.data.split(":", 1)[1]
-    await state.update_data(category=category)
-
-    data = await state.get_data()
-    lot_type = data.get("lot_type")
-
-    # We switch to text input, so we must delete inline keyboard and send new message
-    await callback.message.delete()
-    await callback.message.answer(
-        f"Selected: {category}\n\n"
-        f"Type of Resource\n"
-        f"e.g. consultation, introduction, equipment, access, skill, space",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(AddLot.type_text)
-    await callback.answer()
-
-
-@router.message(AddLot.type_text, F.text)
-async def process_lot_type_text(message: Message, state: FSMContext):
-    if message.text.strip() == "🔙 Back":
-        # Back to category
-        await message.answer("Select a Category:", reply_markup=get_resource_categories_keyboard(prefix="lot_cat"))
-        await state.set_state(AddLot.category)
-        return
-
-    await state.update_data(type_text=message.text)
-
-    data = await state.get_data()
-    lot_type = data.get("lot_type")
-
-    desc_prompt = "Description\nbriefly describe what exactly you’re offering and in what form" if lot_type == "share" else "Description\nbriefly describe what you’re looking for and in what form"
-
-    await message.answer(
-        f"{desc_prompt}",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AddLot.description)
+    await callback.answer()
+
+
+
 
 
 @router.message(AddLot.description, F.text)
@@ -231,24 +218,24 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
 
     # Try to extract fields from the template
     import re as _re
-    type_match = _re.search(r"Type of Resource[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
-    desc_match = _re.search(r"Description[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
-    loc_match = _re.search(r"Location[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
+    type_match = _re.search(r"Type of Resource[:\s]*([^\n]+)", text, _re.IGNORECASE)
+    desc_match = _re.search(r"Description[:\s]*([^\n]+)", text, _re.IGNORECASE)
+    loc_match = _re.search(r"Location[:\s]*([^\n]+)", text, _re.IGNORECASE)
     avail_key = "Availability" if lot_type == "share" else "When Needed"
-    avail_match = _re.search(rf"{avail_key}[:\s]*(.+?)(?:\n|$)", text, _re.IGNORECASE)
+    avail_match = _re.search(rf"{avail_key}[:\s]*([^\n]+)", text, _re.IGNORECASE)
 
-    title = type_match.group(1).strip() if type_match else text[:100]
+    title = type_match.group(1).strip() if type_match else text[:100].split('\n')[0]
     description = desc_match.group(1).strip() if desc_match else text
     location = loc_match.group(1).strip() if loc_match else ""
     availability = avail_match.group(1).strip() if avail_match else ""
 
-    # Save lot
+    # Save lot - now auto-approved without moderation
     lot_id = await db.add_lot(
         user_id=message.from_user.id,
         lot_type=lot_type,
         title=title,
         description=description,
-        category="",
+        category="", # We removed category selection
         location_text=location,
         availability=availability,
         status="approved"
@@ -257,101 +244,13 @@ async def process_lot_description(message: Message, state: FSMContext, db: Datab
     await state.clear()
 
     if lot_id:
-        type_emoji = "\U0001f381" if lot_type == "share" else "\U0001f50d"
-        await message.answer(
-            f"\u2705 Your lot has been published!\n\n"
-            f"{type_emoji} **{title}**\n"
-            f"It\u2019s now visible to other community members.",
-            reply_markup=get_menu_keyboard(message.from_user.id)
-        )
-        await message.answer(
-            "\U0001f499Lots\n\n"
-            "Here you can manage what you share and what you\u2019re looking for.\n\n"
-            "Select an option:",
-            reply_markup=get_lots_type_keyboard()
-        )
-    else:
-        await message.answer(
-            "\u274c Failed to add lot. Please try again.",
-            reply_markup=get_menu_keyboard(message.from_user.id)
-        )
-
-
-@router.callback_query(AddLot.location, F.data.startswith("lot_city:"))
-async def process_lot_city(callback: CallbackQuery, state: FSMContext):
-    """Handle city selection for Lot"""
-    city = callback.data.split(":", 1)[1]
-    await state.update_data(location=city)
-
-    data = await state.get_data()
-    lot_type = data.get("lot_type")
-
-    avail_prompt = "Availability\nspecific dates, this week, next 14 days, flexible" if lot_type == "share" else "When Needed\nASAP, specific dates, this week, next 14 days, flexible"
-
-    # Switch back to text input (Availability)
-    await callback.message.delete()
-    await callback.message.answer(
-        f"Selected Location: {city}\n\n"
-        f"{avail_prompt}",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(AddLot.availability)
-    await callback.answer()
-
-
-# Handle "Back" from City Selection
-@router.callback_query(AddLot.location, F.data == "back_to_lot_description")
-async def back_to_lot_description(callback: CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    await callback.message.answer(
-        "Description\n(briefly describe what exactly you’re offering and in what form)",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(AddLot.description)
-    await callback.answer()
-
-
-@router.message(AddLot.availability, F.text)
-async def process_lot_availability(message: Message, state: FSMContext, db: Database):
-    if message.text.strip() == "🔙 Back":
-        # Back to Location selection
-        await message.answer("Select Location:", reply_markup=ReplyKeyboardRemove())
-        await message.answer(
-            "Location\ncity or online",
-            reply_markup=get_cities_keyboard(prefix="lot_city")
-        )
-        await state.set_state(AddLot.location)
-        return
-
-    data = await state.get_data()
-    availability = message.text
-
-    # Save lot - now auto-approved without moderation
-    lot_id = await db.add_lot(
-        user_id=message.from_user.id,
-        lot_type=data['lot_type'],
-        title=data['type_text'], # Using Type as Title
-        description=data['description'],
-        category=data['category'],
-        location_text=data['location'], # Storing city name here
-        availability=availability,
-        status="approved"  # Auto-approve without moderation
-    )
-
-    await state.clear()
-
-    if lot_id:
-        type_emoji = "🎁" if data['lot_type'] == "share" else "🔍"
-
+        type_emoji = "🎁" if lot_type == "share" else "🔍"
         await message.answer(
             f"✅ Your lot has been published!\n\n"
-            f"{type_emoji} **{data['type_text']}**\n"
-            f"🏷 {data['category']}\n"
+            f"{type_emoji} **{title}**\n"
             f"It's now visible to other community members.",
             reply_markup=get_menu_keyboard(message.from_user.id)
         )
-
-        # Show lots menu
         await message.answer(
             "🩵Lots\n\n"
             "Here you can manage what you share and what you're looking for.\n\n"

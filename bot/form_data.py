@@ -93,7 +93,14 @@ OFFER_FORMATS = [
     "Project or task implementation"
 ]
 
-
+RESULT_TYPES = [
+    "Strategic clarity",
+    "Problem solving",
+    "Feedback / expert review",
+    "Optimization",
+    "Guidance and Support",
+    "Creative development"
+]
 
 # --- Cities list (used across multiple sections) ---
 CITIES = [

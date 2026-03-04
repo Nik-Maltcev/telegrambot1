@@ -62,7 +62,7 @@ from bot.config import ADMIN_IDS
 
 from bot.form_data import (
 
- SKILL_CATEGORIES, ALL_SKILLS, OFFER_FORMATS, 
+ SKILL_CATEGORIES, ALL_SKILLS, OFFER_FORMATS, RESULT_TYPES,
 
  CITIES, INTRO_CATEGORIES, 
 
@@ -1612,46 +1612,13 @@ async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
 
 
 
-    # Move to Personal Introductions section
-
-
-
-    intro_text = (
-
-
-
-        "2|10 \U0001f91d\U0001f3fb Personal Introduction\n\n"
-
-
-
-        "In almost every life story, there is a moment when someone opened a door for us.\n\n"
-
-
-
-        "Here, you can describe the key people in your orbit \u2014 founders, creators, innovators, "
-
-
-
-        "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
-
-
-
-        "Sharing information about them does not commit you to making an introduction."
-
-
-
+    # Move to Result Type selection
+    selected = set(data.get("selected_result_types", []))
+    await callback.message.edit_text(
+        "Type of Result\n\nWhat kind of result can you provide?",
+        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
     )
-
-
-
-    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
-
-
-
-    await state.set_state(Registration.intro_section)
-
-
-
+    await state.set_state(Registration.result_type)
     await callback.answer()
 
 

@@ -1,0 +1,47 @@
+=== MULTISELECT ===
+35: get_skill_categories_keyboard, get_skill_items_keyboard, get_multiselect_keyboard,
+1467: reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
+1575: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back"))
+1619: reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+1640: reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+1666: reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
+1704: reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+2292: reply_markup=get_multiselect_keyboard( selected, "intro_fmt", "intro_fmt_done", "intro_fmt_back")
+2552: reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
+2660: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back"))
+2792: reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
+3046: reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
+3154: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back"))
+3272: reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
+3526: reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
+3634: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back"))
+3732: reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
+3984: reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
+4080: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back"))
+4184: reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
+4434: reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
+4530: await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back"))
+4628: reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
+
+=== CATEOGRY ITEMS ===
+47: get_cities_select_keyboard, get_category_keyboard, get_category_items_keyboard,
+1281: reply_markup=get_category_items_keyboard(category_key, SKILL_CATEGORIES, selected, "q_item", "q_item_done", "skill_back_cat")
+1403: reply_markup=get_category_items_keyboard(
+1926: reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat")
+2004: reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat")
+4814: reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+4926: reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+5060: reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+
+=== CATEGORIES ===
+47: get_cities_select_keyboard, get_category_keyboard, get_category_items_keyboard,
+1187: reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
+1315: reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
+1509: reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
+1822: reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back")
+2026: await callback.message.edit_text("Select the category of people you can introduce:", reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back"))
+2116: await callback.message.edit_text("Select the category of people you can introduce:", reply_markup=get_category_keyboard(INTRO_CATEGORIES, "intro_cat", "intro_cat_back"))
+4714: reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+4848: reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+4948: await callback.message.edit_text("Select the category of specialists you can recommend:", reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat"))
+5370: reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")

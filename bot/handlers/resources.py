@@ -80,6 +80,26 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
     if isinstance(items, str):
         items = [items]
     
+    # Format Specialist dictionaries if we are in the Specialists category
+    if category == "Specialists":
+        formatted_items = []
+        for spec in items:
+            if isinstance(spec, dict):
+                spec_name = spec.get("name", "Unknown")
+                spec_cat = spec.get("category", "")
+                spec_contact = spec.get("contact", "")
+                spec_ref = spec.get("referral", "")
+                spec_conn = spec.get("connection", "")
+                
+                info = f"{spec_name}"
+                if spec_cat: info += f" ({spec_cat})"
+                if spec_contact: info += f" - Contact: {spec_contact}"
+                if spec_ref: info += f" - Ref: {spec_ref}"
+                formatted_items.append(info)
+            else:
+                formatted_items.append(str(spec))
+        items = formatted_items
+    
     # Get cities
     cities = []
     if cities_key:
@@ -92,10 +112,15 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
     for key in extra_keys:
         value = reg_data.get(key)
         if value:
-            if isinstance(value, list):
+            # specifically check for art link to format it nicely
+            if key == "art_link":
+                extra_info.append(f"🔗 Link: {value}")
+            elif key == "art_author_name":
+                extra_info.append(f"✍️ Author: {value}")
+            elif isinstance(value, list):
                 extra_info.extend(value)
             else:
-                extra_info.append(value)
+                extra_info.append(str(value))
     
     # Build resource entry
     resource = {
@@ -143,7 +168,7 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         "Equipment": "🎧 Equipment\n\nTools and equipment available for sharing.",
         "Skills and Knowledge": "🧑🏼‍💻 Skills and Knowledge\n\nExpertise and educational resources offered by members.",
         "Unique opportunities": "🫆 Unique Opportunities\n\nSpecial opportunities and unique experiences.",
-        "Artworks": "🫧 Works of Art\n\nArtwork and creative works available.",
+        "Artworks": "🫧 Art & Creative Works\n\nArtwork and creative works available.",
         "Personal Introductions to Key People": "🤝🏻 Personal Introduction\n\nConnections to professional or social circles.",
         "Specialists": "👨‍💼 Specialists\n\nTrusted professionals recommended by members."
     }
@@ -185,13 +210,17 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         for res in questionnaire_resources:
             telegram_link = f"@{res['username']}" if res['username'] else ""
             cities_str = ", ".join(res['cities']) if res['cities'] else "Not specified"
-            items_str = ", ".join(res['items'][:5])  # Limit to 5 items
-            if len(res['items']) > 5:
-                items_str += f" (+{len(res['items']) - 5} more)"
+            
+            # Format items as a bulleted list or comma-separated depending on length, show all
+            if category == "Specialists":
+                items_str = "\n  • ".join([""] + res['items']).lstrip()
+            else:
+                items_str = ", ".join(str(i) for i in res['items'])
             
             extra_str = ""
             if res['extra']:
-                extra_str = f"📋 {', '.join(res['extra'][:3])}\n"
+                # Format each extra stat on a new line
+                extra_str = "\n".join(res['extra']) + "\n"
             
             resources_text += (
                 f"━━━━━━━━━━━━━━━\n"

@@ -102,6 +102,7 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
         ("🧑🏼‍💻 Skills and Knowledge", "Skills and Knowledge"),
         ("🫧 Art & Creative Works", "Artworks"),
         ("🤝🏻 Personal Introduction", "Personal Introductions to Key People"),
+        ("👨‍💼 Specialists", "Specialists"),
     ]
 
     builder = InlineKeyboardBuilder()
@@ -268,18 +269,46 @@ def get_skill_items_keyboard(category_key: str, selected: Set[str]) -> InlineKey
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="q_back_cat"))
     return builder.as_markup()
 
-def get_multiselect_keyboard(options: List[str], selected: Set[str], prefix: str, done_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
+def get_multiselect_keyboard(
+    options: List[str],
+    selected: Set[str],
+    prefix: str,
+    done_callback: str,
+    back_callback: str = None,
+    page: int = 0,
+    items_per_page: int = 8,
+    page_callback_prefix: str = None,
+) -> InlineKeyboardMarkup:
     """Generic multiselect keyboard"""
     builder = InlineKeyboardBuilder()
     import hashlib
 
-    for item in options:
+    import math
+
+    total_pages = max(1, math.ceil(len(options) / items_per_page))
+    page = max(0, min(page, total_pages - 1))
+    start_index = page * items_per_page
+    end_index = start_index + items_per_page
+    current_items = options[start_index:end_index]
+
+    for item in current_items:
         is_selected = item in selected
         text = f"{'✅' if is_selected else '⬜️'} {item}"
         item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
         builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
 
-    builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    if total_pages > 1:
+        page_cb_prefix = page_callback_prefix or f"{prefix}_page"
+        nav_buttons = []
+        if page > 0:
+            nav_buttons.append(InlineKeyboardButton(text="⬅️ Prev", callback_data=f"{page_cb_prefix}:{page-1}"))
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="noop"))
+        if page < total_pages - 1:
+            nav_buttons.append(InlineKeyboardButton(text="Next ➡️", callback_data=f"{page_cb_prefix}:{page+1}"))
+        builder.row(*nav_buttons)
+
+    if page == total_pages - 1:
+        builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
     if back_callback:
         builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()
@@ -397,19 +426,48 @@ def get_category_keyboard(categories: Dict, prefix: str, back_callback: str = No
     return builder.as_markup()
 
 
-def get_category_items_keyboard(category_key: str, categories: Dict, selected: Set[str], prefix: str, done_callback: str, back_callback: str = None) -> InlineKeyboardMarkup:
+def get_category_items_keyboard(
+    category_key: str,
+    categories: Dict,
+    selected: Set[str],
+    prefix: str,
+    done_callback: str,
+    back_callback: str = None,
+    page: int = 0,
+    items_per_page: int = 8,
+    page_callback_prefix: str = None,
+) -> InlineKeyboardMarkup:
     """Keyboard for selecting items within a category"""
     builder = InlineKeyboardBuilder()
     import hashlib
     items = categories.get(category_key, {}).get("items", [])
 
-    for item in items:
+    import math
+
+    total_pages = max(1, math.ceil(len(items) / items_per_page))
+    page = max(0, min(page, total_pages - 1))
+    start_index = page * items_per_page
+    end_index = start_index + items_per_page
+    current_items = items[start_index:end_index]
+
+    for item in current_items:
         is_selected = item in selected
         text = f"{'✅' if is_selected else '⬜️'} {item}"
         item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
         builder.row(InlineKeyboardButton(text=text, callback_data=f"{prefix}:{item_hash}"))
 
-    builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+    if total_pages > 1:
+        page_cb_prefix = page_callback_prefix or f"{prefix}_page"
+        nav_buttons = []
+        if page > 0:
+            nav_buttons.append(InlineKeyboardButton(text="⬅️ Prev", callback_data=f"{page_cb_prefix}:{page-1}"))
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="noop"))
+        if page < total_pages - 1:
+            nav_buttons.append(InlineKeyboardButton(text="Next ➡️", callback_data=f"{page_cb_prefix}:{page+1}"))
+        builder.row(*nav_buttons)
+
+    if page == total_pages - 1:
+        builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
     if back_callback:
         builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()

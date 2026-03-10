@@ -102,6 +102,7 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
         ("🧑🏼‍💻 Skills and Knowledge", "Skills and Knowledge"),
         ("🫧 Art & Creative Works", "Artworks"),
         ("🤝🏻 Personal Introduction", "Personal Introductions to Key People"),
+        ("👨‍💼 Specialists", "Specialists"),
     ]
 
     builder = InlineKeyboardBuilder()

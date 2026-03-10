@@ -127,6 +127,70 @@ def find_item_by_hash(items_list, item_hash):
     return None
 
 
+async def _redraw_multiselect_page(
+    callback: CallbackQuery,
+    state: FSMContext,
+    *,
+    page_key: str,
+    selected_key: str,
+    options: list,
+    prefix: str,
+    done_callback: str,
+    back_callback: str,
+):
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    selected = set(data.get(selected_key, []))
+    await state.update_data(**{page_key: page})
+    await callback.message.edit_reply_markup(
+        reply_markup=get_multiselect_keyboard(
+            options,
+            selected,
+            prefix,
+            done_callback,
+            back_callback,
+            page=page,
+            page_callback_prefix=page_key,
+        )
+    )
+    await callback.answer()
+
+
+async def _redraw_category_items_page(
+    callback: CallbackQuery,
+    state: FSMContext,
+    *,
+    page_key: str,
+    selected_key: str,
+    current_category_key: str,
+    categories: dict,
+    prefix: str,
+    done_callback: str,
+    back_callback: str,
+):
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    selected = set(data.get(selected_key, []))
+    category_key = data.get(current_category_key)
+    if not category_key:
+        await callback.answer()
+        return
+    await state.update_data(**{page_key: page})
+    await callback.message.edit_reply_markup(
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            categories,
+            selected,
+            prefix,
+            done_callback,
+            back_callback,
+            page=page,
+            page_callback_prefix=page_key,
+        )
+    )
+    await callback.answer()
+
+
 
 
 
@@ -209,9 +273,6 @@ async def cmd_myid(message: Message):
 
 
     )
-
-
-
 
 
 class Registration(StatesGroup):
@@ -459,6 +520,159 @@ class Registration(StatesGroup):
 
 
     waiting_for_invite_code = State()
+
+
+
+
+
+@router.callback_query(F.data == "noop")
+async def noop_callback(callback: CallbackQuery):
+    await callback.answer()
+
+
+@router.callback_query(Registration.skill_items, F.data.startswith("q_item_page:"))
+async def page_skill_items(callback: CallbackQuery, state: FSMContext):
+    await _redraw_category_items_page(
+        callback,
+        state,
+        page_key="q_item_page",
+        selected_key="selected_skill_items",
+        current_category_key="current_skill_category",
+        categories=SKILL_CATEGORIES,
+        prefix="q_item",
+        done_callback="q_item_done",
+        back_callback="skill_back_cat",
+    )
+
+
+@router.callback_query(Registration.offer_formats, F.data.startswith("q_fmt_page:"))
+async def page_offer_formats(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="q_fmt_page",
+        selected_key="selected_offer_formats",
+        options=OFFER_FORMATS,
+        prefix="q_fmt",
+        done_callback="q_fmt_done",
+        back_callback="q_fmt_back",
+    )
+
+
+@router.callback_query(Registration.result_type, F.data.startswith("q_res_page:"))
+async def page_result_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="q_res_page",
+        selected_key="selected_result_types",
+        options=RESULT_TYPES,
+        prefix="q_res",
+        done_callback="q_res_done",
+        back_callback="q_res_back",
+    )
+
+
+@router.callback_query(Registration.intro_items, F.data.startswith("intro_item_page:"))
+async def page_intro_items(callback: CallbackQuery, state: FSMContext):
+    await _redraw_category_items_page(
+        callback,
+        state,
+        page_key="intro_item_page",
+        selected_key="selected_intro_items",
+        current_category_key="current_intro_category",
+        categories=INTRO_CATEGORIES,
+        prefix="intro_item",
+        done_callback="intro_item_done",
+        back_callback="intro_back_cat",
+    )
+
+
+@router.callback_query(Registration.property_type, F.data.startswith("prop_type_page:"))
+async def page_property_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="prop_type_page",
+        selected_key="selected_property_types",
+        options=PROPERTY_TYPES,
+        prefix="prop_type",
+        done_callback="prop_type_done",
+        back_callback="prop_type_back",
+    )
+
+
+@router.callback_query(Registration.car_info, F.data.startswith("car_type_page:"))
+async def page_car_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="car_type_page",
+        selected_key="selected_vehicle_types",
+        options=VEHICLE_TYPES,
+        prefix="car_type",
+        done_callback="car_type_done",
+        back_callback="car_type_back",
+    )
+
+
+@router.callback_query(Registration.equipment_types, F.data.startswith("equip_type_page:"))
+async def page_equipment_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="equip_type_page",
+        selected_key="selected_equipment_types",
+        options=EQUIPMENT_TYPES,
+        prefix="equip_type",
+        done_callback="equip_type_done",
+        back_callback="equip_type_back",
+    )
+
+
+@router.callback_query(Registration.aircraft_type, F.data.startswith("air_type_page:"))
+async def page_aircraft_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="air_type_page",
+        selected_key="selected_aircraft_types",
+        options=AIRCRAFT_TYPES,
+        prefix="air_type",
+        done_callback="air_type_done",
+        back_callback="air_type_back",
+    )
+
+
+@router.callback_query(Registration.vessel_type, F.data.startswith("vessel_type_page:"))
+async def page_vessel_type(callback: CallbackQuery, state: FSMContext):
+    await _redraw_multiselect_page(
+        callback,
+        state,
+        page_key="vessel_type_page",
+        selected_key="selected_vessel_types",
+        options=VESSEL_TYPES,
+        prefix="vessel_type",
+        done_callback="vessel_type_done",
+        back_callback="vessel_type_back",
+    )
+
+
+@router.callback_query(Registration.specialist_items, F.data.startswith("spec_item_page:"))
+async def page_specialist_items(callback: CallbackQuery, state: FSMContext):
+    await _redraw_category_items_page(
+        callback,
+        state,
+        page_key="spec_item_page",
+        selected_key="selected_specialist_items",
+        current_category_key="current_specialist_category",
+        categories=SPECIALIST_CATEGORIES,
+        prefix="spec_item",
+        done_callback="spec_item_done",
+        back_callback="spec_item_back",
+    )
+
+
 
 
 
@@ -1278,7 +1492,7 @@ async def process_skill_category_selection(callback: CallbackQuery, state: FSMCo
 
 
 
-        reply_markup=get_category_items_keyboard(category_key, SKILL_CATEGORIES, selected, "q_item", "q_item_done", "skill_back_cat")
+        reply_markup=get_category_items_keyboard(category_key, SKILL_CATEGORIES, selected, "q_item", "q_item_done", "skill_back_cat", page=data.get("q_item_page", 0), page_callback_prefix="q_item_page")
 
 
 
@@ -1404,7 +1618,7 @@ async def process_skill_item_toggle(callback: CallbackQuery, state: FSMContext):
 
 
 
-                category_key, SKILL_CATEGORIES, selected_items, "q_item", "q_item_done", "skill_back_cat"
+                category_key, SKILL_CATEGORIES, selected_items, "q_item", "q_item_done", "skill_back_cat", page=data.get("q_item_page", 0), page_callback_prefix="q_item_page"
 
 
 
@@ -1464,7 +1678,7 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
+        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page")
 
 
 
@@ -1572,7 +1786,7 @@ async def toggle_offer_format(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page"))
 
 
 
@@ -1616,7 +1830,7 @@ async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
     selected = set(data.get("selected_result_types", []))
     await callback.message.edit_text(
         "Type of Result\n\nWhat kind of result can you provide?",
-        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
     )
     await state.set_state(Registration.result_type)
     await callback.answer()
@@ -1637,7 +1851,7 @@ async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
 
         "Type of Result\n\nWhat kind of result can you provide?",
 
-        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
 
     )
 
@@ -1663,7 +1877,7 @@ async def back_from_result_type(callback: CallbackQuery, state: FSMContext):
 
         "Formats You Offer\n\nSelect the formats in which you can share your expertise:\nYou can select multiple",
 
-        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back")
+        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page")
 
     )
 
@@ -1701,7 +1915,7 @@ async def toggle_result_type(callback: CallbackQuery, state: FSMContext):
 
         await callback.message.edit_reply_markup(
 
-            reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back")
+            reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
 
         )
 
@@ -1923,7 +2137,7 @@ async def process_intro_category(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat")
+        reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat", page=data.get("intro_item_page", 0), page_callback_prefix="intro_item_page")
 
 
 
@@ -2001,7 +2215,7 @@ async def toggle_intro_item(callback: CallbackQuery, state: FSMContext):
 
 
 
-            reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat")
+            reply_markup=get_category_items_keyboard(category_key, INTRO_CATEGORIES, selected, "intro_item", "intro_item_done", "intro_back_cat", page=data.get("intro_item_page", 0), page_callback_prefix="intro_item_page")
 
 
 
@@ -2549,7 +2763,7 @@ async def finish_property_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
+        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back", page=data.get("prop_type_page", 0), page_callback_prefix="prop_type_page")
 
 
 
@@ -2657,7 +2871,7 @@ async def toggle_property_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back", page=data.get("prop_type_page", 0), page_callback_prefix="prop_type_page"))
 
 
 
@@ -2789,7 +3003,7 @@ async def back_from_cars_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back")
+        reply_markup=get_multiselect_keyboard(PROPERTY_TYPES, selected, "prop_type", "prop_type_done", "prop_type_back", page=data.get("prop_type_page", 0), page_callback_prefix="prop_type_page")
 
 
 
@@ -3043,7 +3257,7 @@ async def finish_car_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
+        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back", page=data.get("car_type_page", 0), page_callback_prefix="car_type_page")
 
 
 
@@ -3151,7 +3365,7 @@ async def toggle_vehicle_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back", page=data.get("car_type_page", 0), page_callback_prefix="car_type_page"))
 
 
 
@@ -3269,7 +3483,7 @@ async def back_from_equip_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back")
+        reply_markup=get_multiselect_keyboard(VEHICLE_TYPES, selected, "car_type", "car_type_done", "car_type_back", page=data.get("car_type_page", 0), page_callback_prefix="car_type_page")
 
 
 
@@ -3523,7 +3737,7 @@ async def finish_equipment_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back", page=data.get("equip_type_page", 0), page_callback_prefix="equip_type_page")
 
 
 
@@ -3631,7 +3845,7 @@ async def toggle_equipment_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back", page=data.get("equip_type_page", 0), page_callback_prefix="equip_type_page"))
 
 
 
@@ -3729,7 +3943,7 @@ async def back_from_air_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back")
+        reply_markup=get_multiselect_keyboard(EQUIPMENT_TYPES, selected, "equip_type", "equip_type_done", "equip_type_back", page=data.get("equip_type_page", 0), page_callback_prefix="equip_type_page")
 
 
 
@@ -3981,7 +4195,7 @@ async def finish_aircraft_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back", page=data.get("air_type_page", 0), page_callback_prefix="air_type_page")
 
 
 
@@ -4077,7 +4291,7 @@ async def toggle_aircraft_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back", page=data.get("air_type_page", 0), page_callback_prefix="air_type_page"))
 
 
 
@@ -4181,7 +4395,7 @@ async def back_from_vessel_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back")
+        reply_markup=get_multiselect_keyboard(AIRCRAFT_TYPES, selected, "air_type", "air_type_done", "air_type_back", page=data.get("air_type_page", 0), page_callback_prefix="air_type_page")
 
 
 
@@ -4431,7 +4645,7 @@ async def finish_vessel_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
+        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back", page=data.get("vessel_type_page", 0), page_callback_prefix="vessel_type_page")
 
 
 
@@ -4527,7 +4741,7 @@ async def toggle_vessel_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back"))
+        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back", page=data.get("vessel_type_page", 0), page_callback_prefix="vessel_type_page"))
 
 
 
@@ -4625,7 +4839,7 @@ async def back_from_spec_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back")
+        reply_markup=get_multiselect_keyboard(VESSEL_TYPES, selected, "vessel_type", "vessel_type_done", "vessel_type_back", page=data.get("vessel_type_page", 0), page_callback_prefix="vessel_type_page")
 
 
 
@@ -4811,7 +5025,7 @@ async def process_specialist_category(callback: CallbackQuery, state: FSMContext
 
 
 
-        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
 
 
 
@@ -4923,7 +5137,7 @@ async def toggle_specialist_item(callback: CallbackQuery, state: FSMContext):
 
 
 
-            reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+            reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
 
 
 
@@ -5057,7 +5271,7 @@ async def back_from_spec_conn(callback: CallbackQuery, state: FSMContext):
 
 
 
-        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back")
+        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
 
 
 
@@ -6496,6 +6710,4 @@ async def finish_registration(message: Message, user: User, state: FSMContext, d
 
 
         await state.clear()
-
-
 

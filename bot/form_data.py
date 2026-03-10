@@ -111,14 +111,14 @@ CITIES = [
     "Barcelona 🇪🇸", "Copenhagen 🇩🇰", "Stockholm 🇸🇪", "Lisbon 🇵🇹",
     "Vienna 🇦🇹", "Zurich 🇨🇭", "Prague 🇨🇿", "Budapest 🇭🇺",
     "Warsaw 🇵🇱", "Moscow 🇷🇺", "Belgrade 🇷🇸",
-    "Athens 🇬🇷", "Marseille 🇫🇷", "Cannes 🇫🇷", "Nice 🇫🇷",
+    "Athens 🇬🇷", "Marseille 🇫🇷", "Cannes/Nice 🇫🇷",
     "Helsinki 🇫🇮", "Tallinn 🇪🇪",
     "Bangkok 🇹🇭", "Phuket 🇹🇭", "Singapore 🇸🇬", "Hong Kong 🇭🇰", "Tokyo 🇯🇵", "Seoul 🇰🇷",
     "Shanghai 🇨🇳", "Dubai 🇦🇪",
     "Melbourne 🇦🇺",
     "Tulum 🇲🇽", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
     "Cape Town 🇿🇦",
-    "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩",
+    "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩", "Ubud 🇮🇩",
     "Baku 🇦🇿", "Tbilisi 🇬🇪"
 ]
 
@@ -291,7 +291,7 @@ VESSEL_LOCATIONS = [
     "Dubai 🇦🇪",
     "Phuket 🇹🇭", "Koh Samui 🇹🇭",
     "Bali 🇮🇩", "Singapore 🇸🇬", "Hong Kong 🇭🇰",
-    "Sydney 🇦🇺", "Melbourne 🇦🇺",
+    "Melbourne 🇦🇺",
     "Rio de Janeiro 🇧🇷", "Tel Aviv 🇮🇱"
 ]
 
@@ -483,4 +483,3 @@ ART_FORMS = [
     "Textile / objects",
     "Other"
 ]
-

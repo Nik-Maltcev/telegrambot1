@@ -168,8 +168,8 @@ async def start_add_lot_flow(callback: CallbackQuery, state: FSMContext, lot_typ
         )
     else:
         text = (
-            "Here you can describe a resource, support, skill, or access you’re currently looking for.\n\n"
-            "Describe your request according to the short form below (IT'S IMPORTANT) and send it to the chat. Your request will appear in the list of active requests so other members can respond or help.\n\n"
+            "Here you can post a request for a resource, support, skill, or access you’re currently looking for.\n\n"
+            "Describe what you need, where, and how soon. Your request will appear in the list of active requests so other members can respond or help.\n\n"
             "Copy this text and fill in the information following the example in brackets 👇🏻\n\n"
             "Type of Resource:\n"
             "(e.g. consultation, introduction, equipment, access, skill, space)\n"
@@ -180,10 +180,10 @@ async def start_add_lot_flow(callback: CallbackQuery, state: FSMContext, lot_typ
             "When Needed:\n"
             "(ASAP, specific dates, this week, next 14 days, flexible)\n\n"
             "EXAMPLE:\n"
-            "Type of Resource: english lessons\n"
-            "Description: 60 minutes 4 times per month\n"
-            "Location: Online\n"
-            "When Needed: Only this month"
+            "Type of Resource: Apartment\n"
+            "Description: Looking for a place to stay in Bangkok\n"
+            "Location: Bangkok\n"
+            "When Needed: 13-17.02"
         )
 
     # Use unique prefix to avoid conflict with Resources section

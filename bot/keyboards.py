@@ -436,6 +436,7 @@ def get_category_items_keyboard(
     page: int = 0,
     items_per_page: int = 8,
     page_callback_prefix: str = None,
+    done_text: str = "🆗 Done",
 ) -> InlineKeyboardMarkup:
     """Keyboard for selecting items within a category"""
     builder = InlineKeyboardBuilder()
@@ -467,7 +468,7 @@ def get_category_items_keyboard(
         builder.row(*nav_buttons)
 
     if page == total_pages - 1:
-        builder.row(InlineKeyboardButton(text="🆗 Done", callback_data=done_callback))
+        builder.row(InlineKeyboardButton(text=done_text, callback_data=done_callback))
     if back_callback:
         builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()

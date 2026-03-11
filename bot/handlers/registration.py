@@ -100,6 +100,40 @@ import asyncio
 
 router = Router()
 
+SKILL_CATEGORY_ORDER = list(SKILL_CATEGORIES.keys())
+
+
+def _get_next_skill_category(category_key: str):
+    if category_key not in SKILL_CATEGORY_ORDER:
+        return None
+    idx = SKILL_CATEGORY_ORDER.index(category_key)
+    if idx + 1 < len(SKILL_CATEGORY_ORDER):
+        return SKILL_CATEGORY_ORDER[idx + 1]
+    return None
+
+
+async def _show_skill_category_items(callback: CallbackQuery, state: FSMContext, category_key: str):
+    data = await state.get_data()
+    selected = set(data.get("selected_skill_items", []))
+    category_name = SKILL_CATEGORIES[category_key]["name"]
+    next_category_key = _get_next_skill_category(category_key)
+    done_text = "Next ➡️" if next_category_key else "🆗 Done"
+
+    await callback.message.edit_text(
+        f"Category: {category_name}\n\nSelect specific skills/areas:\nYou can select multiple",
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            SKILL_CATEGORIES,
+            selected,
+            "q_item",
+            "q_item_done",
+            "skill_back_cat",
+            page=data.get("q_item_page", 0),
+            page_callback_prefix="q_item_page",
+            done_text=done_text,
+        )
+    )
+
 
 
 
@@ -532,17 +566,32 @@ async def noop_callback(callback: CallbackQuery):
 
 @router.callback_query(Registration.skill_items, F.data.startswith("q_item_page:"))
 async def page_skill_items(callback: CallbackQuery, state: FSMContext):
-    await _redraw_category_items_page(
-        callback,
-        state,
-        page_key="q_item_page",
-        selected_key="selected_skill_items",
-        current_category_key="current_skill_category",
-        categories=SKILL_CATEGORIES,
-        prefix="q_item",
-        done_callback="q_item_done",
-        back_callback="skill_back_cat",
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    category_key = data.get("current_skill_category")
+    if not category_key:
+        await callback.answer()
+        return
+
+    await state.update_data(q_item_page=page)
+    selected = set(data.get("selected_skill_items", []))
+    next_category_key = _get_next_skill_category(category_key)
+    done_text = "Next ➡️" if next_category_key else "🆗 Done"
+
+    await callback.message.edit_reply_markup(
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            SKILL_CATEGORIES,
+            selected,
+            "q_item",
+            "q_item_done",
+            "skill_back_cat",
+            page=page,
+            page_callback_prefix="q_item_page",
+            done_text=done_text,
+        )
     )
+    await callback.answer()
 
 
 @router.callback_query(Registration.offer_formats, F.data.startswith("q_fmt_page:"))
@@ -1458,241 +1507,152 @@ async def back_from_skill_category(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.skill_category, F.data.startswith("skill_cat:"))
 
-
-
 async def process_skill_category_selection(callback: CallbackQuery, state: FSMContext):
-
-
 
     category_key = callback.data.split(":")[1]
 
+    await state.update_data(current_skill_category=category_key, q_item_page=0)
 
-
-    await state.update_data(current_skill_category=category_key)
-
-
-
-    data = await state.get_data()
-
-
-
-    selected = set(data.get("selected_skill_items", []))
-
-
-
-    category_name = SKILL_CATEGORIES[category_key]["name"]
-
-
-
-    await callback.message.edit_text(
-
-
-
-        f"Category: {category_name}\n\nSelect specific skills/areas:\nYou can select multiple",
-
-
-
-        reply_markup=get_category_items_keyboard(category_key, SKILL_CATEGORIES, selected, "q_item", "q_item_done", "skill_back_cat", page=data.get("q_item_page", 0), page_callback_prefix="q_item_page")
-
-
-
-    )
-
-
+    await _show_skill_category_items(callback, state, category_key)
 
     await state.set_state(Registration.skill_items)
 
-
-
     await callback.answer()
-
-
 
 
 
 @router.callback_query(Registration.skill_items, F.data == "skill_back_cat")
 
-
-
 async def back_to_skill_categories(callback: CallbackQuery, state: FSMContext):
 
+    data = await state.get_data()
 
+    current_category = data.get("current_skill_category")
+
+    if current_category in SKILL_CATEGORY_ORDER:
+
+        idx = SKILL_CATEGORY_ORDER.index(current_category)
+
+        if idx > 0:
+
+            prev_category = SKILL_CATEGORY_ORDER[idx - 1]
+
+            await state.update_data(current_skill_category=prev_category, q_item_page=0)
+
+            await _show_skill_category_items(callback, state, prev_category)
+
+            await callback.answer()
+
+            return
 
     await callback.message.edit_text(
 
-
-
         "Select your Category of Expertise:",
-
-
 
         reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
 
-
-
     )
-
-
 
     await state.set_state(Registration.skill_category)
 
-
-
     await callback.answer()
-
-
 
 
 
 @router.callback_query(Registration.skill_items, F.data.startswith("q_item:"))
 
-
-
 async def process_skill_item_toggle(callback: CallbackQuery, state: FSMContext):
-
-
 
     item_hash = callback.data.split(":")[1]
 
-
-
     data = await state.get_data()
-
-
 
     category_key = data.get("current_skill_category")
 
 
 
-
-
     # Search in current category items
 
-
-
     items_list = SKILL_CATEGORIES.get(category_key, {}).get("items", [])
-
-
 
     target_item = find_item_by_hash(items_list, item_hash)
 
 
 
-
-
     if target_item:
-
-
 
         selected_items = set(data.get("selected_skill_items", []))
 
-
-
         if target_item in selected_items:
-
-
 
             selected_items.remove(target_item)
 
-
-
         else:
-
-
 
             selected_items.add(target_item)
 
-
-
         await state.update_data(selected_skill_items=list(selected_items))
 
-
-
-
+        next_category_key = _get_next_skill_category(category_key)
 
         await callback.message.edit_reply_markup(
 
-
-
             reply_markup=get_category_items_keyboard(
 
-
-
-                category_key, SKILL_CATEGORIES, selected_items, "q_item", "q_item_done", "skill_back_cat", page=data.get("q_item_page", 0), page_callback_prefix="q_item_page"
-
-
+                category_key,
+                SKILL_CATEGORIES,
+                selected_items,
+                "q_item",
+                "q_item_done",
+                "skill_back_cat",
+                page=data.get("q_item_page", 0),
+                page_callback_prefix="q_item_page",
+                done_text="Next ➡️" if next_category_key else "🆗 Done"
 
             )
 
-
-
         )
 
-
-
     await callback.answer()
-
-
 
 
 
 @router.callback_query(Registration.skill_items, F.data == "q_item_done")
 
-
-
 async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
-
-
 
     data = await state.get_data()
 
-
-
     selected_items = data.get("selected_skill_items", [])
-
-
 
     if not selected_items:
 
-
-
         await callback.answer("Please select at least one skill.", show_alert=True)
-
-
 
         return
 
+    current_category = data.get("current_skill_category")
+    next_category = _get_next_skill_category(current_category)
 
-
-
+    if next_category:
+        await state.update_data(current_skill_category=next_category, q_item_page=0)
+        await _show_skill_category_items(callback, state, next_category)
+        await callback.answer()
+        return
 
     selected = set(data.get("selected_offer_formats", []))
 
-
-
     await callback.message.edit_text(
-
-
 
         "Formats You Offer\n\nSelect the formats in which you can share your expertise:\nYou can select multiple",
 
-
-
         reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page")
-
-
 
     )
 
-
-
     await state.set_state(Registration.offer_formats)
 
-
-
     await callback.answer()
-
-
 
 
 
@@ -1708,29 +1668,12 @@ async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
 
 
 
-    # Go back to Category Selection
+    last_category = SKILL_CATEGORY_ORDER[-1]
+    await state.update_data(current_skill_category=last_category, q_item_page=0)
 
+    await _show_skill_category_items(callback, state, last_category)
 
-
-    await callback.message.edit_text(
-
-
-
-        "Select your Category of Expertise:",
-
-
-
-        reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
-
-
-
-    )
-
-
-
-    await state.set_state(Registration.skill_category)
-
-
+    await state.set_state(Registration.skill_items)
 
     await callback.answer()
 
@@ -6710,4 +6653,3 @@ async def finish_registration(message: Message, user: User, state: FSMContext, d
 
 
         await state.clear()
-

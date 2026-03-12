@@ -1145,7 +1145,11 @@ async def process_name(message: Message, state: FSMContext):
 
 
 
-    await message.answer("Great! Now, please select the city (or cities) where you are usually located:", reply_markup=ReplyKeyboardRemove())
+    city_prompt = await message.answer(
+        "Great! Now, please select the city (or cities) where you are usually located:",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await state.update_data(city_prompt_message_id=city_prompt.message_id)
 
 
 
@@ -1332,6 +1336,13 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
 
 
 
+
+    city_prompt_message_id = data.get("city_prompt_message_id")
+    if city_prompt_message_id:
+        try:
+            await callback.bot.delete_message(callback.message.chat.id, city_prompt_message_id)
+        except Exception:
+            pass
 
     await callback.message.delete() # Remove inline keyboard
 
@@ -2179,12 +2190,6 @@ async def back_to_intro_categories(callback: CallbackQuery, state: FSMContext):
 async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
-
-    if not data.get("selected_intro_items", []):
-
-         await callback.answer("Please select at least one item.", show_alert=True)
-
-         return
 
     current_category = data.get("current_intro_category")
     next_category = _get_next_intro_category(current_category)

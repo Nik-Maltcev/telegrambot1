@@ -5784,11 +5784,11 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
 
 
-            "Who is the author?",
+            "Form of Art\n\nSelect:",
 
 
 
-            reply_markup=get_single_select_keyboard( "art_auth", "art_auth_back")
+            reply_markup=get_single_select_keyboard(ART_FORMS, "art_form", "art_form_back")
 
 
 
@@ -5796,7 +5796,7 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
 
 
-        await state.set_state(Registration.art_author)
+        await state.set_state(Registration.art_form)
 
 
 

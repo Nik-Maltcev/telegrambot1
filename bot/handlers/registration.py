@@ -2191,12 +2191,6 @@ async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
 
-    if not data.get("selected_intro_items", []):
-
-         await callback.answer("Please select at least one item.", show_alert=True)
-
-         return
-
     current_category = data.get("current_intro_category")
     next_category = _get_next_intro_category(current_category)
 

@@ -1333,6 +1333,13 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
 
 
 
+    city_prompt_message_id = data.get("city_prompt_message_id")
+    if city_prompt_message_id:
+        try:
+            await callback.bot.delete_message(callback.message.chat.id, city_prompt_message_id)
+        except Exception:
+            pass
+
     await callback.message.delete() # Remove inline keyboard
 
 

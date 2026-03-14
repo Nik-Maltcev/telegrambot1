@@ -108,7 +108,7 @@ CITIES = [
     "New York 🇺🇸", "Los Angeles 🇺🇸", "San Francisco 🇺🇸", "Miami 🇺🇸",
     "London 🇬🇧", "Paris 🇫🇷", "Berlin 🇩🇪", "Hamburg 🇩🇪",
     "Amsterdam 🇳🇱", "Rotterdam 🇳🇱", "Milan 🇮🇹", "Rome 🇮🇹", "Venice 🇮🇹",
-    "Barcelona 🇪🇸", "Copenhagen 🇩🇰", "Stockholm 🇸🇪", "Lisbon 🇵🇹",
+    "Barcelona 🇪🇸", "Madrid 🇪🇸", "Copenhagen 🇩🇰", "Stockholm 🇸🇪", "Lisbon 🇵🇹",
     "Vienna 🇦🇹", "Zurich 🇨🇭", "Prague 🇨🇿", "Budapest 🇭🇺",
     "Warsaw 🇵🇱", "Moscow 🇷🇺", "Belgrade 🇷🇸",
     "Athens 🇬🇷", "Marseille 🇫🇷", "Cannes/Nice 🇫🇷",

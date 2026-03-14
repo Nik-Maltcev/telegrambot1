@@ -1032,6 +1032,8 @@ async def process_warning_ok(callback: CallbackQuery, state: FSMContext):
 
 
 
+    await callback.message.delete()
+
     await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
 
 
@@ -3813,10 +3815,6 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
 
 
 
-    await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
-
-
-
 
 
     vessel_text = (
@@ -4162,10 +4160,6 @@ async def finish_aircraft_type(callback: CallbackQuery, state: FSMContext):
         return
 
 
-
-
-
-    await callback.message.answer("complete the questionnaire carefully and you\'ll receive 1 point to exchange within the community \U0001f499")
 
 
 

@@ -127,70 +127,128 @@ INTRO_CATEGORIES = {
     "media_culture": {
         "name": "Media, Culture, Art",
         "items": [
-            "Magazine Editorial Team",
-            "International Film Festival Team",
-            "Heads or teams of art residencies",
-            "Owners or curators of private galleries",
-            "Art dealers with collector networks",
-            "Well-known artists and photographers.",
-            "Curators of major museum projects",
-            "Venue Program Directors",
-            "Independent art fair organizers"
+            "Art critics and writers",
+            "Documentary filmmakers",
+            "Cultural foundation directors",
+            "Public art commissioners",
+            "Private art collectors",
+            "Art advisors to collectors",
+            "Directors of art biennales",
+            "Independent exhibition curators",
+            "Museum board members",
+            "Cultural institution directors",
+            "Art fair directors",
+            "Public art producers"
         ]
     },
     "stage_music": {
         "name": "Stage, Music, Events",
         "items": [
-            "Teams of major music festivals",
-            "Members of private music communities",
-            "Organizers of Burning Man and Burning Man camps",
-            "Production teams of large shows"
+            "Talent booking agents",
+            "Music label founders",
+            "Artist managers",
+            "Club founders and owners",
+            "Touring production managers",
+            "Concert promoters",
+            "Event creative directors",
+            "Immersive show creators",
+            "Cultural event curators",
+            "Stage designers",
+            "Music influencers",
+            "Booking agents",
+            "Radio & podcast hosts",
+            "Nightlife owners",
+            "Event sponsors",
+            "Festival curators",
+            "Event marketing & PR teams",
+            "Event promoters",
+            "Burning Man & AB organizers"
         ]
     },
     "fashion_luxury": {
         "name": "Fashion & Luxury Industry",
         "items": [
-            "Luxury boutique buyers",
-            "Fashion house heads",
-            "Fashion week producers",
-            "Fashion production directors",
-            "Niche brand owners",
-            "Watchmakers & owners",
-            "Private workshop jewelers"
+            "Luxury brand founders",
+            "Creative directors of fashion houses",
+            "Fashion investors",
+            "Rare fashion collectors",
+            "Fashion archive owners",
+            "Luxury stylist networks",
+            "Fashion show casting directors",
+            "Fashion media editors",
+            "Luxury concept store founders",
+            "Couture atelier owners",
+            "Jewelry designers",
+            "Watch collectors",
+            "Private jewelers"
         ]
     },
     "business_influence": {
         "name": "Business & Influence",
         "items": [
-            "Private club founders",
-            "Boutique fund partners",
-            "Startup founders",
-            "Digital platform heads",
-            "CEO dinner organizers",
-            "Niche media owners",
-            "Business forum organizers",
-            "Board members"
+            "Angel investors",
+            "Serial entrepreneurs",
+            "Family office principals",
+            "Venture capital partners",
+            "Private equity partners",
+            "Tech company founders",
+            "Scale-up founders",
+            "Venture scouts",
+            "Innovation hub founders",
+            "Startup accelerator directors",
+            "Dealmakers & connectors",
+            "Global community founders",
+            "Policy advisors",
+            "Brand founders",
+            "Luxury brand executives",
+            "High-end event hosts",
+            "Industry association heads",
+            "Strategic advisors",
+            "Growth hackers",
+            "Global conference organizers",
+            "Capital owners",
+            "Fund managers"
         ]
     },
     "travel_access": {
         "name": "Travel, Mobility & Special Access",
         "items": [
-            "Private travel organizers",
-            "Retreat center founders",
-            "Boat/yacht owners",
-            "Private aviation reps",
-            "Private traveler club heads",
-            "VIP sports access organizers",
-            "Cultural center directors"
+            "Luxury travel concierges",
+            "Expedition leaders",
+            "Safari lodge owners",
+            "Private island owners",
+            "Remote resort founders",
+            "Cultural expedition organizers",
+            "Members of exploration clubs",
+            "Private guide networks",
+            "Luxury concierge founders",
+            "Adventure travel curators",
+            "Overland expedition organizers",
+            "Yacht charter brokers",
+            "Private aviation brokers",
+            "Global relocation specialists"
         ]
     },
     "rare_professions": {
-        "name": "Specific and Rare Professions / Access",
+        "name": "Specific & Rare Professions / Access",
         "items": [
-            "Architects of unique projects",
-            "University research lab heads",
-            "Charitable foundation heads",
-            "Diplomatic representatives"
+            "Rare book collectors",
+            "Private archive keepers",
+            "Space industry engineers",
+            "Cultural heritage restorers",
+            "Experimental research scientists",
+            "Think tank founders and directors",
+            "Antique artifact specialists"
+        ]
+    },
+    "collectors_patrons": {
+        "name": "Collectors & Patrons",
+        "items": [
+            "Art collectors",
+            "Rare watch collectors",
+            "Vintage car collectors",
+            "Cultural patrons",
+            "Private museum founders"
         ]
     }
 }
@@ -217,7 +275,9 @@ VEHICLE_TYPES = [
     "Electric scooter",
     "Van",
     "Truck",
-    "SUV / 4x4"
+    "SUV / 4x4",
+    "ATV / Quad bike",
+    "Camper van"
 ]
 
 

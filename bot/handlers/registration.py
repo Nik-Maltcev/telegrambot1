@@ -889,13 +889,14 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
 
         ]
 
+        await message.answer("Read this, luv.")
         await message.answer_media_group(media)
 
 
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="SOUNDS GOOD.", callback_data="intro_sounds_good")]])
 
-        await message.answer("👇 Click below to continue:", reply_markup=keyboard)
+        await message.answer("👇🏻 Click below to continue:", reply_markup=keyboard)
 
 
 
@@ -1031,6 +1032,8 @@ async def process_warning_ok(callback: CallbackQuery, state: FSMContext):
 
 
 
+    await callback.message.delete()
+
     await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
 
 
@@ -1145,11 +1148,10 @@ async def process_name(message: Message, state: FSMContext):
 
 
 
-    await message.answer("Great! Now, please select the city (or cities) where you are usually located:", reply_markup=ReplyKeyboardRemove())
-
-
-
-    await message.answer("Select cities:", reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"))
+    await message.answer(
+        "Great! Now, please select the city (or cities) where you are usually located:",
+        reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"),
+    )
 
 
 
@@ -1445,69 +1447,40 @@ async def process_about(message: Message, state: FSMContext):
 
 
 
+    first_category_key = SKILL_CATEGORY_ORDER[0]
+    first_category_name = SKILL_CATEGORIES[first_category_key]["name"]
+
     skills_intro = (
-
-
-
         "1|10 🧑🏼‍💻 Skills and Knowledge\n\n"
-
-
-
         "Please provide information about the skills, knowledge, and professional abilities "
-
-
-
         "you are willing to share with the community.\n\n"
-
-
-
         "Each of us carries unique mastery. Here you can list the areas where you can:\n"
-
-
-
         "• give a thoughtful consultation\n"
-
-
-
         "• teach your skill or method\n"
-
-
-
         "• guide someone through a process\n"
-
-
-
         "• create or deliver a clear final result\n\n"
-
-
-
-        "Select your Category of Expertise:"
-
-
-
+        f"Category: {first_category_name}\n\n"
+        "Select specific skills/areas:\n"
+        "You can select multiple"
     )
-
-
-
-
 
     await message.answer(
-
-
-
         skills_intro,
-
-
-
-        reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
-
-
-
+        reply_markup=get_category_items_keyboard(
+            first_category_key,
+            SKILL_CATEGORIES,
+            set(),
+            "q_item",
+            "q_item_done",
+            "skill_back_cat",
+            page=0,
+            page_callback_prefix="q_item_page",
+            done_text="Next ➡️",
+        )
     )
 
-
-
-    await state.set_state(Registration.skill_category)
+    await state.update_data(current_skill_category=first_category_key, q_item_page=0)
+    await state.set_state(Registration.skill_items)
 
 
 
@@ -1597,15 +1570,17 @@ async def back_to_skill_categories(callback: CallbackQuery, state: FSMContext):
 
             return
 
-    await callback.message.edit_text(
+    await callback.message.delete()
 
-        "Select your Category of Expertise:",
+    await callback.message.answer(
 
-        reply_markup=get_category_keyboard(SKILL_CATEGORIES, "skill_cat", "skill_cat_back")
+        "Tell us a bit about yourself\nDescribe it shortly — just a few words.\nIn one of the next questions, you'll be able to share more details.\n\nExamples:\nArtist · Community creator\nFounder · Creative entrepreneur\nDJ · Music curator",
+
+        reply_markup=get_cancel_keyboard()
 
     )
 
-    await state.set_state(Registration.skill_category)
+    await state.set_state(Registration.about)
 
     await callback.answer()
 
@@ -2179,12 +2154,6 @@ async def back_to_intro_categories(callback: CallbackQuery, state: FSMContext):
 async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
-
-    if not data.get("selected_intro_items", []):
-
-         await callback.answer("Please select at least one item.", show_alert=True)
-
-         return
 
     current_category = data.get("current_intro_category")
     next_category = _get_next_intro_category(current_category)
@@ -3839,10 +3808,6 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
 
 
 
-    await callback.message.answer("complete the questionnaire carefully and you’ll receive 1 point to exchange within the community 🩵")
-
-
-
 
 
     vessel_text = (
@@ -4188,10 +4153,6 @@ async def finish_aircraft_type(callback: CallbackQuery, state: FSMContext):
         return
 
 
-
-
-
-    await callback.message.answer("complete the questionnaire carefully and you\'ll receive 1 point to exchange within the community \U0001f499")
 
 
 
@@ -5779,11 +5740,11 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
 
 
-            "Who is the author?",
+            "Form of Art\n\nSelect:",
 
 
 
-            reply_markup=get_single_select_keyboard( "art_auth", "art_auth_back")
+            reply_markup=get_single_select_keyboard(ART_FORMS, "art_form", "art_form_back")
 
 
 
@@ -5791,7 +5752,7 @@ async def process_art_author_name(message: Message, state: FSMContext):
 
 
 
-        await state.set_state(Registration.art_author)
+        await state.set_state(Registration.art_form)
 
 
 

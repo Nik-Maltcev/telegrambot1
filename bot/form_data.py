@@ -360,19 +360,19 @@ VESSEL_TYPES = [
 ]
 
 VESSEL_LOCATIONS = [
-    "Barcelona 🇪🇸", "Ibiza 🇪🇸", "Mallorca 🇪🇸",
-    "French Riviera 🇫🇷", "Monaco 🇲🇨", "Cannes 🇫🇷", "Nice 🇫🇷",
-    "Amalfi Coast 🇮🇹", "Capri 🇮🇹", "Sardinia 🇮🇹",
-    "Athens 🇬🇷", "Mykonos 🇬🇷", "Cyclades 🇬🇷",
+    "Barcelona 🇪🇸", "Ibiza 🇪🇸", "Mallorca 🇪🇸", "Formentera 🇪🇸", "Marbella 🇪🇸", "Menorca 🇪🇸",
+    "French Riviera 🇫🇷", "Saint-Tropez 🇫🇷", "Monaco 🇲🇨", "Cannes 🇫🇷", "Nice 🇫🇷", "Saint-Barth 🇫🇷",
+    "Amalfi Coast 🇮🇹", "Capri 🇮🇹", "Sardinia 🇮🇹", "Portofino 🇮🇹", "Lake Como 🇮🇹",
+    "Athens 🇬🇷", "Mykonos 🇬🇷", "Cyclades 🇬🇷", "Santorini 🇬🇷",
     "Split 🇭🇷", "Hvar 🇭🇷",
-    "Istanbul 🇹🇷", "Lisbon 🇵🇹",
+    "Istanbul 🇹🇷", "Bodrum 🇹🇷", "Göcek 🇹🇷", "Lisbon 🇵🇹",
     "Amsterdam 🇳🇱", "Rotterdam 🇳🇱",
     "Copenhagen 🇩🇰", "Stockholm 🇸🇪",
-    "Miami 🇺🇸", "Los Angeles 🇺🇸", "New York 🇺🇸",
+    "Miami 🇺🇸", "Los Angeles 🇺🇸", "New York 🇺🇸", "Bahamas 🇧🇸", "British Virgin Islands 🇻🇬",
     "Dubai 🇦🇪",
-    "Phuket 🇹🇭", "Koh Samui 🇹🇭",
-    "Bali 🇮🇩", "Singapore 🇸🇬", "Hong Kong 🇭🇰",
-    "Melbourne 🇦🇺",
+    "Phuket 🇹🇭", "Koh Samui 🇹🇭", "Langkawi 🇲🇾",
+    "Bali 🇮🇩", "Komodo 🇮🇩", "Singapore 🇸🇬", "Hong Kong 🇭🇰",
+    "Whitsundays 🇦🇺", "Melbourne 🇦🇺",
     "Rio de Janeiro 🇧🇷", "Tel Aviv 🇮🇱"
 ]
 

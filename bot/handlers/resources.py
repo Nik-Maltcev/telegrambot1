@@ -224,11 +224,11 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
             
             resources_text += (
                 f"━━━━━━━━━━━━━━━\n"
-                f"👤 {res['name']} {telegram_link}\n"
-                f"📍 {cities_str}\n"
-                f"📌 {items_str}\n"
+                f"🐥 {res['name']} {telegram_link}\n"
+                f"🪩 {cities_str}\n"
+                f"✉️ {items_str}\n"
                 f"{extra_str}"
-                f"⭐ Points: {res['points']}\n\n"
+                f"🩵 Points: {res['points']}\n\n"
             )
 
     # Show lots resources

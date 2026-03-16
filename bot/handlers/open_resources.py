@@ -5,6 +5,7 @@ from bot.database import Database
 from bot.keyboards import get_back_keyboard
 from bot.form_data import CITIES
 import hashlib
+import json
 
 router = Router()
 
@@ -65,7 +66,7 @@ async def show_maps_menu(message: Message, db: Database):
 
 
 @router.callback_query(F.data.startswith("map:"))
-async def show_city_map(callback: CallbackQuery):
+async def show_city_map(callback: CallbackQuery, db: Database):
     """Show map for selected city"""
     city_hash = callback.data.split(":", 1)[1]
     city = find_city_by_hash(city_hash)
@@ -74,23 +75,51 @@ async def show_city_map(callback: CallbackQuery):
         await callback.answer("City not found", show_alert=True)
         return
     
-    link = CITY_MAPS.get(city)
+    # Collect all maps for this city
     builder = InlineKeyboardBuilder()
-    
-    if link:
-        builder.row(InlineKeyboardButton(text=f"🗺 Open {city} Map", url=link))
-        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_maps"))
+    has_maps = False
+    text_parts = [f"🌎 {city}\n"]
+
+    # 1. Hanna's curated map
+    hanna_link = CITY_MAPS.get(city)
+    if hanna_link:
+        has_maps = True
+        text_parts.append("🗺 Hanna · Curated places")
+        builder.row(InlineKeyboardButton(text="🗺 Open Hanna's Map", url=hanna_link))
+
+    # 2. User-submitted maps from registration data
+    all_reg_data = await db.get_all_registration_data()
+    for user_data in all_reg_data:
+        try:
+            reg_data = json.loads(user_data["answer_data"])
+            user_maps = reg_data.get("user_maps", [])
+            for m in user_maps:
+                if m.get("city") == city:
+                    has_maps = True
+                    user_name = user_data.get("name", "Unknown")
+                    map_link = m.get("link", "")
+                    if map_link:
+                        text_parts.append(f"🗺 {user_name}")
+                        builder.row(InlineKeyboardButton(
+                            text=f"🗺 Open {user_name}'s Map",
+                            url=map_link
+                        ))
+        except (json.JSONDecodeError, KeyError):
+            continue
+
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_maps"))
+
+    if has_maps:
         await callback.message.edit_text(
-            f"🌎 {city} · Hanna\n\n"
-            f"Curated places collection.",
+            "\n".join(text_parts),
             reply_markup=builder.as_markup()
         )
     else:
         await callback.message.edit_text(
             f"🌎 {city}\n\n"
-            f"Map for this city is coming soon!\n"
-            f"Stay tuned.",
-            reply_markup=get_back_keyboard("back_to_maps")
+            f"No maps for this city yet.\n"
+            f"You can share yours during registration (section 10|10).",
+            reply_markup=builder.as_markup()
         )
     
     await callback.answer()

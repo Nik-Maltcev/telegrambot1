@@ -119,6 +119,7 @@ async def _show_skill_category_items(callback: CallbackQuery, state: FSMContext,
     next_category_key = _get_next_skill_category(category_key)
     done_text = "Next ➡️" if next_category_key else "🆗 Done"
 
+    await state.update_data(q_item_page=0)
     await callback.message.edit_text(
         f"Category: {category_name}\n\nSelect specific skills/areas:\nYou can select multiple",
         reply_markup=get_category_items_keyboard(
@@ -128,7 +129,7 @@ async def _show_skill_category_items(callback: CallbackQuery, state: FSMContext,
             "q_item",
             "q_item_done",
             "skill_back_cat",
-            page=data.get("q_item_page", 0),
+            page=0,
             page_callback_prefix="q_item_page",
             done_text=done_text,
         )
@@ -157,6 +158,7 @@ async def _show_intro_category_items(callback: CallbackQuery, state: FSMContext,
     next_category_key = _get_next_intro_category(category_key)
     done_text = "Next ➡️" if next_category_key else "🆗 Done"
 
+    await state.update_data(intro_item_page=0)
     await callback.message.edit_text(
         f"Category: {category_name}\n\nSelect the people you can introduce:",
         reply_markup=get_category_items_keyboard(
@@ -166,7 +168,7 @@ async def _show_intro_category_items(callback: CallbackQuery, state: FSMContext,
             "intro_item",
             "intro_item_done",
             "intro_back_cat",
-            page=data.get("intro_item_page", 0),
+            page=0,
             page_callback_prefix="intro_item_page",
             done_text=done_text,
         )
@@ -189,6 +191,7 @@ async def _show_spec_category_items(callback: CallbackQuery, state: FSMContext, 
     next_category_key = _get_next_spec_category(category_key)
     done_text = "Next ➡️" if next_category_key else "🆗 Done"
 
+    await state.update_data(spec_item_page=0)
     await callback.message.edit_text(
         f"Category: {category_name}\n\nSelect the specialists you can recommend:",
         reply_markup=get_category_items_keyboard(
@@ -198,7 +201,7 @@ async def _show_spec_category_items(callback: CallbackQuery, state: FSMContext, 
             "spec_item",
             "spec_item_done",
             "spec_back_cat",
-            page=data.get("spec_item_page", 0),
+            page=0,
             page_callback_prefix="spec_item_page",
             done_text=done_text,
         )

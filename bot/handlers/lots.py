@@ -187,7 +187,11 @@ async def start_add_lot_flow(callback: CallbackQuery, state: FSMContext, lot_typ
         )
 
     # Use unique prefix to avoid conflict with Resources section
-    await callback.message.edit_text(
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+    await callback.message.answer(
         text,
         reply_markup=get_cancel_keyboard()
     )

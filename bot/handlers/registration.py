@@ -138,6 +138,8 @@ async def _show_skill_category_items(callback: CallbackQuery, state: FSMContext,
 
 INTRO_CATEGORY_ORDER = list(INTRO_CATEGORIES.keys())
 
+SPEC_CATEGORY_ORDER = list(SPECIALIST_CATEGORIES.keys())
+
 
 def _get_next_intro_category(category_key: str):
     if category_key not in INTRO_CATEGORY_ORDER:
@@ -166,6 +168,38 @@ async def _show_intro_category_items(callback: CallbackQuery, state: FSMContext,
             "intro_back_cat",
             page=data.get("intro_item_page", 0),
             page_callback_prefix="intro_item_page",
+            done_text=done_text,
+        )
+    )
+
+
+def _get_next_spec_category(category_key: str):
+    if category_key not in SPEC_CATEGORY_ORDER:
+        return None
+    idx = SPEC_CATEGORY_ORDER.index(category_key)
+    if idx + 1 < len(SPEC_CATEGORY_ORDER):
+        return SPEC_CATEGORY_ORDER[idx + 1]
+    return None
+
+
+async def _show_spec_category_items(callback: CallbackQuery, state: FSMContext, category_key: str):
+    data = await state.get_data()
+    selected = set(data.get("selected_specialist_items", []))
+    category_name = SPECIALIST_CATEGORIES[category_key]["name"]
+    next_category_key = _get_next_spec_category(category_key)
+    done_text = "Next ➡️" if next_category_key else "🆗 Done"
+
+    await callback.message.edit_text(
+        f"Category: {category_name}\n\nSelect the specialists you can recommend:",
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            SPECIALIST_CATEGORIES,
+            selected,
+            "spec_item",
+            "spec_item_done",
+            "spec_back_cat",
+            page=data.get("spec_item_page", 0),
+            page_callback_prefix="spec_item_page",
             done_text=done_text,
         )
     )
@@ -761,17 +795,32 @@ async def page_vessel_type(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.specialist_items, F.data.startswith("spec_item_page:"))
 async def page_specialist_items(callback: CallbackQuery, state: FSMContext):
-    await _redraw_category_items_page(
-        callback,
-        state,
-        page_key="spec_item_page",
-        selected_key="selected_specialist_items",
-        current_category_key="current_specialist_category",
-        categories=SPECIALIST_CATEGORIES,
-        prefix="spec_item",
-        done_callback="spec_item_done",
-        back_callback="spec_item_back",
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    category_key = data.get("current_specialist_category")
+    if not category_key:
+        await callback.answer()
+        return
+
+    await state.update_data(spec_item_page=page)
+    selected = set(data.get("selected_specialist_items", []))
+    next_category_key = _get_next_spec_category(category_key)
+    done_text = "Next ➡️" if next_category_key else "🆗 Done"
+
+    await callback.message.edit_reply_markup(
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            SPECIALIST_CATEGORIES,
+            selected,
+            "spec_item",
+            "spec_item_done",
+            "spec_back_cat",
+            page=page,
+            page_callback_prefix="spec_item_page",
+            done_text=done_text,
+        )
     )
+    await callback.answer()
 
 
 
@@ -986,7 +1035,7 @@ async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "please complete the questionnaire carefully.\n"
+        "complete the questionnaire carefully and you'll receive 1 point to exchange within the community 💙\n"
 
 
 
@@ -1014,6 +1063,10 @@ async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
 
 
 
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await callback.message.answer(warning_text, reply_markup=keyboard)
 
 
@@ -1032,8 +1085,10 @@ async def process_warning_ok(callback: CallbackQuery, state: FSMContext):
 
 
 
-    await callback.message.delete()
-
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await callback.message.answer("Please enter your name:", reply_markup=get_cancel_keyboard())
 
 
@@ -1148,10 +1203,11 @@ async def process_name(message: Message, state: FSMContext):
 
 
 
-    await message.answer(
+    city_msg = await message.answer(
         "Great! Now, please select the city (or cities) where you are usually located:",
         reply_markup=get_cities_select_keyboard("main_city", "main_city_done", set(), "main_city_back"),
     )
+    await state.update_data(city_prompt_message_id=city_msg.message_id)
 
 
 
@@ -1335,14 +1391,10 @@ async def finish_main_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-    city_prompt_message_id = data.get("city_prompt_message_id")
-    if city_prompt_message_id:
-        try:
-            await callback.bot.delete_message(callback.message.chat.id, city_prompt_message_id)
-        except Exception:
-            pass
-
-    await callback.message.delete() # Remove inline keyboard
+    try:
+        await callback.message.delete() # Remove inline keyboard with city selection
+    except Exception:
+        pass
 
 
 
@@ -4749,122 +4801,9 @@ async def start_specialist_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-    await callback.message.edit_text(
-
-
-
-        "Select the category of specialists you can recommend:",
-
-
-
-        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
-
-
-
-    )
-
-
-
-    await state.set_state(Registration.specialist_category)
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.specialist_category, F.data == "spec_cat_back")
-
-
-
-async def back_from_spec_cat(callback: CallbackQuery, state: FSMContext):
-
-
-
-    specialist_text = (
-
-
-
-        "8|10 🩵 Specialists\n\n"
-
-
-
-        "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
-
-
-
-        "brought clarity, or simply made life easier.\n\n"
-
-
-
-        "Please list only those specialists you have personally worked with and can genuinely vouch for."
-
-
-
-    )
-
-
-
-    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
-
-
-
-    await state.set_state(Registration.specialist_section)
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.specialist_category, F.data.startswith("spec_cat:"))
-
-
-
-async def process_specialist_category(callback: CallbackQuery, state: FSMContext):
-
-
-
-    category_key = callback.data.split(":")[1]
-
-
-
-    await state.update_data(current_specialist_category=category_key)
-
-
-
-    data = await state.get_data()
-
-
-
-    selected = set(data.get("selected_specialist_items", []))
-
-
-
-    category_name = SPECIALIST_CATEGORIES[category_key]["name"]
-
-
-
-    await callback.message.edit_text(
-
-
-
-        f"Category: {category_name}\n\nSelect the specialists you can recommend:",
-
-
-
-        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
-
-
-
-    )
-
-
-
+    first_category = SPEC_CATEGORY_ORDER[0]
+    await state.update_data(current_specialist_category=first_category, spec_item_page=0)
+    await _show_spec_category_items(callback, state, first_category)
     await state.set_state(Registration.specialist_items)
 
 
@@ -4875,7 +4814,10 @@ async def process_specialist_category(callback: CallbackQuery, state: FSMContext
 
 
 
-@router.callback_query(Registration.specialist_items, F.data == "spec_item_back")
+
+
+
+@router.callback_query(Registration.specialist_items, F.data == "spec_back_cat")
 
 
 
@@ -4883,23 +4825,26 @@ async def back_from_spec_items(callback: CallbackQuery, state: FSMContext):
 
 
 
-    await callback.message.edit_text(
+    data = await state.get_data()
+    current_category = data.get("current_specialist_category")
 
+    if current_category in SPEC_CATEGORY_ORDER:
+        idx = SPEC_CATEGORY_ORDER.index(current_category)
+        if idx > 0:
+            prev_category = SPEC_CATEGORY_ORDER[idx - 1]
+            await state.update_data(current_specialist_category=prev_category, spec_item_page=0)
+            await _show_spec_category_items(callback, state, prev_category)
+            await callback.answer()
+            return
 
-
-        "Select the category of specialists you can recommend:",
-
-
-
-        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
-
-
-
+    specialist_text = (
+        "8|10 🩵 Specialists\n\n"
+        "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
+        "brought clarity, or simply made life easier.\n\n"
+        "Please list only those specialists you have personally worked with and can genuinely vouch for."
     )
-
-
-
-    await state.set_state(Registration.specialist_category)
+    await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
+    await state.set_state(Registration.specialist_section)
 
 
 
@@ -4963,13 +4908,23 @@ async def toggle_specialist_item(callback: CallbackQuery, state: FSMContext):
 
         await state.update_data(selected_specialist_items=list(selected))
 
-
+        next_category_key = _get_next_spec_category(category_key)
 
         await callback.message.edit_reply_markup(
 
 
 
-            reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
+            reply_markup=get_category_items_keyboard(
+                category_key,
+                SPECIALIST_CATEGORIES,
+                selected,
+                "spec_item",
+                "spec_item_done",
+                "spec_back_cat",
+                page=data.get("spec_item_page", 0),
+                page_callback_prefix="spec_item_page",
+                done_text="Next ➡️" if next_category_key else "🆗 Done",
+            )
 
 
 
@@ -4981,25 +4936,6 @@ async def toggle_specialist_item(callback: CallbackQuery, state: FSMContext):
 
 
 
-
-
-@router.callback_query(Registration.specialist_items, F.data == "spec_back_cat")
-
-
-
-async def back_to_specialist_categories(callback: CallbackQuery, state: FSMContext):
-
-
-
-    await callback.message.edit_text("Select the category of specialists you can recommend:", reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat"))
-
-
-
-    await state.set_state(Registration.specialist_category)
-
-
-
-    await callback.answer()
 
 
 
@@ -5027,7 +4963,14 @@ async def finish_specialist_items(callback: CallbackQuery, state: FSMContext):
 
          return
 
+    current_category = data.get("current_specialist_category")
+    next_category = _get_next_spec_category(current_category)
 
+    if next_category:
+        await state.update_data(current_specialist_category=next_category, spec_item_page=0)
+        await _show_spec_category_items(callback, state, next_category)
+        await callback.answer()
+        return
 
 
 
@@ -5069,44 +5012,29 @@ async def back_from_spec_conn(callback: CallbackQuery, state: FSMContext):
 
 
 
-    data = await state.get_data()
-
-
-
-    category_key = data.get("current_specialist_category")
-
-
-
-    selected = set(data.get("selected_specialist_items", []))
-
-
-
-
-
-    # We need to restore inline keyboard, so we edit_text if possible, but previous was deleted.
-
-
-
-    # So we send new message.
-
-
+    last_category = SPEC_CATEGORY_ORDER[-1]
+    await state.update_data(current_specialist_category=last_category, spec_item_page=0)
 
     await callback.message.delete()
 
-
+    # Need to send a new message since previous was deleted
+    data = await state.get_data()
+    selected = set(data.get("selected_specialist_items", []))
+    category_name = SPECIALIST_CATEGORIES[last_category]["name"]
 
     await callback.message.answer(
-
-
-
-        f"Category selected. Select specialists:",
-
-
-
-        reply_markup=get_category_items_keyboard(category_key, SPECIALIST_CATEGORIES, selected, "spec_item", "spec_item_done", "spec_item_back", page=data.get("spec_item_page", 0), page_callback_prefix="spec_item_page")
-
-
-
+        f"Category: {category_name}\n\nSelect the specialists you can recommend:",
+        reply_markup=get_category_items_keyboard(
+            last_category,
+            SPECIALIST_CATEGORIES,
+            selected,
+            "spec_item",
+            "spec_item_done",
+            "spec_back_cat",
+            page=0,
+            page_callback_prefix="spec_item_page",
+            done_text="🆗 Done",
+        )
     )
 
 
@@ -5401,27 +5329,14 @@ async def add_another_specialist(callback: CallbackQuery, state: FSMContext):
 
 
 
-    # Loop back to category
+    # Loop back to first category with auto-scroll
+    first_category = SPEC_CATEGORY_ORDER[0]
+    await state.update_data(current_specialist_category=first_category, spec_item_page=0)
+    await _show_spec_category_items(callback, state, first_category)
 
 
 
-    await callback.message.edit_text(
-
-
-
-        "Select the category of specialists you can recommend:",
-
-
-
-        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
-
-
-
-    )
-
-
-
-    await state.set_state(Registration.specialist_category)
+    await state.set_state(Registration.specialist_items)
 
 
 

@@ -1711,14 +1711,20 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
 
     selected_items = data.get("selected_skill_items", [])
 
+    current_category = data.get("current_skill_category")
+    next_category = _get_next_skill_category(current_category)
+
+    if next_category:
+        await state.update_data(current_skill_category=next_category, q_item_page=0)
+        await _show_skill_category_items(callback, state, next_category)
+        await callback.answer()
+        return
+
     if not selected_items:
 
         await callback.answer("Please select at least one skill.", show_alert=True)
 
         return
-
-    current_category = data.get("current_skill_category")
-    next_category = _get_next_skill_category(current_category)
 
     if next_category:
         await state.update_data(current_skill_category=next_category, q_item_page=0)
@@ -4951,7 +4957,14 @@ async def finish_specialist_items(callback: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
 
+    current_category = data.get("current_specialist_category")
+    next_category = _get_next_spec_category(current_category)
 
+    if next_category:
+        await state.update_data(current_specialist_category=next_category, spec_item_page=0)
+        await _show_spec_category_items(callback, state, next_category)
+        await callback.answer()
+        return
 
     if not data.get("selected_specialist_items", []):
 
@@ -4962,9 +4975,6 @@ async def finish_specialist_items(callback: CallbackQuery, state: FSMContext):
 
 
          return
-
-    current_category = data.get("current_specialist_category")
-    next_category = _get_next_spec_category(current_category)
 
     if next_category:
         await state.update_data(current_specialist_category=next_category, spec_item_page=0)

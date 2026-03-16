@@ -79,6 +79,7 @@ async def show_city_map(callback: CallbackQuery):
     
     if link:
         builder.row(InlineKeyboardButton(text=f"🗺 Open {city} Map", url=link))
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_maps"))
         await callback.message.edit_text(
             f"🌎 {city} · Hanna\n\n"
             f"Curated places collection.",

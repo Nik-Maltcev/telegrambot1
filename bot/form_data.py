@@ -127,6 +127,15 @@ INTRO_CATEGORIES = {
     "media_culture": {
         "name": "Media, Culture, Art",
         "items": [
+            "Magazine Editorial Team",
+            "International Film Festival Team",
+            "Heads or teams of art residencies",
+            "Owners or curators of private galleries",
+            "Art dealers with collector networks",
+            "Well-known artists and photographers",
+            "Curators of major museum projects",
+            "Venue Program Directors",
+            "Independent art fair organizers",
             "Art critics and writers",
             "Documentary filmmakers",
             "Cultural foundation directors",
@@ -144,6 +153,10 @@ INTRO_CATEGORIES = {
     "stage_music": {
         "name": "Stage, Music, Events",
         "items": [
+            "Teams of major music festivals",
+            "Members of private music communities",
+            "Organizers of Burning Man and Burning Man camps",
+            "Production teams of large shows",
             "Talent booking agents",
             "Music label founders",
             "Artist managers",
@@ -168,6 +181,13 @@ INTRO_CATEGORIES = {
     "fashion_luxury": {
         "name": "Fashion & Luxury Industry",
         "items": [
+            "Luxury boutique buyers",
+            "Fashion house heads",
+            "Fashion week producers",
+            "Fashion production directors",
+            "Niche brand owners",
+            "Watchmakers & owners",
+            "Private workshop jewelers",
             "Luxury brand founders",
             "Creative directors of fashion houses",
             "Fashion investors",
@@ -186,6 +206,14 @@ INTRO_CATEGORIES = {
     "business_influence": {
         "name": "Business & Influence",
         "items": [
+            "Private club founders",
+            "Boutique fund partners",
+            "Startup founders",
+            "Digital platform heads",
+            "CEO dinner organizers",
+            "Niche media owners",
+            "Business forum organizers",
+            "Board members",
             "Angel investors",
             "Serial entrepreneurs",
             "Family office principals",
@@ -213,6 +241,13 @@ INTRO_CATEGORIES = {
     "travel_access": {
         "name": "Travel, Mobility & Special Access",
         "items": [
+            "Private travel organizers",
+            "Retreat center founders",
+            "Boat/yacht owners",
+            "Private aviation reps",
+            "Private traveler club heads",
+            "VIP sports access organizers",
+            "Cultural center directors",
             "Luxury travel concierges",
             "Expedition leaders",
             "Safari lodge owners",
@@ -232,6 +267,10 @@ INTRO_CATEGORIES = {
     "rare_professions": {
         "name": "Specific & Rare Professions / Access",
         "items": [
+            "Architects of unique projects",
+            "University research lab heads",
+            "Charitable foundation heads",
+            "Diplomatic representatives",
             "Rare book collectors",
             "Private archive keepers",
             "Space industry engineers",

@@ -112,6 +112,15 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))
     return builder.as_markup()
 
+def get_resource_subcategories_keyboard(categories_dict: dict, prefix: str, back_callback: str) -> InlineKeyboardMarkup:
+    """Keyboard with subcategories for Skills/Introductions/Specialists resources view"""
+    builder = InlineKeyboardBuilder()
+    for key, cat in categories_dict.items():
+        builder.row(InlineKeyboardButton(text=cat["name"], callback_data=f"{prefix}:{key}"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
 
 def get_lots_type_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for selecting lot type - 4 options A, B, C, D"""

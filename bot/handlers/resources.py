@@ -3,8 +3,10 @@ from aiogram.types import Message, CallbackQuery
 from bot.database import Database
 from bot.keyboards import (
     get_resource_categories_keyboard,
+    get_resource_subcategories_keyboard,
     get_back_keyboard
 )
+from bot.form_data import SKILL_CATEGORIES, INTRO_CATEGORIES, SPECIALIST_CATEGORIES
 import json
 
 router = Router()
@@ -59,8 +61,9 @@ CATEGORY_DATA_MAPPING = {
 }
 
 
-def extract_resources_from_registration(reg_data: dict, category: str, user_info: dict) -> list:
-    """Extract resources for a specific category from registration data."""
+def extract_resources_from_registration(reg_data: dict, category: str, user_info: dict, subcategory_key: str = None) -> list:
+    """Extract resources for a specific category from registration data.
+    If subcategory_key is provided, filter specialists by their category key."""
     resources = []
     mapping = CATEGORY_DATA_MAPPING.get(category)
     
@@ -85,6 +88,9 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
         formatted_items = []
         for spec in items:
             if isinstance(spec, dict):
+                # Filter by subcategory key if provided
+                if subcategory_key and spec.get("category") != subcategory_key:
+                    continue
                 spec_name = spec.get("name", "Unknown")
                 spec_cat = spec.get("category", "")
                 spec_contact = spec.get("contact", "")
@@ -99,6 +105,8 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
             else:
                 formatted_items.append(str(spec))
         items = formatted_items
+        if not items:
+            return resources
     
     # Get cities
     cities = []
@@ -173,8 +181,41 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         "Specialists": "👨‍💼 Specialists\n\nTrusted professionals recommended by members."
     }
 
+    # For Skills, Introductions, Specialists — show subcategories first
+    if category == "Skills and Knowledge":
+        desc = category_descriptions[category]
+        await callback.message.edit_text(
+            f"{desc}\n\nSelect a category:",
+            reply_markup=get_resource_subcategories_keyboard(SKILL_CATEGORIES, "res_skill_sub", "back_to_resources")
+        )
+        await callback.answer()
+        return
+
+    if category == "Personal Introductions to Key People":
+        desc = category_descriptions[category]
+        await callback.message.edit_text(
+            f"{desc}\n\nSelect a category:",
+            reply_markup=get_resource_subcategories_keyboard(INTRO_CATEGORIES, "res_intro_sub", "back_to_resources")
+        )
+        await callback.answer()
+        return
+
+    if category == "Specialists":
+        desc = category_descriptions[category]
+        await callback.message.edit_text(
+            f"{desc}\n\nSelect a category:",
+            reply_markup=get_resource_subcategories_keyboard(SPECIALIST_CATEGORIES, "res_spec_sub", "back_to_resources")
+        )
+        await callback.answer()
+        return
+
     description = category_descriptions.get(category, f"📦 {category}")
 
+    await _show_resources_list(callback, db, category, description, "back_to_resources")
+
+
+async def _show_resources_list(callback: CallbackQuery, db: Database, category: str, description: str, back_callback: str, subcategory_items: set = None, subcategory_key: str = None):
+    """Show resources list, optionally filtered by subcategory items or key"""
     await callback.message.edit_text(f"{description}\n\nLoading resources...")
 
     # Get resources from Lots (manually added)
@@ -195,8 +236,21 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
                 "points": user_data["points"],
                 "main_city": user_data["main_city"]
             }
-            extracted = extract_resources_from_registration(reg_data, category, user_info)
-            questionnaire_resources.extend(extracted)
+            # For specialists, pass subcategory_key to filter at extraction level
+            if category == "Specialists" and subcategory_key:
+                extracted = extract_resources_from_registration(reg_data, category, user_info, subcategory_key=subcategory_key)
+                questionnaire_resources.extend(extracted)
+            else:
+                extracted = extract_resources_from_registration(reg_data, category, user_info)
+                # Filter by subcategory items for Skills/Introductions
+                if subcategory_items is not None and extracted:
+                    for res in extracted:
+                        filtered = [i for i in res['items'] if i in subcategory_items]
+                        if filtered:
+                            res['items'] = filtered
+                            questionnaire_resources.append(res)
+                else:
+                    questionnaire_resources.extend(extracted)
         except (json.JSONDecodeError, KeyError):
             continue
 
@@ -260,10 +314,79 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         await callback.message.edit_text(chunks[0])
         for chunk in chunks[1:]:
             await callback.message.answer(chunk)
-        await callback.message.answer("End of list", reply_markup=get_back_keyboard("back_to_resources"))
+        await callback.message.answer("End of list", reply_markup=get_back_keyboard(back_callback))
     else:
-        await callback.message.edit_text(resources_text, reply_markup=get_back_keyboard("back_to_resources"))
+        await callback.message.edit_text(resources_text, reply_markup=get_back_keyboard(back_callback))
 
+    await callback.answer()
+
+
+# --- Subcategory handlers ---
+
+@router.callback_query(F.data.startswith("res_skill_sub:"))
+async def show_skill_subcategory(callback: CallbackQuery, db: Database):
+    """Show resources for a specific Skills subcategory"""
+    sub_key = callback.data.split(":", 1)[1]
+    cat_data = SKILL_CATEGORIES.get(sub_key)
+    if not cat_data:
+        await callback.answer("Category not found")
+        return
+    items = set(cat_data["items"])
+    desc = f"🧑🏼‍💻 Skills and Knowledge — {cat_data['name']}"
+    await _show_resources_list(callback, db, "Skills and Knowledge", desc, "back_to_skill_subs", subcategory_items=items)
+
+
+@router.callback_query(F.data.startswith("res_intro_sub:"))
+async def show_intro_subcategory(callback: CallbackQuery, db: Database):
+    """Show resources for a specific Personal Introduction subcategory"""
+    sub_key = callback.data.split(":", 1)[1]
+    cat_data = INTRO_CATEGORIES.get(sub_key)
+    if not cat_data:
+        await callback.answer("Category not found")
+        return
+    items = set(cat_data["items"])
+    desc = f"🤝🏻 Personal Introduction — {cat_data['name']}"
+    await _show_resources_list(callback, db, "Personal Introductions to Key People", desc, "back_to_intro_subs", subcategory_items=items)
+
+
+@router.callback_query(F.data.startswith("res_spec_sub:"))
+async def show_spec_subcategory(callback: CallbackQuery, db: Database):
+    """Show resources for a specific Specialists subcategory"""
+    sub_key = callback.data.split(":", 1)[1]
+    cat_data = SPECIALIST_CATEGORIES.get(sub_key)
+    if not cat_data:
+        await callback.answer("Category not found")
+        return
+    desc = f"👨‍💼 Specialists — {cat_data['name']}"
+    await _show_resources_list(callback, db, "Specialists", desc, "back_to_spec_subs", subcategory_key=sub_key)
+
+
+# --- Back to subcategories ---
+
+@router.callback_query(F.data == "back_to_skill_subs")
+async def back_to_skill_subs(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "🧑🏼‍💻 Skills and Knowledge\n\nSelect a category:",
+        reply_markup=get_resource_subcategories_keyboard(SKILL_CATEGORIES, "res_skill_sub", "back_to_resources")
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_intro_subs")
+async def back_to_intro_subs(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "🤝🏻 Personal Introduction\n\nSelect a category:",
+        reply_markup=get_resource_subcategories_keyboard(INTRO_CATEGORIES, "res_intro_sub", "back_to_resources")
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "back_to_spec_subs")
+async def back_to_spec_subs(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "👨‍💼 Specialists\n\nSelect a category:",
+        reply_markup=get_resource_subcategories_keyboard(SPECIALIST_CATEGORIES, "res_spec_sub", "back_to_resources")
+    )
     await callback.answer()
 
 

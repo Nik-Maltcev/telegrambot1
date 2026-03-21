@@ -62,6 +62,7 @@ from bot.config import ADMIN_IDS
 
 from bot.form_data import (
 
+ RESOURCE_ACCESS_CATEGORIES,
  SKILL_CATEGORIES, ALL_SKILLS, OFFER_FORMATS, RESULT_TYPES,
 
  CITIES, INTRO_CATEGORIES, 
@@ -99,6 +100,42 @@ import asyncio
 
 
 router = Router()
+
+RESOURCE_ACCESS_CATEGORY_ORDER = list(RESOURCE_ACCESS_CATEGORIES.keys())
+
+
+def _get_next_ra_category(category_key: str):
+    if category_key not in RESOURCE_ACCESS_CATEGORY_ORDER:
+        return None
+    idx = RESOURCE_ACCESS_CATEGORY_ORDER.index(category_key)
+    if idx + 1 < len(RESOURCE_ACCESS_CATEGORY_ORDER):
+        return RESOURCE_ACCESS_CATEGORY_ORDER[idx + 1]
+    return None
+
+
+async def _show_ra_category_items(callback: CallbackQuery, state: FSMContext, category_key: str):
+    data = await state.get_data()
+    selected = set(data.get("selected_ra_items", []))
+    category_name = RESOURCE_ACCESS_CATEGORIES[category_key]["name"]
+    next_category_key = _get_next_ra_category(category_key)
+    done_text = "Next ➡️" if next_category_key else "🆗 Done"
+
+    await state.update_data(ra_item_page=0)
+    await callback.message.edit_text(
+        f"Category: {category_name}\n\nSelect the resources you own or manage:\nYou can select multiple",
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            RESOURCE_ACCESS_CATEGORIES,
+            selected,
+            "ra_item",
+            "ra_item_done",
+            "ra_back_cat",
+            page=0,
+            page_callback_prefix="ra_item_page",
+            done_text=done_text,
+        )
+    )
+
 
 SKILL_CATEGORY_ORDER = list(SKILL_CATEGORIES.keys())
 
@@ -401,9 +438,10 @@ class Registration(StatesGroup):
 
     instagram = State()
 
-
-
-
+    # Resources & Access section
+    resource_access_section = State()
+    resource_access_items = State()
+    resource_access_location = State()
 
     # Skills section
 
@@ -851,6 +889,7 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
 
 
 
+            selected_ra_items=[],
             selected_skill_items=[], selected_offer_formats=[],
 
 
@@ -1505,28 +1544,62 @@ async def process_about(message: Message, state: FSMContext):
 
     await state.update_data(about=message.text)
 
+    ra_intro = (
+        "1|11 🏢 Resources & Access\n\n"
+        "Please indicate the businesses, spaces, or platforms you own or manage "
+        "that other residents could collaborate with or use.\n\n"
+        "These resources help create opportunities for partnerships, projects, "
+        "and shared growth within the community."
+    )
+
+    await message.answer(
+        ra_intro,
+        reply_markup=get_section_intro_keyboard("ra_start", "ra_skip", "ra_sec_back")
+    )
+
+    await state.set_state(Registration.resource_access_section)
 
 
 
 
+
+
+# ============ Resources & Access Section ============
+
+@router.callback_query(Registration.resource_access_section, F.data == "ra_sec_back")
+async def back_from_ra_section(callback: CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    await callback.message.answer(
+        "Tell us a bit about yourself\nDescribe it shortly — just a few words.\n"
+        "In one of the next questions, you'll be able to share more details.\n\n"
+        "Examples:\nArtist · Community creator\nFounder · Creative entrepreneur\nDJ · Music curator",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.about)
+    await callback.answer()
+
+
+@router.callback_query(Registration.resource_access_section, F.data == "ra_skip")
+async def skip_ra_section(callback: CallbackQuery, state: FSMContext):
+    # Move to Skills section
     first_category_key = SKILL_CATEGORY_ORDER[0]
     first_category_name = SKILL_CATEGORIES[first_category_key]["name"]
 
     skills_intro = (
-        "1|10 🧑🏼‍💻 Skills and Knowledge\n\n"
+        "2|11 \U0001f9d1\U0001f3fc\u200d\U0001f4bb Skills and Knowledge\n\n"
         "Please provide information about the skills, knowledge, and professional abilities "
         "you are willing to share with the community.\n\n"
         "Each of us carries unique mastery. Here you can list the areas where you can:\n"
-        "• give a thoughtful consultation\n"
-        "• teach your skill or method\n"
-        "• guide someone through a process\n"
-        "• create or deliver a clear final result\n\n"
+        "\u2022 give a thoughtful consultation\n"
+        "\u2022 teach your skill or method\n"
+        "\u2022 guide someone through a process\n"
+        "\u2022 create or deliver a clear final result\n\n"
         f"Category: {first_category_name}\n\n"
         "Select specific skills/areas:\n"
         "You can select multiple"
     )
 
-    await message.answer(
+    await callback.message.edit_text(
         skills_intro,
         reply_markup=get_category_items_keyboard(
             first_category_key,
@@ -1537,21 +1610,155 @@ async def process_about(message: Message, state: FSMContext):
             "skill_back_cat",
             page=0,
             page_callback_prefix="q_item_page",
-            done_text="Next ➡️",
+            done_text="Next \u27a1\ufe0f",
         )
     )
 
     await state.update_data(current_skill_category=first_category_key, q_item_page=0)
     await state.set_state(Registration.skill_items)
+    await callback.answer()
 
 
+@router.callback_query(Registration.resource_access_section, F.data == "ra_start")
+async def start_ra_section(callback: CallbackQuery, state: FSMContext):
+    first_category = RESOURCE_ACCESS_CATEGORY_ORDER[0]
+    await state.update_data(current_ra_category=first_category, ra_item_page=0)
+    await _show_ra_category_items(callback, state, first_category)
+    await state.set_state(Registration.resource_access_items)
+    await callback.answer()
 
 
+@router.callback_query(Registration.resource_access_items, F.data.startswith("ra_item:"))
+async def toggle_ra_item(callback: CallbackQuery, state: FSMContext):
+    item_hash = callback.data.split(":")[1]
+    data = await state.get_data()
+    category_key = data.get("current_ra_category")
+    items_list = RESOURCE_ACCESS_CATEGORIES.get(category_key, {}).get("items", [])
+    target_item = find_item_by_hash(items_list, item_hash)
+    if target_item:
+        selected = set(data.get("selected_ra_items", []))
+        if target_item in selected:
+            selected.remove(target_item)
+        else:
+            selected.add(target_item)
+        await state.update_data(selected_ra_items=list(selected))
+        next_category_key = _get_next_ra_category(category_key)
+        await callback.message.edit_reply_markup(
+            reply_markup=get_category_items_keyboard(
+                category_key,
+                RESOURCE_ACCESS_CATEGORIES,
+                selected,
+                "ra_item",
+                "ra_item_done",
+                "ra_back_cat",
+                page=data.get("ra_item_page", 0),
+                page_callback_prefix="ra_item_page",
+                done_text="Next \u27a1\ufe0f" if next_category_key else "\U0001f197 Done"
+            )
+        )
+    await callback.answer()
 
-# --- Skills Section Handlers ---
+
+@router.callback_query(Registration.resource_access_items, F.data.startswith("ra_item_page:"))
+async def page_ra_items(callback: CallbackQuery, state: FSMContext):
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    category_key = data.get("current_ra_category")
+    selected = set(data.get("selected_ra_items", []))
+    await state.update_data(ra_item_page=page)
+    next_category_key = _get_next_ra_category(category_key)
+    await callback.message.edit_reply_markup(
+        reply_markup=get_category_items_keyboard(
+            category_key,
+            RESOURCE_ACCESS_CATEGORIES,
+            selected,
+            "ra_item",
+            "ra_item_done",
+            "ra_back_cat",
+            page=page,
+            page_callback_prefix="ra_item_page",
+            done_text="Next \u27a1\ufe0f" if next_category_key else "\U0001f197 Done"
+        )
+    )
+    await callback.answer()
 
 
+@router.callback_query(Registration.resource_access_items, F.data == "ra_back_cat")
+async def back_from_ra_items(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    current_category = data.get("current_ra_category")
+    if current_category in RESOURCE_ACCESS_CATEGORY_ORDER:
+        idx = RESOURCE_ACCESS_CATEGORY_ORDER.index(current_category)
+        if idx > 0:
+            prev_category = RESOURCE_ACCESS_CATEGORY_ORDER[idx - 1]
+            await state.update_data(current_ra_category=prev_category, ra_item_page=0)
+            await _show_ra_category_items(callback, state, prev_category)
+            await callback.answer()
+            return
+    # Back to section intro
+    ra_intro = (
+        "1|11 \U0001f3e2 Resources & Access\n\n"
+        "Please indicate the businesses, spaces, or platforms you own or manage "
+        "that other residents could collaborate with or use.\n\n"
+        "These resources help create opportunities for partnerships, projects, "
+        "and shared growth within the community."
+    )
+    await callback.message.edit_text(
+        ra_intro,
+        reply_markup=get_section_intro_keyboard("ra_start", "ra_skip", "ra_sec_back")
+    )
+    await state.set_state(Registration.resource_access_section)
+    await callback.answer()
 
+
+@router.callback_query(Registration.resource_access_items, F.data == "ra_item_done")
+async def finish_ra_items(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    current_category = data.get("current_ra_category")
+    next_category = _get_next_ra_category(current_category)
+
+    if next_category:
+        await state.update_data(current_ra_category=next_category, ra_item_page=0)
+        await _show_ra_category_items(callback, state, next_category)
+        await callback.answer()
+        return
+
+    # Move to Skills section
+    first_category_key = SKILL_CATEGORY_ORDER[0]
+    first_category_name = SKILL_CATEGORIES[first_category_key]["name"]
+
+    skills_intro = (
+        "2|11 \U0001f9d1\U0001f3fc\u200d\U0001f4bb Skills and Knowledge\n\n"
+        "Please provide information about the skills, knowledge, and professional abilities "
+        "you are willing to share with the community.\n\n"
+        "Each of us carries unique mastery. Here you can list the areas where you can:\n"
+        "\u2022 give a thoughtful consultation\n"
+        "\u2022 teach your skill or method\n"
+        "\u2022 guide someone through a process\n"
+        "\u2022 create or deliver a clear final result\n\n"
+        f"Category: {first_category_name}\n\n"
+        "Select specific skills/areas:\n"
+        "You can select multiple"
+    )
+
+    await callback.message.edit_text(
+        skills_intro,
+        reply_markup=get_category_items_keyboard(
+            first_category_key,
+            SKILL_CATEGORIES,
+            set(),
+            "q_item",
+            "q_item_done",
+            "skill_back_cat",
+            page=0,
+            page_callback_prefix="q_item_page",
+            done_text="Next \u27a1\ufe0f",
+        )
+    )
+
+    await state.update_data(current_skill_category=first_category_key, q_item_page=0)
+    await state.set_state(Registration.skill_items)
+    await callback.answer()
 
 
 @router.callback_query(Registration.skill_category, F.data == "skill_cat_back")
@@ -1559,37 +1766,19 @@ async def process_about(message: Message, state: FSMContext):
 
 
 async def back_from_skill_category(callback: CallbackQuery, state: FSMContext):
-
-
-
-    await callback.message.delete()
-
-
-
-    await callback.message.answer(
-
-
-
-        "Tell us a bit about yourself\nDescribe it shortly — just a few words.\nIn one of the next questions, you'll be able to share more details.\n\nExamples:\nArtist · Community creator\nFounder · Creative entrepreneur\nDJ · Music curator",
-
-
-
-        reply_markup=get_cancel_keyboard()
-
-
-
+    ra_intro = (
+        "1|11 🏢 Resources & Access\n\n"
+        "Please indicate the businesses, spaces, or platforms you own or manage "
+        "that other residents could collaborate with or use.\n\n"
+        "These resources help create opportunities for partnerships, projects, "
+        "and shared growth within the community."
     )
-
-
-
-    await state.set_state(Registration.about)
-
-
-
+    await callback.message.edit_text(
+        ra_intro,
+        reply_markup=get_section_intro_keyboard("ra_start", "ra_skip", "ra_sec_back")
+    )
+    await state.set_state(Registration.resource_access_section)
     await callback.answer()
-
-
-
 
 
 @router.callback_query(Registration.skill_category, F.data.startswith("skill_cat:"))
@@ -1981,7 +2170,7 @@ async def finish_result_type(callback: CallbackQuery, state: FSMContext):
 
     intro_text = (
 
-        "2|10 🤝🏻 Personal Introduction\n\n"
+        "3|11 🤝🏻 Personal Introduction\n\n"
 
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
 
@@ -2021,7 +2210,7 @@ async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "3|10 🗽 Real Estate\n\n"
+        "4|11 🗽 Real Estate\n\n"
 
 
 
@@ -2082,7 +2271,7 @@ async def back_to_intro_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "2|10 🤝🏻 Personal Introduction\n\n"
+        "3|11 🤝🏻 Personal Introduction\n\n"
 
 
 
@@ -2203,7 +2392,7 @@ async def back_to_intro_categories(callback: CallbackQuery, state: FSMContext):
             return
 
     intro_text = (
-        "2|10 🤝🏻 Personal Introduction\n\n"
+        "3|11 🤝🏻 Personal Introduction\n\n"
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
@@ -2236,7 +2425,7 @@ async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
 
     real_estate_text = (
 
-        "3|10 🗽 Real Estate\n\n"
+        "4|11 🗽 Real Estate\n\n"
 
         "Whether it's an apartment, a villa you use only part-time — or simply your space is spacious enough "
 
@@ -2356,7 +2545,7 @@ async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-            "2|10 🤝🏻 Personal Introduction\n\n"
+            "3|11 🤝🏻 Personal Introduction\n\n"
 
 
 
@@ -2442,7 +2631,7 @@ async def skip_realestate_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "4|10 🖤 Cars\n\n"
+        "5|11 🖤 Cars\n\n"
 
 
 
@@ -2534,7 +2723,7 @@ async def back_from_prop_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "3|10 🗽 Real Estate\n\n"
+        "4|11 🗽 Real Estate\n\n"
 
 
 
@@ -2838,7 +3027,7 @@ async def finish_property_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-            "4|10 \U0001f5a4 Cars\n\n"
+            "5|11 \U0001f5a4 Cars\n\n"
 
 
 
@@ -2940,7 +3129,7 @@ async def skip_cars_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "5|10 🎧 Equipment\n\n"
+        "6|11 🎧 Equipment\n\n"
 
 
 
@@ -3028,7 +3217,7 @@ async def back_from_car_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "4|10 🖤 Cars\n\n"
+        "5|11 🖤 Cars\n\n"
 
 
 
@@ -3330,7 +3519,7 @@ async def finish_vehicle_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "5|10 \U0001f3a7 Equipment\n\n"
+        "6|11 \U0001f3a7 Equipment\n\n"
 
 
 
@@ -3420,7 +3609,7 @@ async def skip_equipment_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "6|10 🛩️ Aircrafts\n\n"
+        "7|11 🛩️ Aircrafts\n\n"
 
 
 
@@ -3512,7 +3701,7 @@ async def back_from_equip_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "5|10 🎧 Equipment\n\n"
+        "6|11 🎧 Equipment\n\n"
 
 
 
@@ -3786,7 +3975,7 @@ async def finish_equipment_types(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "6|10 \U0001f6e9\ufe0f Aircrafts\n\n"
+        "7|11 \U0001f6e9\ufe0f Aircrafts\n\n"
 
 
 
@@ -3882,7 +4071,7 @@ async def skip_aircraft_section(callback: CallbackQuery, state: FSMContext, db: 
 
 
 
-        "7|10 💎 Boats\n\n"
+        "8|11 💎 Boats\n\n"
 
 
 
@@ -3958,7 +4147,7 @@ async def back_from_air_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "6|10 🛩️ Aircrafts\n\n"
+        "7|11 🛩️ Aircrafts\n\n"
 
 
 
@@ -4230,7 +4419,7 @@ async def finish_aircraft_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "7|10 \U0001f48e Boats\n\n"
+        "8|11 \U0001f48e Boats\n\n"
 
 
 
@@ -4324,7 +4513,7 @@ async def skip_vessel_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "8|10 🩵 Specialists\n\n"
+        "9|11 🩵 Specialists\n\n"
 
 
 
@@ -4404,7 +4593,7 @@ async def back_from_vessel_location(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "7|10 💎 Boats\n\n"
+        "8|11 💎 Boats\n\n"
 
 
 
@@ -4674,7 +4863,7 @@ async def finish_vessel_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "8|10 \U0001f499 Specialists\n\n"
+        "9|11 \U0001f499 Specialists\n\n"
 
 
 
@@ -4768,7 +4957,7 @@ async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "9|10 🫧 Works of Art\n\n"
+        "10|11 🫧 Works of Art\n\n"
 
 
 
@@ -4847,7 +5036,7 @@ async def back_from_spec_items(callback: CallbackQuery, state: FSMContext):
             return
 
     specialist_text = (
-        "8|10 🩵 Specialists\n\n"
+        "9|11 🩵 Specialists\n\n"
         "Each of us has our own \"super-people\" — specialists who once saved the day, guided us through a challenge, "
         "brought clarity, or simply made life easier.\n\n"
         "Please list only those specialists you have personally worked with and can genuinely vouch for."
@@ -5375,7 +5564,7 @@ async def finish_specialist_loop(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "9|10 🫧 Works of Art\n\n"
+        "10|11 🫧 Works of Art\n\n"
 
 
 
@@ -5461,7 +5650,7 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-            "8|10 🩵 Specialists\n\n"
+            "9|11 🩵 Specialists\n\n"
 
 
 
@@ -5569,7 +5758,7 @@ async def back_from_art_form(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "9|10 🫧 Works of Art\n\n"
+        "10|11 🫧 Works of Art\n\n"
 
 
 
@@ -5893,7 +6082,7 @@ async def process_art_link(message: Message, state: FSMContext, db: Database):
 
 
 
-        "10|10 🗺 Share Your Map\n\n"
+        "11|11 🗺 Share Your Map\n\n"
 
 
 
@@ -6039,7 +6228,7 @@ async def back_from_maps_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "10|10 🗺 Share Your Map\n\n"
+        "11|11 🗺 Share Your Map\n\n"
 
 
 

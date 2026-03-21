@@ -1,4 +1,71 @@
 
+# --- Resources & Access ---
+RESOURCE_ACCESS_CATEGORIES = {
+    "hospitality": {
+        "name": "Hospitality, Dining & Experiences",
+        "items": [
+            "Hotel", "Boutique hotel", "Guesthouse", "Members club",
+            "Beach club", "Private dining venue", "Retreat center",
+            "Airbnb / short-term rentals", "Villas or private residences for hosting",
+            "Restaurant", "Bar", "Nightclub", "Café", "Specialty coffee shop",
+            "Cannabis coffeeshop", "Tea shop", "Wine bar", "Wine shop",
+            "Winery", "Craft brewery", "Distillery", "Catering company",
+            "Travel agency", "Concierge service", "Car rental service",
+            "Boat rental service"
+        ]
+    },
+    "creative_spaces": {
+        "name": "Creative & Cultural Spaces",
+        "items": [
+            "Art gallery", "Artist studio", "Project space", "Exhibition space",
+            "Cultural center", "Music studio", "Dance studio", "Photography studio",
+            "Podcast studio", "Creative production studio",
+            "Rehearsal or performance space", "Event space", "Festival space",
+            "Co-working space", "Office space", "Workshop space", "Maker space"
+        ]
+    },
+    "media_platforms": {
+        "name": "Media, Platforms & Promotion",
+        "items": [
+            "Media platform", "Podcast", "YouTube channel", "Blog",
+            "Streaming channel", "Online marketplace", "E-commerce platform",
+            "Booking platform", "Ticketing platform", "Production company",
+            "Marketing platform", "Influencer network", "PR agency",
+            "Creative agency", "Talent management agency",
+            "Influential social media account"
+        ]
+    },
+    "wellness_beauty": {
+        "name": "Wellness, Beauty & Medical",
+        "items": [
+            "Wellness center", "Spa", "Yoga studio", "Pilates studio",
+            "Meditation, breathwork & sound healing center", "Fitness studio",
+            "Gym", "Beauty salon", "Aesthetic clinic", "Massage studio",
+            "Medical clinic", "Dental clinic"
+        ]
+    },
+    "brands_craft": {
+        "name": "Brands & Craft Production",
+        "items": [
+            "Fashion brand", "Jewelry brand", "Watch brand", "Eyewear brand",
+            "Perfume brand", "Beauty brand", "Design objects brand",
+            "Furniture brand", "Home decor brand", "Food brand",
+            "Beverage brand", "Specialty food brand", "Automotive brand",
+            "Audio equipment brand", "Tech device brand", "Craft workshop",
+            "Ceramics studio", "Rare craft production"
+        ]
+    },
+    "investment_business": {
+        "name": "Investment & Business Infrastructure",
+        "items": [
+            "Venture fund", "Angel investor network", "Startup accelerator",
+            "Business network", "Investment club", "Manufacturing facility",
+            "Manufacturing & sourcing network", "Distribution network",
+            "Logistics service", "Licensing company"
+        ]
+    }
+}
+
 SKILL_CATEGORIES = {
     "A": {
         "name": "Business & Strategy",

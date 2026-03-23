@@ -184,7 +184,7 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         "Unique opportunities": "🫆 Unique Opportunities\n\nSpecial opportunities and unique experiences.",
         "Artworks": "🫧 Art & Creative Works\n\nArtwork and creative works available.",
         "Personal Introductions to Key People": "🤝🏻 Personal Introduction\n\nConnections to professional or social circles.",
-        "Specialists": "👨‍💼 Specialists\n\nTrusted professionals recommended by members."
+        "Specialists": "🫆 Specialists\n\nTrusted professionals recommended by members."
     }
 
     # For Skills, Introductions, Specialists — show subcategories first
@@ -372,7 +372,7 @@ async def show_spec_subcategory(callback: CallbackQuery, db: Database):
     if not cat_data:
         await callback.answer("Category not found")
         return
-    desc = f"👨‍💼 Specialists — {cat_data['name']}"
+    desc = f"🫆 Specialists — {cat_data['name']}"
     await _show_resources_list(callback, db, "Specialists", desc, "back_to_spec_subs", subcategory_key=sub_key)
 
 
@@ -399,7 +399,7 @@ async def back_to_intro_subs(callback: CallbackQuery):
 @router.callback_query(F.data == "back_to_spec_subs")
 async def back_to_spec_subs(callback: CallbackQuery):
     await callback.message.edit_text(
-        "👨‍💼 Specialists\n\nSelect a category:",
+        "🫆 Specialists\n\nSelect a category:",
         reply_markup=get_resource_subcategories_keyboard(SPECIALIST_CATEGORIES, "res_spec_sub", "back_to_resources")
     )
     await callback.answer()

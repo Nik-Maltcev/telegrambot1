@@ -195,9 +195,19 @@ async def _show_intro_category_items(callback: CallbackQuery, state: FSMContext,
     next_category_key = _get_next_intro_category(category_key)
     done_text = "Next ➡️" if next_category_key else "🆗 Done"
 
+    if category_key == "private_events":
+        prompt_text = (
+            f"Category: {category_name}\n\n"
+            "This section is about events and gatherings that don't usually show up "
+            "in public listings, where access comes through connections rather than tickets.\n\n"
+            "Select events you can provide access to for other residents:"
+        )
+    else:
+        prompt_text = f"Category: {category_name}\n\nSelect the people you can introduce:"
+
     await state.update_data(intro_item_page=0)
     await callback.message.edit_text(
-        f"Category: {category_name}\n\nSelect the people you can introduce:",
+        prompt_text,
         reply_markup=get_category_items_keyboard(
             category_key,
             INTRO_CATEGORIES,
@@ -2178,7 +2188,7 @@ async def finish_result_type(callback: CallbackQuery, state: FSMContext):
 
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
 
-        "Sharing information about them does not commit you to making an introduction."
+        "Titles are indicative. If your contact is a decision maker, list them in the closest category."
 
     )
 
@@ -2287,7 +2297,7 @@ async def back_to_intro_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "Sharing information about them does not commit you to making an introduction."
+        "Titles are indicative. If your contact is a decision maker, list them in the closest category."
 
 
 
@@ -2396,7 +2406,7 @@ async def back_to_intro_categories(callback: CallbackQuery, state: FSMContext):
         "In almost every life story, there is a moment when someone opened a door for us.\n\n"
         "Here, you can describe the key people in your orbit — founders, creators, innovators, "
         "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
-        "Sharing information about them does not commit you to making an introduction."
+        "Titles are indicative. If your contact is a decision maker, list them in the closest category."
     )
     await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
 
@@ -2561,7 +2571,7 @@ async def back_from_re_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-            "Sharing information about them does not commit you to making an introduction."
+            "Titles are indicative. If your contact is a decision maker, list them in the closest category."
 
 
 

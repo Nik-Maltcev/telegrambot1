@@ -223,12 +223,18 @@ INTRO_CATEGORIES = {
             "Public art commissioners",
             "Private art collectors",
             "Art advisors to collectors",
-            "Directors of art biennales",
+            "Art biennale organizers",
             "Independent exhibition curators",
             "Museum board members",
-            "Cultural institution directors",
-            "Art fair directors",
-            "Public art producers"
+            "Cultural institution leaders",
+            "Art fair organizers",
+            "Public art producers",
+            "Curators of private collections",
+            "Art residency team",
+            "Creative directors",
+            "Cultural producers",
+            "Festival programmers",
+            "Art curators"
         ]
     },
     "stage_music": {
@@ -236,14 +242,11 @@ INTRO_CATEGORIES = {
         "items": [
             "Teams of major music festivals",
             "Members of private music communities",
-            "Organizers of Burning Man and Burning Man camps",
             "Production teams of large shows",
-            "Talent booking agents",
             "Music label founders",
             "Artist managers",
             "Club founders and owners",
             "Touring production managers",
-            "Concert promoters",
             "Event creative directors",
             "Immersive show creators",
             "Cultural event curators",
@@ -256,7 +259,9 @@ INTRO_CATEGORIES = {
             "Festival curators",
             "Event marketing & PR teams",
             "Event promoters",
-            "Burning Man & AB organizers"
+            "Burning Man & AB organizers",
+            "Venue owners & operators",
+            "Music & event producers"
         ]
     },
     "fashion_luxury": {
@@ -267,8 +272,7 @@ INTRO_CATEGORIES = {
             "Fashion week producers",
             "Fashion production directors",
             "Niche brand owners",
-            "Watchmakers & owners",
-            "Private workshop jewelers",
+            "Watchmakers",
             "Luxury brand founders",
             "Creative directors of fashion houses",
             "Fashion investors",
@@ -280,8 +284,11 @@ INTRO_CATEGORIES = {
             "Luxury concept store founders",
             "Couture atelier owners",
             "Jewelry designers",
-            "Watch collectors",
-            "Private jewelers"
+            "Private jewelers",
+            "Brand PR & communications leads",
+            "Fashion PR agent",
+            "Guest list managers",
+            "Showroom PR manager"
         ]
     },
     "business_influence": {
@@ -316,7 +323,11 @@ INTRO_CATEGORIES = {
             "Growth hackers",
             "Global conference organizers",
             "Capital owners",
-            "Fund managers"
+            "Fund managers",
+            "Wine industry entrepreneurs",
+            "Restaurant group owners",
+            "Hospitality entrepreneurs",
+            "Corporate innovation / venture leads"
         ]
     },
     "travel_access": {
@@ -324,51 +335,51 @@ INTRO_CATEGORIES = {
         "items": [
             "Private travel organizers",
             "Retreat center founders",
-            "Boat/yacht owners",
             "Private aviation reps",
             "Private traveler club heads",
             "VIP sports access organizers",
-            "Cultural center directors",
             "Luxury travel concierges",
-            "Expedition leaders",
             "Safari lodge owners",
             "Private island owners",
             "Remote resort founders",
-            "Cultural expedition organizers",
             "Members of exploration clubs",
             "Private guide networks",
             "Luxury concierge founders",
             "Adventure travel curators",
-            "Overland expedition organizers",
             "Yacht charter brokers",
             "Private aviation brokers",
-            "Global relocation specialists"
+            "Global relocation specialists",
+            "Border & immigration facilitator",
+            "Boutique hotel founders",
+            "Gastronomy retreat founders"
         ]
     },
-    "rare_professions": {
-        "name": "Specific & Rare Professions / Access",
+    "private_events": {
+        "name": "Private & Hard-to-Access Events",
         "items": [
-            "Architects of unique projects",
-            "University research lab heads",
-            "Charitable foundation heads",
-            "Diplomatic representatives",
-            "Rare book collectors",
-            "Private archive keepers",
-            "Space industry engineers",
-            "Cultural heritage restorers",
-            "Experimental research scientists",
-            "Think tank founders and directors",
-            "Antique artifact specialists"
-        ]
-    },
-    "collectors_patrons": {
-        "name": "Collectors & Patrons",
-        "items": [
-            "Art collectors",
-            "Rare watch collectors",
-            "Vintage car collectors",
-            "Cultural patrons",
-            "Private museum founders"
+            "Oscars", "Grammy Awards", "Emmy Awards", "Golden Globe Awards",
+            "Met Gala", "Cannes Film Festival access", "Venice Film Festival access",
+            "Art Basel VIP access", "Frieze VIP programs", "Venice Biennale",
+            "TEFAF Maastricht", "Paris Fashion Week", "Milan Fashion Week private access",
+            "Super Bowl", "FIFA World Cup", "UEFA Champions League Final",
+            "Wimbledon Championships", "Formula 1 Monaco Grand Prix",
+            "Coachella (private access)", "Burning Man (private camps)",
+            "Tomorrowland (VIP / backstage)", "NBA Finals", "World Series",
+            "US Open", "The Masters Tournament", "Abu Dhabi Grand Prix",
+            "British Grand Prix", "El Clásico",
+            "Monaco Yacht Show", "Cannes Yachting Festival",
+            "Palm Beach International Boat Show",
+            "Pebble Beach Concours d'Elegance", "Goodwood Festival of Speed",
+            "Concorso d'Eleganza Villa d'Este", "The ICE St. Moritz",
+            "Watches & Wonders Geneva",
+            "World Economic Forum", "Allen & Company Sun Valley Conference",
+            "Milken Institute Global Conference",
+            "Michelin Guide events", "World's 50 Best Restaurants Awards",
+            "Aspen Food & Wine Classic",
+            "Auction house private previews", "Invitation-only cultural salons",
+            "Invitation-only dinners", "Private member events",
+            "Showroom private previews", "Restricted location experiences",
+            "Backstage & behind-the-scenes access"
         ]
     }
 }

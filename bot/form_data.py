@@ -522,7 +522,7 @@ SPECIALIST_CATEGORIES = {
         "name": "Legalization & Finance",
         "items": [
             "Tax specialist",
-            "US visas",
+            "US immigration specialists",
             "European residence permits",
             "Schengen visas",
             "Citizenship",
@@ -530,7 +530,17 @@ SPECIALIST_CATEGORIES = {
             "Legal services",
             "Real estate investments",
             "Investments for HNWIs",
-            "Wealth management"
+            "Wealth management",
+            "Offshore company formation",
+            "Immigration lawyers",
+            "Trust & foundation setup",
+            "Crypto tax advisors",
+            "Asset protection specialists",
+            "International corporate structuring",
+            "Family office advisors",
+            "Private bankers",
+            "Relocation & residency advisors",
+            "Private investment deal access (VC / PE)"
         ]
     },
     "health_body": {
@@ -545,7 +555,13 @@ SPECIALIST_CATEGORIES = {
             "Sports recovery therapists",
             "Clinical nutritionists",
             "Mobility & posture specialists",
-            "Medical diagnostics experts"
+            "Medical diagnostics experts",
+            "Neuropsychologists",
+            "Cognitive performance specialists",
+            "Hormone health specialists",
+            "Biohacking specialists",
+            "Aesthetic medicine doctors",
+            "Doctors-on-demand"
         ]
     },
     "wellbeing": {
@@ -559,7 +575,11 @@ SPECIALIST_CATEGORIES = {
             "Sleep optimization pros",
             "Nervous system experts",
             "Recovery & regeneration",
-            "Stress resilience experts"
+            "Stress resilience experts",
+            "Breathwork facilitators",
+            "Trauma therapists",
+            "Meditation teachers",
+            "Mindfulness teachers"
         ]
     },
     "human_potential": {
@@ -567,14 +587,12 @@ SPECIALIST_CATEGORIES = {
         "items": [
             "Performance coaches",
             "Focus & time coaches",
-            "Burnout specialists",
             "Habit designers",
-            "Burnout recovery specialists",
+            "Burnout & recovery specialists",
             "Life transition coaches",
             "Purpose & direction mentors",
             "Decision-making advisors",
             "Personal strategy consultants",
-            "Resilience coaches",
             "Flow state facilitators",
             "Founder psychology advisors",
             "Identity shift mentors"
@@ -584,35 +602,28 @@ SPECIALIST_CATEGORIES = {
         "name": "Art & Creative Industry",
         "items": [
             "Art managers and curators",
-            "Gallerists",
             "Art dealers",
-            "Professional photographers / videographers",
-            "Sound producers",
-            "High-level designers (fashion / graphic / UX)",
             "Art fair insiders",
-            "Collectors",
+            "Highly active private collectors",
             "Collection advisors",
             "Cultural institution leaders",
             "Residency program directors",
             "Art investment consultants",
             "Music supervisors",
             "Independent label founders",
-            "Festival programmers",
-            "Talent bookers",
-            "Cultural network connectors"
+            "Cultural network connectors",
+            "Art authentication & provenance experts",
+            "Art logistics specialists",
+            "Art restoration experts",
+            "Exhibition producers",
+            "Private art advisors",
+            "Art fair & VIP access insiders"
         ]
     },
     "business_startups": {
         "name": "Business & Startups",
         "items": [
             "Marketing strategists",
-            "Bloggers / digital personalities producers",
-            "SMM managers",
-            "SEO / Ads US\u2013Europe",
-            "Online course launch consultants",
-            "Sales and funnel specialists",
-            "Business coaches",
-            "Venture capital connectors",
             "Market entry strategists",
             "Cross-border expansion experts",
             "Investor relations advisors",
@@ -622,7 +633,12 @@ SPECIALIST_CATEGORIES = {
             "Licensing & compliance advisors",
             "Business model architects",
             "B2B growth strategists",
-            "Distribution channel builders"
+            "Distribution channel builders",
+            "Global expansion operators",
+            "Strategic partnership brokers",
+            "Venture dealmakers",
+            "Corporate innovation & venture leads",
+            "M&A & deal structuring advisors"
         ]
     },
     "personal_brand": {
@@ -630,9 +646,6 @@ SPECIALIST_CATEGORIES = {
         "items": [
             "PR agents (Europe / US / Asia)",
             "Media strategy specialists",
-            "Brand strategists",
-            "Content creators",
-            "Community builders",
             "Executive presence coaches",
             "Media placement consultants",
             "Influence partnership advisors",
@@ -640,7 +653,10 @@ SPECIALIST_CATEGORIES = {
             "Editorial strategy advisors",
             "Digital reputation architects",
             "High-profile networking advisors",
-            "Awards & recognition strategists"
+            "Awards & recognition strategists",
+            "Talent publicists",
+            "Editors & media insiders",
+            "Reputation management specialists"
         ]
     },
     "lifestyle_travel": {
@@ -649,14 +665,16 @@ SPECIALIST_CATEGORIES = {
             "Concierge services",
             "Luxury travel agents",
             "Relocation specialists",
-            "Travel designers",
             "Retreat & event hosts",
             "Residency & visa strategists",
             "Property search consultants",
             "Second-home setup advisors",
-            "Family relocation planners",
             "Experiential travel curators",
-            "On-ground fixers (local experts)"
+            "On-ground fixers (local experts)",
+            "Private aviation brokers",
+            "Yacht charter brokers",
+            "Restaurant & nightlife insiders",
+            "Restricted access / hard-to-reach destination planners"
         ]
     },
     "real_estate_spec": {
@@ -665,10 +683,14 @@ SPECIALIST_CATEGORIES = {
             "Agents for rent/purchase worldwide",
             "Real estate investment specialists (yield-analysis)",
             "Property management specialists",
-            "Property managers",
             "Off-market property brokers",
             "Real estate legal advisors",
-            "Private market deal sourcers"
+            "Private market deal sourcers",
+            "Real estate developers",
+            "Luxury real estate advisors",
+            "Distressed real estate specialists",
+            "Real estate syndicate operators",
+            "Land acquisition specialists"
         ]
     },
     "complex_problem_solvers": {
@@ -679,7 +701,12 @@ SPECIALIST_CATEGORIES = {
             "Crisis navigation experts",
             "Behind-the-scenes fixers",
             "Cross-border problem solvers",
-            "Access & escalation connectors"
+            "Access & escalation connectors",
+            "Political & regulatory navigators",
+            "Sanctions & compliance advisors",
+            "Litigation strategists",
+            "Intelligence & due diligence specialists",
+            "Reputation crisis fixers"
         ]
     }
 }

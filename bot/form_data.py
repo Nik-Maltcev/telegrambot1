@@ -453,6 +453,8 @@ EQUIPMENT_TYPES = [
     "VJ equipment",
     "Smoke machines",
     "Bubble machines",
+    "Mixing consoles",
+    "Studio monitors",
     "Other"
 ]
 

@@ -490,7 +490,10 @@ VESSEL_TYPES = [
     "Speedboat",
     "RIB / rigid inflatable boat",
     "Motorboat",
-    "Jet Ski"
+    "Jet Ski",
+    "Superyacht / luxury yacht",
+    "Yacht charter access",
+    "Day cruiser"
 ]
 
 VESSEL_LOCATIONS = [

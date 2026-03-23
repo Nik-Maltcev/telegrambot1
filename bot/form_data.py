@@ -476,7 +476,8 @@ AIRCRAFT_TYPES = [
     "Wingsuit",
     "Microlight trike",
     "Quadcopter",
-    "Autogyro"
+    "Autogyro",
+    "Private jet / business jet"
 ]
 
 

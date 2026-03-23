@@ -75,7 +75,12 @@ SKILL_CATEGORIES = {
             "Finance and taxation", "Investments and stock market", "Cryptocurrency and DeFi",
             "Project management", "Product management", "HR and recruitment",
             "Business process organization", "Packaging and offer development",
-            "Freelance business strategy", "Operations management", "Growth and scaling strategies"
+            "Freelance business strategy", "Operations management", "Growth and scaling strategies",
+            "Partnership strategy", "Business development", "Fundraising / investment strategy",
+            "Company / venture building", "Product strategy", "Deal structuring",
+            "Go-to-market strategy", "Market expansion strategy",
+            "Freelance / independent work strategy", "Offer / service development",
+            "Client acquisition"
         ]
     },
     "B": {
@@ -85,7 +90,8 @@ SKILL_CATEGORIES = {
             "3D modeling", "Animation", "Programming (Python, JS, Go, etc.)",
             "Data Science and analytics", "AI and automation", "Cybersecurity",
             "DevOps and system architecture", "Technical support",
-            "Working with neural networks / integrations"
+            "Working with neural networks / integrations",
+            "Product design", "Graphic design", "Creative coding"
         ]
     },
     "C": {
@@ -95,8 +101,11 @@ SKILL_CATEGORIES = {
             "Sound design", "Music production", "DJ", "Vocals", "Playing musical instruments",
             "Illustration", "Painting", "Sculpture", "Ceramics", "Digital art",
             "Fashion design", "Styling", "Curatorial practices", "Art mentorship",
-            "Creative direction / artistic direction", "Installation creation",
-            "3D printing in art"
+            "Installation creation", "3D printing in art",
+            "Film directing", "Performing arts", "Architecture", "Urbanism",
+            "Art space creation & curation", "Craft & independent brands",
+            "Interior design", "Tattoo art", "Sound engineering",
+            "Performance art", "Creative production", "Generative / AI art"
         ]
     },
     "D": {
@@ -105,7 +114,9 @@ SKILL_CATEGORIES = {
             "Psychology", "Body-oriented therapy", "Breathing practices",
             "Meditation and mindfulness", "Yoga", "Somatics", "Emotional intelligence",
             "Life coaching", "Energy practices (Reiki, healing, etc.)", "Trauma work",
-            "Neuropsychology", "Self-regulation practices"
+            "Neuropsychology", "Self-regulation practices",
+            "Nutrition & dietary guidance", "Movement practices",
+            "Performance & mental resilience"
         ]
     },
     "E": {
@@ -114,13 +125,14 @@ SKILL_CATEGORIES = {
             "Personal training", "Functional training", "Pilates", "Dance", "Stretching",
             "Home workouts", "Nutrition and dietetics", "Recovery after training",
             "Ice bathing, Wim Hof breathing", "Massage techniques", "Holistic wellness",
-            "Singing bowls", "Esoterics"
+            "Singing bowls", "Esoterics", "Mobility & posture work"
         ]
     },
     "F": {
         "name": "Languages",
         "items": [
-            "Language teaching", "Interview preparation", "Translation and localization"
+            "Language teaching", "Interview preparation", "Translation and localization",
+            "Cross-cultural communication"
         ]
     },
     "G": {
@@ -129,23 +141,24 @@ SKILL_CATEGORIES = {
             "Photo & video production", "Press relations", "Copywriting",
             "Media Publications", "Personal branding",
             "SMM and content strategy", "Creating Reels / TikTok",
-            "Instagram growth strategies", "Media planning", "Crisis communication"
+            "Instagram growth strategies", "Media strategy", "Crisis communication",
+            "Public speaking", "Business communication"
         ]
     },
     "H": {
         "name": "Lifestyle",
         "items": [
-            "Cooking", "Barista / mixology", "Event organization", "Travel and routes",
-            "Personal style and image", "Freelance mentorship", "Immigration navigation",
-            "Interior design", "Space organization", "Life management",
-            "Home rituals and self-care practices"
-        ]
-    },
-    "I": {
-        "name": "Eco & Social",
-        "items": [
-            "Conscious consumption", "Eco-projects", "Social initiatives",
-            "Volunteering", "Community building", "Mutual aid projects"
+            "Private dining & culinary experiences", "Barista", "Mixology",
+            "Event organization", "Travel and routes",
+            "Personal style and image", "Immigration navigation",
+            "Space organization", "Life management",
+            "Home rituals and self-care practices",
+            "Hospitality management", "Music & nightlife culture",
+            "Wine & gastronomy", "Coffee culture & specialty coffee",
+            "Tea culture", "Sailing / yachting", "Beauty & aesthetics",
+            "Cars & automotive", "Cannabis culture", "Sommelier",
+            "Private chef", "Gourmet food curator",
+            "Private aviation & jet access"
         ]
     }
 }
@@ -155,7 +168,7 @@ for cat in SKILL_CATEGORIES.values():
     ALL_SKILLS.extend(cat['items'])
 
 OFFER_FORMATS = [
-    "Professional consultations", "Access to courses / materials", "Educational practices",
+    "Professional consultations", "Access to courses / materials", "Private Sessions & Appointments",
     "Workshops", "Professional coaching", "Individual programs",
     "Project or task implementation"
 ]
@@ -166,7 +179,8 @@ RESULT_TYPES = [
     "Feedback / expert review",
     "Optimization",
     "Guidance and Support",
-    "Creative development"
+    "Creative development",
+    "Service delivery"
 ]
 
 # --- Cities list (used across multiple sections) ---

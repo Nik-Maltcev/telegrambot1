@@ -94,7 +94,7 @@ def get_resource_categories_keyboard(prefix: str = "res_cat") -> InlineKeyboardM
     """Keyboard with resource categories"""
     # Categories as requested
     categories = [
-        ("\U0001f3e2 Resources & Access", "Resources & Access"),
+        ("\U0001f3e2 Businesses, Spaces & Platforms", "Businesses, Spaces & Platforms"),
         ("🗽 Real Estate", "Real Estate"),
         ("🖤 Cars", "Cars and Other Vehicles"),
         ("🛩️ Aircrafts", "Air Transport"),

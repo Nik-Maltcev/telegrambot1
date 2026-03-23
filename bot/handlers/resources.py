@@ -13,7 +13,7 @@ router = Router()
 
 # Mapping from category to questionnaire data keys
 CATEGORY_DATA_MAPPING = {
-    "Resources & Access": {
+    "Businesses, Spaces & Platforms": {
         "items_key": "selected_ra_items",
         "cities_key": None,
         "extra_keys": []
@@ -174,7 +174,7 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
 
     # Category Descriptions
     category_descriptions = {
-        "Resources & Access": "\U0001f3e2 Resources & Access\n\nBusinesses, spaces, and platforms shared by members.",
+        "Businesses, Spaces & Platforms": "\U0001f3e2 Businesses, Spaces & Platforms\n\nBusinesses, spaces, and platforms shared by members.",
         "Real Estate": "🗽 Real Estate\n\nProperties available for exchange or temporary use.",
         "Cars and Other Vehicles": "🖤 Cars\n\nVehicles available for sharing within the community.",
         "Air Transport": "🛩️ Aircrafts\n\nPrivate jets, helicopters, and aircraft available.",
@@ -215,7 +215,7 @@ async def show_resources_in_category(callback: CallbackQuery, db: Database):
         await callback.answer()
         return
 
-    if category == "Resources & Access":
+    if category == "Businesses, Spaces & Platforms":
         desc = category_descriptions[category]
         await callback.message.edit_text(
             f"{desc}\n\nSelect a category:",
@@ -414,14 +414,14 @@ async def show_ra_subcategory(callback: CallbackQuery, db: Database):
         await callback.answer("Category not found")
         return
     items = set(cat_data["items"])
-    desc = f"🏢 Resources & Access — {cat_data['name']}"
-    await _show_resources_list(callback, db, "Resources & Access", desc, "back_to_ra_subs", subcategory_items=items)
+    desc = f"🏢 Businesses, Spaces & Platforms — {cat_data['name']}"
+    await _show_resources_list(callback, db, "Businesses, Spaces & Platforms", desc, "back_to_ra_subs", subcategory_items=items)
 
 
 @router.callback_query(F.data == "back_to_ra_subs")
 async def back_to_ra_subs(callback: CallbackQuery):
     await callback.message.edit_text(
-        "🏢 Resources & Access\n\nSelect a category:",
+        "🏢 Businesses, Spaces & Platforms\n\nSelect a category:",
         reply_markup=get_resource_subcategories_keyboard(RESOURCE_ACCESS_CATEGORIES, "res_ra_sub", "back_to_resources")
     )
     await callback.answer()

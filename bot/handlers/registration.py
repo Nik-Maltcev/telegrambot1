@@ -158,7 +158,7 @@ async def _show_skill_category_items(callback: CallbackQuery, state: FSMContext,
 
     await state.update_data(q_item_page=0)
     await callback.message.edit_text(
-        f"Category: {category_name}\n\nSelect specific skills/areas:\nYou can select multiple",
+        f"Category: {category_name}\n\nSelect specific skills, services, or areas:\nYou can select multiple",
         reply_markup=get_category_items_keyboard(
             category_key,
             SKILL_CATEGORIES,
@@ -1545,7 +1545,7 @@ async def process_about(message: Message, state: FSMContext):
     await state.update_data(about=message.text)
 
     ra_intro = (
-        "1|11 🏢 Resources & Access\n\n"
+        "1|11 🏢 Businesses, Spaces & Platforms\n\n"
         "Please indicate the businesses, spaces, or platforms you own or manage "
         "that other residents could collaborate with or use.\n\n"
         "These resources help create opportunities for partnerships, projects, "
@@ -1564,7 +1564,7 @@ async def process_about(message: Message, state: FSMContext):
 
 
 
-# ============ Resources & Access Section ============
+# ============ Businesses, Spaces & Platforms Section ============
 
 @router.callback_query(Registration.resource_access_section, F.data == "ra_sec_back")
 async def back_from_ra_section(callback: CallbackQuery, state: FSMContext):
@@ -1595,7 +1595,7 @@ async def skip_ra_section(callback: CallbackQuery, state: FSMContext):
         "\u2022 guide someone through a process\n"
         "\u2022 create or deliver a clear final result\n\n"
         f"Category: {first_category_name}\n\n"
-        "Select specific skills/areas:\n"
+        "Select specific skills, services, or areas:\n"
         "You can select multiple"
     )
 
@@ -1697,7 +1697,7 @@ async def back_from_ra_items(callback: CallbackQuery, state: FSMContext):
             return
     # Back to section intro
     ra_intro = (
-        "1|11 \U0001f3e2 Resources & Access\n\n"
+        "1|11 \U0001f3e2 Businesses, Spaces & Platforms\n\n"
         "Please indicate the businesses, spaces, or platforms you own or manage "
         "that other residents could collaborate with or use.\n\n"
         "These resources help create opportunities for partnerships, projects, "
@@ -1737,7 +1737,7 @@ async def finish_ra_items(callback: CallbackQuery, state: FSMContext):
         "\u2022 guide someone through a process\n"
         "\u2022 create or deliver a clear final result\n\n"
         f"Category: {first_category_name}\n\n"
-        "Select specific skills/areas:\n"
+        "Select specific skills, services, or areas:\n"
         "You can select multiple"
     )
 
@@ -1767,7 +1767,7 @@ async def finish_ra_items(callback: CallbackQuery, state: FSMContext):
 
 async def back_from_skill_category(callback: CallbackQuery, state: FSMContext):
     ra_intro = (
-        "1|11 🏢 Resources & Access\n\n"
+        "1|11 🏢 Businesses, Spaces & Platforms\n\n"
         "Please indicate the businesses, spaces, or platforms you own or manage "
         "that other residents could collaborate with or use.\n\n"
         "These resources help create opportunities for partnerships, projects, "

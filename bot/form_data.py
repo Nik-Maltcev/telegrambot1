@@ -393,7 +393,7 @@ PROPERTY_TYPES = [
     "Townhouse",
     "Loft / Studio",
     "Apartment in a complex",
-    "Room in a shared home",
+    "Private room",
     "Commercial property",
     "Land"
 ]

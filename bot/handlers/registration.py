@@ -2232,7 +2232,7 @@ async def skip_intro_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "Please list only the properties you are willing to share free of charge."
+        "Please list only the properties you are willing to share within a mutual exchange of community resources."
 
 
 
@@ -2441,7 +2441,7 @@ async def finish_intro_items(callback: CallbackQuery, state: FSMContext):
 
         "to host another resident in a separate room — this is where you can share it with the community.\n\n"
 
-        "Please list only the properties you are willing to share free of charge."
+        "Please list only the properties you are willing to share within a mutual exchange of community resources."
 
     )
 
@@ -2745,7 +2745,7 @@ async def back_from_prop_city(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "Please list only the properties you are willing to share free of charge."
+        "Please list only the properties you are willing to share within a mutual exchange of community resources."
 
 
 

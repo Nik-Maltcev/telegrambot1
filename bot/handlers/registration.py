@@ -844,41 +844,6 @@ async def page_vessel_type(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@router.callback_query(Registration.specialist_items, F.data.startswith("spec_item_page:"))
-async def page_specialist_items(callback: CallbackQuery, state: FSMContext):
-    page = int(callback.data.split(":")[1])
-    data = await state.get_data()
-    category_key = data.get("current_specialist_category")
-    if not category_key:
-        await callback.answer()
-        return
-
-    await state.update_data(spec_item_page=page)
-    selected = set(data.get("selected_specialist_items", []))
-    next_category_key = _get_next_spec_category(category_key)
-    done_text = "Next ➡️" if next_category_key else "🆗 Done"
-
-    await callback.message.edit_reply_markup(
-        reply_markup=get_category_items_keyboard(
-            category_key,
-            SPECIALIST_CATEGORIES,
-            selected,
-            "spec_item",
-            "spec_item_done",
-            "spec_back_cat",
-            page=page,
-            page_callback_prefix="spec_item_page",
-            done_text=done_text,
-        )
-    )
-    await callback.answer()
-
-
-
-
-
-
-
 @router.message(Registration.waiting_for_invite_code, F.text)
 
 
@@ -5007,43 +4972,19 @@ async def skip_specialist_section(callback: CallbackQuery, state: FSMContext):
 
 async def start_specialist_section(callback: CallbackQuery, state: FSMContext):
 
-
-
-    first_category = SPEC_CATEGORY_ORDER[0]
-    await state.update_data(current_specialist_category=first_category, spec_item_page=0)
-    await _show_spec_category_items(callback, state, first_category)
-    await state.set_state(Registration.specialist_items)
-
-
+    # Show category list for single selection
+    await callback.message.edit_text(
+        "Select a category:",
+        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+    )
+    await state.set_state(Registration.specialist_category)
 
     await callback.answer()
 
 
+@router.callback_query(Registration.specialist_category, F.data == "spec_cat_back")
 
-
-
-
-
-
-@router.callback_query(Registration.specialist_items, F.data == "spec_back_cat")
-
-
-
-async def back_from_spec_items(callback: CallbackQuery, state: FSMContext):
-
-
-
-    data = await state.get_data()
-    current_category = data.get("current_specialist_category")
-
-    if current_category in SPEC_CATEGORY_ORDER:
-        idx = SPEC_CATEGORY_ORDER.index(current_category)
-        if idx > 0:
-            prev_category = SPEC_CATEGORY_ORDER[idx - 1]
-            await state.update_data(current_specialist_category=prev_category, spec_item_page=0)
-            await _show_spec_category_items(callback, state, prev_category)
-            await callback.answer()
-            return
+async def back_from_spec_category_select(callback: CallbackQuery, state: FSMContext):
 
     specialist_text = (
         "9|11 🩵 Specialists\n\n"
@@ -5054,503 +4995,123 @@ async def back_from_spec_items(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(specialist_text, reply_markup=get_section_intro_keyboard("specialist_start", "specialist_skip", "spec_sec_back"))
     await state.set_state(Registration.specialist_section)
 
-
-
     await callback.answer()
 
 
+@router.callback_query(Registration.specialist_category, F.data.startswith("spec_cat:"))
 
+async def select_specialist_category(callback: CallbackQuery, state: FSMContext):
 
-
-@router.callback_query(Registration.specialist_items, F.data.startswith("spec_item:"))
-
-
-
-async def toggle_specialist_item(callback: CallbackQuery, state: FSMContext):
-
-
-
-    item_hash = callback.data.split(":")[1]
-
-
-
-    data = await state.get_data()
-
-
-
-    category_key = data.get("current_specialist_category")
-
-
-
-    items_list = SPECIALIST_CATEGORIES.get(category_key, {}).get("items", [])
-
-
-
-    target_item = find_item_by_hash(items_list, item_hash)
-
-
-
-    if target_item:
-
-
-
-        selected = set(data.get("selected_specialist_items", []))
-
-
-
-        if target_item in selected:
-
-
-
-            selected.remove(target_item)
-
-
-
-        else:
-
-
-
-            selected.add(target_item)
-
-
-
-        await state.update_data(selected_specialist_items=list(selected))
-
-        next_category_key = _get_next_spec_category(category_key)
-
-        await callback.message.edit_reply_markup(
-
-
-
-            reply_markup=get_category_items_keyboard(
-                category_key,
-                SPECIALIST_CATEGORIES,
-                selected,
-                "spec_item",
-                "spec_item_done",
-                "spec_back_cat",
-                page=data.get("spec_item_page", 0),
-                page_callback_prefix="spec_item_page",
-                done_text="Next ➡️" if next_category_key else "🆗 Done",
-            )
-
-
-
-        )
-
-
-
-    await callback.answer()
-
-
-
-
-
-
-
-
-@router.callback_query(Registration.specialist_items, F.data == "spec_item_done")
-
-
-
-async def finish_specialist_items(callback: CallbackQuery, state: FSMContext):
-
-
-
-    data = await state.get_data()
-
-    current_category = data.get("current_specialist_category")
-    next_category = _get_next_spec_category(current_category)
-
-    if next_category:
-        await state.update_data(current_specialist_category=next_category, spec_item_page=0)
-        await _show_spec_category_items(callback, state, next_category)
-        await callback.answer()
-        return
-
-    if not data.get("selected_specialist_items", []):
-
-
-
-         await callback.answer("Please select at least one item.", show_alert=True)
-
-
-
-         return
-
-    if next_category:
-        await state.update_data(current_specialist_category=next_category, spec_item_page=0)
-        await _show_spec_category_items(callback, state, next_category)
-        await callback.answer()
-        return
-
-
+    category_key = callback.data.split(":")[1]
+    category_name = SPECIALIST_CATEGORIES.get(category_key, {}).get("name", category_key)
+    await state.update_data(current_specialist_category=category_key)
 
     await callback.message.delete()
-
-
-
     await callback.message.answer(
-
-
-
-        "Type of Connection:",
-
-
-
-        reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn", "spec_conn_back")
-
-
-
+        f"Category: {category_name}\n\nSpecialist Name\n\nPlease type the full name or public working name:",
+        reply_markup=get_cancel_keyboard()
     )
-
-
-
-    await state.set_state(Registration.specialist_connection)
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.specialist_connection, F.data == "spec_conn_back")
-
-
-
-async def back_from_spec_conn(callback: CallbackQuery, state: FSMContext):
-
-
-
-    last_category = SPEC_CATEGORY_ORDER[-1]
-    await state.update_data(current_specialist_category=last_category, spec_item_page=0)
-
-    await callback.message.delete()
-
-    # Need to send a new message since previous was deleted
-    data = await state.get_data()
-    selected = set(data.get("selected_specialist_items", []))
-    category_name = SPECIALIST_CATEGORIES[last_category]["name"]
-
-    await callback.message.answer(
-        f"Category: {category_name}\n\nSelect the specialists you can recommend:",
-        reply_markup=get_category_items_keyboard(
-            last_category,
-            SPECIALIST_CATEGORIES,
-            selected,
-            "spec_item",
-            "spec_item_done",
-            "spec_back_cat",
-            page=0,
-            page_callback_prefix="spec_item_page",
-            done_text="🆗 Done",
-        )
-    )
-
-
-
-    await state.set_state(Registration.specialist_items)
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.specialist_connection, F.data.startswith("spec_conn:"))
-
-
-
-async def select_specialist_connection(callback: CallbackQuery, state: FSMContext):
-
-
-
-    item_hash = callback.data.split(":")[1]
-
-
-
-    target_item = find_item_by_hash(SPECIALIST_CONNECTION_TYPE, item_hash)
-
-
-
-    if target_item:
-
-
-
-        await state.update_data(specialist_connection=target_item)
-
-
-
-
-
-    await callback.message.delete()
-
-
-
-    await callback.message.answer("Specialist Name\n\nPlease type the full name or public working name:", reply_markup=get_cancel_keyboard())
-
-
-
     await state.set_state(Registration.specialist_name)
 
-
-
     await callback.answer()
-
-
-
 
 
 @router.message(Registration.specialist_name, F.text)
 
-
-
 async def process_specialist_name(message: Message, state: FSMContext):
 
-
-
     if message.text.strip() == "🔙 Back":
-
-
-
-        await message.answer("Type of Connection:", reply_markup=get_single_select_keyboard(SPECIALIST_CONNECTION_TYPE, "spec_conn", "spec_conn_back"))
-
-
-
-        await state.set_state(Registration.specialist_connection)
-
-
-
+        await message.answer(
+            "Select a category:",
+            reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+        )
+        await state.set_state(Registration.specialist_category)
         return
-
-
-
-
 
     await state.update_data(specialist_name=message.text)
 
-
-
     await message.answer("Contact\n\nSpecify one or more (Telegram | WhatsApp | Email | Website | Social media):", reply_markup=get_cancel_keyboard())
-
-
 
     await state.set_state(Registration.specialist_contact)
 
 
-
-
-
 @router.message(Registration.specialist_contact, F.text)
-
-
 
 async def process_specialist_contact(message: Message, state: FSMContext):
 
-
-
     if message.text.strip() == "🔙 Back":
-
-
 
         await message.answer("Specialist Name\n\nPlease type the full name or public working name:", reply_markup=get_cancel_keyboard())
 
-
-
         await state.set_state(Registration.specialist_name)
-
-
 
         return
 
-
-
-
-
     await state.update_data(specialist_contact=message.text)
 
-
-
     await message.answer(
-
-
-
         "Referral Phrase for Special Conditions\n\n"
-
-
-
         "Phrase the person should mention to confirm recommendation, e.g.:\n"
-
-
-
         "• \"From Anna, 10% off\"\n"
-
-
-
         "• \"Recommended by Anna\"\n"
-
-
-
         "• \"Joyseekers referral\"\n\n"
-
-
-
         "Type the phrase or '-' to skip:",
-
-
-
         reply_markup=get_cancel_keyboard()
-
-
-
     )
-
-
 
     await state.set_state(Registration.specialist_referral)
 
 
-
-
-
 @router.message(Registration.specialist_referral, F.text)
-
-
 
 async def process_specialist_referral(message: Message, state: FSMContext):
 
-
-
     if message.text.strip() == "🔙 Back":
-
-
 
         await message.answer("Contact\n\nSpecify one or more (Telegram | WhatsApp | Email | Website | Social media):", reply_markup=get_cancel_keyboard())
 
-
-
         await state.set_state(Registration.specialist_contact)
-
-
 
         return
 
-
-
-
-
     referral = message.text if message.text != "-" else ""
-
-
 
     await state.update_data(specialist_referral=referral)
 
-
-
-
-
     # Save current specialist to list
-
-
-
     data = await state.get_data()
 
-
-
     new_spec = {
-
-
-
         "category": data.get("current_specialist_category"),
-
-
-
-        "items": data.get("selected_specialist_items"),
-
-
-
-        "connection": data.get("specialist_connection"),
-
-
-
         "name": data.get("specialist_name"),
-
-
-
         "contact": data.get("specialist_contact"),
-
-
-
         "referral": referral
-
-
-
     }
 
-
-
     specialists_list = data.get("specialists_list", [])
-
-
-
     specialists_list.append(new_spec)
-
-
-
-    await state.update_data(specialists_list=specialists_list, selected_specialist_items=[])
-
-
-
-
+    await state.update_data(specialists_list=specialists_list)
 
     # Ask if user wants to add another specialist
-
-
-
     await message.answer(
-
-
-
         "Do you want to add another specialist?\n\nShare contacts of 3 people and get 1 free point for community exchanges 🩵",
-
-
-
         reply_markup=get_confirmation_keyboard("add_spec")
-
-
-
     )
-
-
 
     await state.set_state(Registration.specialist_loop_confirm)
 
 
-
-
-
 @router.callback_query(Registration.specialist_loop_confirm, F.data.startswith("confirm:add_spec:"))
-
-
 
 async def add_another_specialist(callback: CallbackQuery, state: FSMContext):
 
+    # Loop back to category selection
+    await callback.message.edit_text(
+        "Select a category:",
+        reply_markup=get_category_keyboard(SPECIALIST_CATEGORIES, "spec_cat", "spec_cat_back")
+    )
 
-
-    # Loop back to first category with auto-scroll
-    first_category = SPEC_CATEGORY_ORDER[0]
-    await state.update_data(current_specialist_category=first_category, spec_item_page=0)
-    await _show_spec_category_items(callback, state, first_category)
-
-
-
-    await state.set_state(Registration.specialist_items)
-
-
+    await state.set_state(Registration.specialist_category)
 
     await callback.answer()
 
@@ -6190,144 +5751,43 @@ async def skip_maps_section(callback: CallbackQuery, state: FSMContext, db: Data
 
 async def start_maps_section(callback: CallbackQuery, state: FSMContext):
 
-
-
     # Initialize maps list
-
-
-
     await state.update_data(user_maps=[])
 
-
-
-    await callback.message.edit_text(
-
-
-
-        "Select the city for your map:",
-
-
-
-        reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
-
-
-
+    await callback.message.delete()
+    await callback.message.answer(
+        "Enter the city for your map:",
+        reply_markup=get_cancel_keyboard()
     )
-
-
-
     await state.set_state(Registration.maps_city)
 
-
-
     await callback.answer()
 
 
-
-
-
-@router.callback_query(Registration.maps_city, F.data == "maps_city_back")
-
-
-
-async def back_from_maps_city(callback: CallbackQuery, state: FSMContext):
-
-
-
-    maps_intro = (
-
-
-
-        "11|11 🗺 Share Your Map\n\n"
-
-
-
-        "In this section, you can share folder links to your favorite places on Google Maps.\n\n"
-
-
-
-        "Before posting, please name the folder according to the city where the places are located "
-
-
-
-        "and make sure there are no personal addresses.\n\n"
-
-
-
-        "A few words about why this place is worth visiting would be great!"
-
-
-
-    )
-
-
-
-    await callback.message.edit_text(maps_intro, reply_markup=get_section_intro_keyboard("maps_start", "maps_skip", "maps_sec_back"))
-
-
-
-    await state.set_state(Registration.maps_section)
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.maps_city, F.data.startswith("maps_city:"))
-
-
-
-async def select_maps_city(callback: CallbackQuery, state: FSMContext):
-
-
-
-    city_hash = callback.data.split(":")[1]
-
-
-
-    city = find_item_by_hash(CITIES, city_hash)
-
-
-
-    if city:
-
-
-
-        await state.update_data(current_map_city=city)
-
-
-
-        await callback.message.delete()
-
-
-
-        await callback.message.answer(
-
-
-
-            f"City: {city}\n\nNow send the Google Maps link:",
-
-
-
-            reply_markup=get_cancel_keyboard()
-
-
-
+@router.message(Registration.maps_city, F.text)
+
+async def process_maps_city_text(message: Message, state: FSMContext):
+
+    if message.text.strip() == "🔙 Back":
+        maps_intro = (
+            "11|11 🗺 Share Your Map\n\n"
+            "In this section, you can share folder links to your favorite places on Google Maps.\n\n"
+            "Before posting, please name the folder according to the city where the places are located "
+            "and make sure there are no personal addresses.\n\n"
+            "A few words about why this place is worth visiting would be great!"
         )
+        await message.answer(maps_intro, reply_markup=get_section_intro_keyboard("maps_start", "maps_skip", "maps_sec_back"))
+        await state.set_state(Registration.maps_section)
+        return
 
+    city = message.text.strip()
+    await state.update_data(current_map_city=city)
 
-
-        await state.set_state(Registration.maps_link)
-
-
-
-    await callback.answer()
-
-
-
+    await message.answer(
+        f"City: {city}\n\nNow send the Google Maps link:",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(Registration.maps_link)
 
 
 @router.message(Registration.maps_link, F.text)
@@ -6340,27 +5800,12 @@ async def process_maps_link(message: Message, state: FSMContext, db: Database):
 
     if message.text.strip() == "🔙 Back":
 
-
-
         await message.answer(
-
-
-
-            "Select the city for your map:",
-
-
-
-            reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
-
-
-
+            "Enter the city for your map:",
+            reply_markup=get_cancel_keyboard()
         )
 
-
-
         await state.set_state(Registration.maps_city)
-
-
 
         return
 
@@ -6450,31 +5895,15 @@ async def process_maps_link(message: Message, state: FSMContext, db: Database):
 
 @router.callback_query(Registration.maps_add_more, F.data == "maps_add_more")
 
-
-
 async def add_more_maps(callback: CallbackQuery, state: FSMContext):
 
-
-
-    await callback.message.edit_text(
-
-
-
-        "Select the city for your map:",
-
-
-
-        reply_markup=get_cities_select_keyboard("maps_city", None, set(), "maps_city_back")
-
-
-
+    await callback.message.delete()
+    await callback.message.answer(
+        "Enter the city for your map:",
+        reply_markup=get_cancel_keyboard()
     )
 
-
-
     await state.set_state(Registration.maps_city)
-
-
 
     await callback.answer()
 

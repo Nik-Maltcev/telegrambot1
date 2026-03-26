@@ -116,7 +116,8 @@ SKILL_CATEGORIES = {
             "Life coaching", "Energy practices (Reiki, healing, etc.)", "Trauma work",
             "Neuropsychology", "Self-regulation practices",
             "Nutrition & dietary guidance", "Movement practices",
-            "Performance & mental resilience"
+            "Performance & mental resilience",
+            "Singing bowls", "Esoterics"
         ]
     },
     "E": {
@@ -125,7 +126,7 @@ SKILL_CATEGORIES = {
             "Personal training", "Functional training", "Pilates", "Dance", "Stretching",
             "Home workouts", "Nutrition and dietetics", "Recovery after training",
             "Ice bathing, Wim Hof breathing", "Massage techniques", "Holistic wellness",
-            "Singing bowls", "Esoterics", "Mobility & posture work"
+            "Mobility & posture work"
         ]
     },
     "F": {

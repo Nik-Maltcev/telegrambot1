@@ -21,7 +21,13 @@ RESOURCE_ACCESS_CATEGORIES = {
             "Cultural center", "Music studio", "Dance studio", "Photography studio",
             "Podcast studio", "Creative production studio",
             "Rehearsal or performance space", "Event space", "Festival space",
-            "Co-working space", "Office space", "Workshop space", "Maker space"
+            "Co-working space", "Office space", "Workshop space", "Maker space",
+            "Pop-up space", "Record store & Vinyl shop", "Listening bar",
+            "Hybrid space (café + gallery + store + events)",
+            "Cultural hub / community space",
+            "Concept store (vinyl, books, design, etc.)",
+            "Vintage / archival fashion store", "Bakery",
+            "Food concept space", "Private aviation / jet access"
         ]
     },
     "media_platforms": {
@@ -32,7 +38,9 @@ RESOURCE_ACCESS_CATEGORIES = {
             "Booking platform", "Ticketing platform", "Production company",
             "Marketing platform", "Influencer network", "PR agency",
             "Creative agency", "Talent management agency",
-            "Influential social media account"
+            "Influential social media account",
+            "Telegram channel", "Event promotion platform",
+            "Audience & Community network"
         ]
     },
     "wellness_beauty": {
@@ -41,7 +49,8 @@ RESOURCE_ACCESS_CATEGORIES = {
             "Wellness center", "Spa", "Yoga studio", "Pilates studio",
             "Meditation, breathwork & sound healing center", "Fitness studio",
             "Gym", "Beauty salon", "Aesthetic clinic", "Massage studio",
-            "Medical clinic", "Dental clinic"
+            "Medical clinic", "Dental clinic",
+            "Longevity & biohacking center"
         ]
     },
     "brands_craft": {
@@ -52,7 +61,10 @@ RESOURCE_ACCESS_CATEGORIES = {
             "Furniture brand", "Home decor brand", "Food brand",
             "Beverage brand", "Specialty food brand", "Automotive brand",
             "Audio equipment brand", "Tech device brand", "Craft workshop",
-            "Ceramics studio", "Rare craft production"
+            "Ceramics studio", "Rare craft production",
+            "Curated retail", "Supplements & wellness brand",
+            "Sports & fitness brand", "Baby & kids brand",
+            "Cannabis & CBD brand"
         ]
     },
     "investment_business": {
@@ -61,7 +73,10 @@ RESOURCE_ACCESS_CATEGORIES = {
             "Venture fund", "Angel investor network", "Startup accelerator",
             "Business network", "Investment club", "Manufacturing facility",
             "Manufacturing & sourcing network", "Distribution network",
-            "Logistics service", "Licensing company"
+            "Logistics service", "Licensing company",
+            "Legal firm", "Financial services", "Payment processing",
+            "Executive search", "Data & analytics platform",
+            "Tech & software development"
         ]
     }
 }
@@ -200,7 +215,7 @@ CITIES = [
     "Melbourne 🇦🇺",
     "Mexico City 🇲🇽", "Tulum 🇲🇽", "Medellín 🇨🇴",
     "São Paulo 🇧🇷", "Rio de Janeiro 🇧🇷", "Buenos Aires 🇦🇷",
-    "Cape Town 🇿🇦",
+    "Cape Town 🇿🇦", "Marrakech 🇲🇦",
     "Tel Aviv 🇮🇱", "Istanbul 🇹🇷", "Bali 🇮🇩",
     "Baku 🇦🇿", "Tbilisi 🇬🇪"
 ]

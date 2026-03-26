@@ -297,7 +297,6 @@ INTRO_CATEGORIES = {
         "items": [
             "Private club founders",
             "Boutique fund partners",
-            "Startup founders",
             "Digital platform heads",
             "CEO dinner organizers",
             "Niche media owners",

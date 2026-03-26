@@ -1060,7 +1060,7 @@ async def process_intro_sounds_good(callback: CallbackQuery, state: FSMContext):
 
 
 
-        "10 sections, ~10 minutes.\n\n"
+        "11 sections, ~10 minutes.\n\n"
 
 
 

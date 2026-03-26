@@ -5368,13 +5368,17 @@ async def back_from_art_section(callback: CallbackQuery, state: FSMContext):
 
 
 
-async def skip_artwork_section(callback: CallbackQuery, state: FSMContext, db: Database):
+async def skip_artwork_section(callback: CallbackQuery, state: FSMContext):
 
-
-
-    await finish_registration(callback.message, callback.from_user, state, db)
-
-
+    maps_intro = (
+        "11|11 🗺 Share Your Map\n\n"
+        "In this section, you can share folder links to your favorite places on Google Maps.\n\n"
+        "Before posting, please name the folder according to the city where the places are located "
+        "and make sure there are no personal addresses.\n\n"
+        "A few words about why this place is worth visiting would be great!"
+    )
+    await callback.message.edit_text(maps_intro, reply_markup=get_section_intro_keyboard("maps_start", "maps_skip", "maps_sec_back"))
+    await state.set_state(Registration.maps_section)
 
     await callback.answer()
 

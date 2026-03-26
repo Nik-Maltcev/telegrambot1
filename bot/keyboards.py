@@ -483,6 +483,49 @@ def get_category_items_keyboard(
         builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
     return builder.as_markup()
 
+
+def get_category_single_select_keyboard(
+    category_key: str,
+    categories: Dict,
+    prefix: str,
+    back_callback: str = None,
+    page: int = 0,
+    items_per_page: int = 8,
+    page_callback_prefix: str = None,
+    next_category_callback: str = None,
+    next_text: str = "Next ➡️",
+) -> InlineKeyboardMarkup:
+    """Keyboard for single-selecting one item within a category (no checkboxes)."""
+    builder = InlineKeyboardBuilder()
+    import hashlib, math
+    items = categories.get(category_key, {}).get("items", [])
+    total_pages = max(1, math.ceil(len(items) / items_per_page))
+    page = max(0, min(page, total_pages - 1))
+    start_index = page * items_per_page
+    end_index = start_index + items_per_page
+    current_items = items[start_index:end_index]
+
+    for item in current_items:
+        item_hash = hashlib.md5(item.encode()).hexdigest()[:8]
+        builder.row(InlineKeyboardButton(text=item, callback_data=f"{prefix}:{item_hash}"))
+
+    if total_pages > 1:
+        page_cb_prefix = page_callback_prefix or f"{prefix}_page"
+        nav_buttons = []
+        if page > 0:
+            nav_buttons.append(InlineKeyboardButton(text="⬅️ Prev", callback_data=f"{page_cb_prefix}:{page-1}"))
+        nav_buttons.append(InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data="noop"))
+        if page < total_pages - 1:
+            nav_buttons.append(InlineKeyboardButton(text="Next ➡️", callback_data=f"{page_cb_prefix}:{page+1}"))
+        builder.row(*nav_buttons)
+
+    if next_category_callback and page == total_pages - 1:
+        builder.row(InlineKeyboardButton(text=next_text, callback_data=next_category_callback))
+    if back_callback:
+        builder.row(InlineKeyboardButton(text="🔙 Back", callback_data=back_callback))
+    return builder.as_markup()
+
+
 def get_paginated_multiselect_keyboard(
     items: List[str],
     selected: Set[str],

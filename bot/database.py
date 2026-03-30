@@ -125,6 +125,12 @@ class Database:
                 )
             """)
 
+            # Migration: add is_hidden to users
+            try:
+                await db.execute("ALTER TABLE users ADD COLUMN is_hidden INTEGER DEFAULT 0")
+            except:
+                pass
+
             await db.commit()
 
     # User methods
@@ -285,21 +291,21 @@ class Database:
                 SELECT l.*, u.name, u.instagram, u.points, u.username
                 FROM lots l
                 JOIN users u ON l.user_id = u.user_id
-                WHERE l.category = ? AND l.status = 'approved' AND l.type = 'share'
+                WHERE l.category = ? AND l.status = 'approved' AND l.type = 'share' AND COALESCE(u.is_hidden, 0) = 0
                 ORDER BY l.created_at DESC
             """, (category,)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 
     async def get_active_lots(self, lot_type: str) -> List[Dict]:
-        """Get all active approved lots by type"""
+        """Get all active approved lots by type (excludes hidden users)"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("""
                 SELECT l.*, u.name, u.instagram, u.points, u.username
                 FROM lots l
                 JOIN users u ON l.user_id = u.user_id
-                WHERE l.type = ? AND l.status = 'approved'
+                WHERE l.type = ? AND l.status = 'approved' AND COALESCE(u.is_hidden, 0) = 0
                 ORDER BY l.created_at DESC
             """, (lot_type,)) as cursor:
                 rows = await cursor.fetchall()
@@ -480,14 +486,14 @@ class Database:
                 return [dict(row) for row in rows]
 
     async def get_all_registration_data(self) -> List[Dict]:
-        """Get all users' registration data (questionnaire answers) with user info."""
+        """Get all users' registration data (questionnaire answers) with user info. Excludes hidden users."""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("""
                 SELECT ua.user_id, ua.answer_data, u.name, u.username, u.instagram, u.points, u.main_city
                 FROM user_answers ua
                 JOIN users u ON ua.user_id = u.user_id
-                WHERE ua.question_slug = 'registration_data'
+                WHERE ua.question_slug = 'registration_data' AND COALESCE(u.is_hidden, 0) = 0
             """) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
@@ -537,3 +543,37 @@ class Database:
         except Exception as e:
             print(f"Error deleting user answer: {e}")
             return False
+
+    async def delete_user(self, user_id: int) -> bool:
+        """Fully delete user and their data from DB"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM user_answers WHERE user_id = ?", (user_id,))
+                await db.execute("DELETE FROM lots WHERE user_id = ?", (user_id,))
+                await db.execute("DELETE FROM resources WHERE user_id = ?", (user_id,))
+                await db.execute("DELETE FROM deals WHERE proposer_id = ? OR receiver_id = ?", (user_id, user_id))
+                await db.execute("DELETE FROM users WHERE user_id = ?", (user_id,))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
+
+    async def set_user_hidden(self, user_id: int, hidden: bool) -> bool:
+        """Hide or unhide a user profile"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("UPDATE users SET is_hidden = ? WHERE user_id = ?", (1 if hidden else 0, user_id))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error setting user hidden: {e}")
+            return False
+
+    async def get_visible_users(self) -> List[Dict]:
+        """Get all non-hidden users"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM users WHERE is_hidden = 0 ORDER BY name") as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]

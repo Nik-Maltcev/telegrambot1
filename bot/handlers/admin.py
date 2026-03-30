@@ -52,7 +52,21 @@ async def show_admin_panel(message: Message):
 # ==================== MANAGE USERS ====================
 
 @router.callback_query(F.data == "admin:users")
-async def manage_users(callback: CallbackQuery, db: Database):
+async def manage_users_menu(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="👥 List of Users", callback_data="admin:users_list"))
+    builder.row(InlineKeyboardButton(text="🗑 Remove User", callback_data="admin:users_remove"))
+    builder.row(InlineKeyboardButton(text="🙈 Hide / Unhide Profile", callback_data="admin:users_hide"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin:back"))
+    await callback.message.edit_text("👥 Manage Users\n\nSelect action:", reply_markup=builder.as_markup())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "admin:users_list")
+async def list_all_users(callback: CallbackQuery, db: Database):
     if not is_admin(callback.from_user.id):
         await callback.answer("Access denied", show_alert=True)
         return
@@ -62,15 +76,15 @@ async def manage_users(callback: CallbackQuery, db: Database):
         return
     users_text = "👥 All Users\n\n"
     for user in users:
+        hidden = " 🙈 HIDDEN" if user.get('is_hidden') else ""
         users_text += (
             f"━━━━━━━━━━━━━━━\n"
-            f"👤 {user['name']}\n"
+            f"👤 {user['name']}{hidden}\n"
             f"ID: {user['user_id']}\n"
-            f"Username: @{user['username'] if user['username'] else 'none'}\n"
-            f"Main City: {user['main_city']}\n"
-            f"Instagram: {user['instagram'] if user['instagram'] else 'none'}\n"
-            f"💰 Points: {user['points']}\n"
-            f"Registered: {user['registered_at'][:10]}\n\n"
+            f"@{user['username'] if user['username'] else 'none'}\n"
+            f"City: {user['main_city']}\n"
+            f"IG: {user['instagram'] if user['instagram'] else 'none'}\n"
+            f"💰 {user['points']} pts | 📅 {user['registered_at'][:10]}\n\n"
         )
     if len(users_text) > 4096:
         chunks = [users_text[i:i+4096] for i in range(0, len(users_text), 4096)]
@@ -80,6 +94,136 @@ async def manage_users(callback: CallbackQuery, db: Database):
     else:
         await callback.message.answer(users_text)
     await callback.answer()
+
+
+@router.callback_query(F.data == "admin:users_remove")
+async def show_users_for_remove(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    users = await db.get_all_users()
+    if not users:
+        await callback.answer("No users found", show_alert=True)
+        return
+    builder = InlineKeyboardBuilder()
+    for user in users:
+        builder.row(InlineKeyboardButton(
+            text=f"🗑 {user['name']} (@{user['username'] or 'none'})",
+            callback_data=f"admin:usr_rm:{user['user_id']}"
+        ))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin:users"))
+    await callback.message.edit_text(
+        "🗑 Remove User\n\nUser will be fully deleted from DB and can re-register.\n\nSelect user:",
+        reply_markup=builder.as_markup()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:usr_rm:"))
+async def confirm_remove_user(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    uid = int(callback.data.split(":")[2])
+    user = await db.get_user(uid)
+    if not user:
+        await callback.answer("User not found", show_alert=True)
+        return
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text=f"✅ Yes, delete {user['name']}", callback_data=f"admin:usr_rm_yes:{uid}"),
+        InlineKeyboardButton(text="❌ Cancel", callback_data="admin:users_remove")
+    )
+    await callback.message.edit_text(
+        f"⚠️ Are you sure you want to delete?\n\n"
+        f"👤 {user['name']} (ID: {uid})\n"
+        f"@{user['username'] or 'none'}\n\n"
+        f"This will remove ALL their data (profile, answers, lots, deals).",
+        reply_markup=builder.as_markup()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:usr_rm_yes:"))
+async def execute_remove_user(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    uid = int(callback.data.split(":")[2])
+    user = await db.get_user(uid)
+    name = user['name'] if user else "Unknown"
+    success = await db.delete_user(uid)
+    if success:
+        await callback.answer(f"✅ {name} deleted", show_alert=True)
+    else:
+        await callback.answer("❌ Failed to delete", show_alert=True)
+    # Refresh remove list
+    users = await db.get_all_users()
+    builder = InlineKeyboardBuilder()
+    for u in users:
+        builder.row(InlineKeyboardButton(
+            text=f"🗑 {u['name']} (@{u['username'] or 'none'})",
+            callback_data=f"admin:usr_rm:{u['user_id']}"
+        ))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin:users"))
+    await callback.message.edit_text(
+        "🗑 Remove User\n\nSelect user:",
+        reply_markup=builder.as_markup()
+    )
+
+
+@router.callback_query(F.data == "admin:users_hide")
+async def show_users_for_hide(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    users = await db.get_all_users()
+    if not users:
+        await callback.answer("No users found", show_alert=True)
+        return
+    builder = InlineKeyboardBuilder()
+    for user in users:
+        is_hidden = user.get('is_hidden', 0)
+        if is_hidden:
+            builder.row(InlineKeyboardButton(
+                text=f"👁 Unhide — {user['name']}",
+                callback_data=f"admin:usr_unhide:{user['user_id']}"
+            ))
+        else:
+            builder.row(InlineKeyboardButton(
+                text=f"🙈 Hide — {user['name']}",
+                callback_data=f"admin:usr_hide:{user['user_id']}"
+            ))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin:users"))
+    await callback.message.edit_text(
+        "🙈 Hide / Unhide Profile\n\nHidden users won't appear in Resources.\n\nSelect user:",
+        reply_markup=builder.as_markup()
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:usr_hide:"))
+async def hide_user(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    uid = int(callback.data.split(":")[2])
+    user = await db.get_user(uid)
+    await db.set_user_hidden(uid, True)
+    await callback.answer(f"🙈 {user['name']} hidden", show_alert=True)
+    await show_users_for_hide(callback, db)
+
+
+@router.callback_query(F.data.startswith("admin:usr_unhide:"))
+async def unhide_user(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    uid = int(callback.data.split(":")[2])
+    user = await db.get_user(uid)
+    await db.set_user_hidden(uid, False)
+    await callback.answer(f"👁 {user['name']} visible again", show_alert=True)
+    await show_users_for_hide(callback, db)
 
 
 # ==================== MODERATE LOTS ====================

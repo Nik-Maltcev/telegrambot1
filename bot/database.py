@@ -491,3 +491,49 @@ class Database:
             """) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    async def get_all_lots(self, lot_type: str = None) -> List[Dict]:
+        """Get all lots (optionally filtered by type) for admin"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            if lot_type:
+                async with db.execute("""
+                    SELECT l.*, u.name as user_name, u.username
+                    FROM lots l
+                    JOIN users u ON l.user_id = u.user_id
+                    WHERE l.type = ?
+                    ORDER BY l.created_at DESC
+                """, (lot_type,)) as cursor:
+                    rows = await cursor.fetchall()
+                    return [dict(row) for row in rows]
+            else:
+                async with db.execute("""
+                    SELECT l.*, u.name as user_name, u.username
+                    FROM lots l
+                    JOIN users u ON l.user_id = u.user_id
+                    ORDER BY l.created_at DESC
+                """) as cursor:
+                    rows = await cursor.fetchall()
+                    return [dict(row) for row in rows]
+
+    async def admin_delete_lot(self, lot_id: int) -> bool:
+        """Admin delete lot (no user_id check)"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM lots WHERE id = ?", (lot_id,))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting lot: {e}")
+            return False
+
+    async def delete_user_answer(self, user_id: int, question_slug: str = "registration_data") -> bool:
+        """Delete user registration data"""
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                await db.execute("DELETE FROM user_answers WHERE user_id = ? AND question_slug = ?", (user_id, question_slug))
+                await db.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting user answer: {e}")
+            return False

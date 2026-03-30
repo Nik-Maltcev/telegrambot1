@@ -203,7 +203,6 @@ def get_admin_panel_keyboard() -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="👥 Manage Users", callback_data="admin:users"))
     builder.row(InlineKeyboardButton(text="🎯 Moderate Lots", callback_data="admin:lots"))
     builder.row(InlineKeyboardButton(text="📦 Manage Resources", callback_data="admin:resources"))
-    builder.row(InlineKeyboardButton(text="🗂 Manage Open Resources", callback_data="admin:open_resources"))
     builder.row(InlineKeyboardButton(text="💰 Manage Points", callback_data="admin:points"))
     builder.row(InlineKeyboardButton(text="🔑 Generate Invite Token", callback_data="admin:generate_token"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="back_to_menu"))

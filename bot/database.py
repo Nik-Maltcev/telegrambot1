@@ -577,3 +577,18 @@ class Database:
             async with db.execute("SELECT * FROM users WHERE is_hidden = 0 ORDER BY name") as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
+
+    async def get_all_deals(self) -> List[Dict]:
+        """Get all deals for admin view"""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("""
+                SELECT d.*, p.name as proposer_name, p.username as proposer_username,
+                       r.name as receiver_name, r.username as receiver_username
+                FROM deals d
+                JOIN users p ON d.proposer_id = p.user_id
+                JOIN users r ON d.receiver_id = r.user_id
+                ORDER BY d.created_at DESC
+            """) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]

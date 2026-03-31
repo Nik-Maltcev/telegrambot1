@@ -643,6 +643,46 @@ async def adjust_user_points(callback: CallbackQuery, db: Database):
 
 # ==================== GENERATE TOKEN ====================
 
+@router.callback_query(F.data == "admin:deals")
+async def view_all_deals(callback: CallbackQuery, db: Database):
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Access denied", show_alert=True)
+        return
+    deals = await db.get_all_deals()
+    if not deals:
+        await callback.message.edit_text(
+            "🤝 All Deals\n\n✅ No deals yet.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔙 Back", callback_data="admin:back")]
+            ])
+        )
+        await callback.answer()
+        return
+    text = f"🤝 All Deals ({len(deals)} total)\n\n"
+    status_emoji = {"pending": "⏳", "accepted": "✅", "completed": "🎉", "declined": "❌"}
+    for deal in deals:
+        emoji = status_emoji.get(deal['status'], "❓")
+        text += (
+            f"━━━━━━━━━━━━━━━\n"
+            f"{emoji} {deal['status'].capitalize()}\n"
+            f"👤 {deal['proposer_name']} → {deal['receiver_name']}\n"
+            f"📅 {deal['created_at'][:10]}\n"
+        )
+    if len(text) > 4096:
+        chunks = [text[i:i+4096] for i in range(0, len(text), 4096)]
+        await callback.message.edit_text(chunks[0])
+        for chunk in chunks[1:]:
+            await callback.message.answer(chunk)
+    else:
+        await callback.message.edit_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔙 Back", callback_data="admin:back")]
+            ])
+        )
+    await callback.answer()
+
+
 def generate_invite_token(length=16):
     alphabet = string.ascii_letters + string.digits
     return ''.join(secrets.choice(alphabet) for i in range(length))

@@ -87,7 +87,7 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
             lots_text = f"{title_text}\n\n{instructions}"
 
             for lot in lots:
-                username = f"(@{lot['username']})" if lot['username'] else ""
+                username_link = f"tg://user?id={lot['user_id']}" if lot.get('user_id') else ""
                 category = f"🏷 {lot['category']}\n" if lot['category'] else ""
                 location = f"📍 {lot['location_text']}\n" if lot['location_text'] else ""
 
@@ -102,7 +102,7 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
                     f"📝 {lot['description']}\n"
                     f"{location}"
                     f"{availability}"
-                    f"👤 {lot['name']} {username}\n\n"
+                    f"🐥 {lot['name']}\n\n"
                 )
 
             if len(lots_text) > 4096:

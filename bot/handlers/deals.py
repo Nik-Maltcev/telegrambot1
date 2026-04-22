@@ -25,7 +25,7 @@ async def propose_deal(callback: CallbackQuery, db: Database):
         await callback.message.bot.send_message(
             receiver_id,
             f"🤝 New Deal Proposal\n\n"
-            f"{proposer['name']} (@{proposer['username']}) has proposed a deal with you.\n\n"
+            f"{proposer['name']} has proposed a deal with you.\n\n"
             f"Do you accept?",
             reply_markup=get_confirmation_keyboard("deal", deal_id)
         )

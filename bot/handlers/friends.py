@@ -1,5 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.database import Database
 from bot.keyboards import get_cities_keyboard, get_user_card_keyboard, get_back_keyboard
 
@@ -16,8 +17,8 @@ async def show_friends_menu(message: Message, db: Database):
         return
 
     await message.answer(
-        "👥 Friends -> Locations\n\n"
-        "Select a location to see community members:",
+        "🫂 Friends\n\n"
+        "Select a city to see community members:",
         reply_markup=get_cities_keyboard()
     )
 
@@ -32,31 +33,15 @@ async def show_city_users(callback: CallbackQuery, db: Database):
         await callback.answer(f"No users found in {city}", show_alert=True)
         return
 
-    # Show list of users
-    users_text = f"👥 Friends in {city}\n\n"
-
+    # Show each user as a card with inline buttons
     for user in users:
-        telegram_username = f"(@{user['username']})" if user['username'] else ""
-        instagram_info = f" | 📸 @{user['instagram']}" if user['instagram'] else ""
-        users_text += (
-            f"👤 {user['name']} {telegram_username}\n"
-            f"📝 {user['about']}\n"
-            f"💰 Points: {user['points']}{instagram_info}\n\n"
+        user_text = (
+            f"🐥 {user['name']}\n"
+            f"✉️ {user['about']}\n"
+            f"🩵 Points: {user['points']}"
         )
-
-    # Split if message is too long
-    if len(users_text) > 4096:
-        chunks = [users_text[i:i+4096] for i in range(0, len(users_text), 4096)]
-        for chunk in chunks:
-            await callback.message.answer(chunk)
-    else:
-        await callback.message.answer(users_text)
-
-    # Show user card with buttons
-    if len(users) == 1:
-        user = users[0]
         await callback.message.answer(
-            f"👤 {user['name']}",
+            user_text,
             reply_markup=get_user_card_keyboard(user['user_id'], user['instagram'])
         )
 
@@ -67,7 +52,7 @@ async def show_city_users(callback: CallbackQuery, db: Database):
 async def back_to_friends(callback: CallbackQuery, db: Database):
     """Go back to friends menu"""
     await callback.message.edit_text(
-        "👥 Friends\n\n"
+        "🫂 Friends\n\n"
         "Select a city to see community members:",
         reply_markup=get_cities_keyboard()
     )

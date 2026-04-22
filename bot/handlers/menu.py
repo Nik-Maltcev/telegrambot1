@@ -1,5 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.database import Database
 from bot.keyboards import get_menu_keyboard
 from bot.config import ADMIN_IDS, CHANNEL_USERNAME
@@ -19,15 +20,25 @@ async def show_profile(message: Message, db: Database):
 
     profile_text = (
         f"⚫️ Your Profile\n\n"
-        f"Name: {user['name']}\n"
-        f"City: {user['main_city']}\n"
-        f"About: {user['about']}\n"
-        f"Instagram: {user['instagram'] if user['instagram'] else 'Not provided'}\n"
-        f"Points: {user['points']}\n"
+        f"🆔 ID: {user['user_id']}\n"
+        f"🐥 {user['name']}\n"
+        f"🪩 {user['main_city']}\n"
+        f"✉️ {user['about']}\n"
+        f"🩵 Points: {user['points']}\n"
         f"Registered: {user['registered_at'][:10]}"
     )
 
-    await message.answer(profile_text, reply_markup=keyboard)
+    # Build inline buttons for instagram link
+    builder = InlineKeyboardBuilder()
+    if user['instagram']:
+        ig = user['instagram'].lstrip('@')
+        builder.row(InlineKeyboardButton(text="📸 Instagram", url=f"https://instagram.com/{ig}"))
+
+    if builder.buttons:
+        await message.answer(profile_text, reply_markup=keyboard)
+        await message.answer("🔗 Links:", reply_markup=builder.as_markup())
+    else:
+        await message.answer(profile_text, reply_markup=keyboard)
 
 
 @router.message(F.text == "⚡️Channel")

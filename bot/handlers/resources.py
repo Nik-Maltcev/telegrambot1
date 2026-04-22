@@ -1,10 +1,12 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.database import Database
 from bot.keyboards import (
     get_resource_categories_keyboard,
     get_resource_subcategories_keyboard,
-    get_back_keyboard
+    get_back_keyboard,
+    get_resource_card_keyboard
 )
 from bot.form_data import SKILL_CATEGORIES, INTRO_CATEGORIES, SPECIALIST_CATEGORIES, RESOURCE_ACCESS_CATEGORIES
 import json
@@ -277,7 +279,6 @@ async def _show_resources_list(callback: CallbackQuery, db: Database, category: 
     if questionnaire_resources:
         has_resources = True
         for res in questionnaire_resources:
-            telegram_link = f"@{res['username']}" if res['username'] else ""
             cities_str = ", ".join(res['cities']) if res['cities'] else "Not specified"
             
             # Format items as a bulleted list or comma-separated depending on length, show all
@@ -291,47 +292,48 @@ async def _show_resources_list(callback: CallbackQuery, db: Database, category: 
                 # Format each extra stat on a new line
                 extra_str = "\n".join(res['extra']) + "\n"
             
-            resources_text += (
+            card_text = (
                 f"━━━━━━━━━━━━━━━\n"
-                f"🐥 {res['name']} {telegram_link}\n"
+                f"🐥 {res['name']}\n"
                 f"🪩 {cities_str}\n"
                 f"✉️ {items_str}\n"
                 f"{extra_str}"
-                f"🩵 Points: {res['points']}\n\n"
+                f"🩵 Points: {res['points']}"
+            )
+
+            await callback.message.answer(
+                card_text,
+                reply_markup=get_resource_card_keyboard(res['user_id'], res.get('instagram', ''))
             )
 
     # Show lots resources
     if lots_resources:
         has_resources = True
-        if questionnaire_resources:
-            resources_text += "━━━ Additional Lots ━━━\n\n"
         
         for res in lots_resources:
-            telegram_username = f"(@{res['username']})" if res['username'] else ""
             location = f"📍 {res['location_text']}\n" if res['location_text'] else ""
             avail = f"📅 {res['availability']}\n" if res['availability'] else ""
 
-            resources_text += (
+            card_text = (
                 f"━━━━━━━━━━━━━━━\n"
                 f"📌 {res['title']}\n"
                 f"{location}"
                 f"📝 {res['description']}\n"
                 f"{avail}"
-                f"👤 {res['name']} {telegram_username}\n\n"
+                f"🐥 {res['name']}"
+            )
+
+            await callback.message.answer(
+                card_text,
+                reply_markup=get_resource_card_keyboard(res['user_id'], res.get('instagram', ''))
             )
 
     if not has_resources:
         resources_text += "No resources found in this category yet."
-
-    # Handle long messages
-    if len(resources_text) > 4096:
-        chunks = [resources_text[i:i+4096] for i in range(0, len(resources_text), 4096)]
-        await callback.message.edit_text(chunks[0])
-        for chunk in chunks[1:]:
-            await callback.message.answer(chunk)
-        await callback.message.answer("End of list", reply_markup=get_back_keyboard(back_callback))
-    else:
         await callback.message.edit_text(resources_text, reply_markup=get_back_keyboard(back_callback))
+    else:
+        # Header was already shown via edit_text, just add back button at the end
+        await callback.message.answer("End of list", reply_markup=get_back_keyboard(back_callback))
 
     await callback.answer()
 

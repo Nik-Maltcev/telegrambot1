@@ -105,9 +105,7 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
                 spec_conn = spec.get("connection", "")
                 
                 info = f"{spec_name}"
-                if spec_cat: info += f" ({spec_cat})"
-                if spec_contact: info += f" - Contact: {spec_contact}"
-                if spec_ref: info += f" - Ref: {spec_ref}"
+                if spec_contact: info += f" — {spec_contact}"
                 formatted_items.append(info)
             else:
                 formatted_items.append(str(spec))
@@ -131,7 +129,7 @@ def extract_resources_from_registration(reg_data: dict, category: str, user_info
             if key == "art_link":
                 extra_info.append(f"🔗 Link: {value}")
             elif key == "art_author_name":
-                extra_info.append(f"✍️ Author: {value}")
+                extra_info.append(f"🐥 Author: {value}")
             elif isinstance(value, list):
                 extra_info.extend(value)
             else:
@@ -283,7 +281,7 @@ async def _show_resources_list(callback: CallbackQuery, db: Database, category: 
             
             # Format items as a bulleted list or comma-separated depending on length, show all
             if category == "Specialists":
-                items_str = "\n  • ".join([""] + res['items']).lstrip()
+                items_str = "\n".join(res['items'])
             else:
                 items_str = ", ".join(str(i) for i in res['items'])
             

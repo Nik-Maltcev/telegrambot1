@@ -87,7 +87,6 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
             lots_text = f"{title_text}\n\n{instructions}"
 
             for lot in lots:
-                username_link = f"tg://user?id={lot['user_id']}" if lot.get('user_id') else ""
                 category = f"🏷 {lot['category']}\n" if lot['category'] else ""
                 location = f"📍 {lot['location_text']}\n" if lot['location_text'] else ""
 
@@ -95,6 +94,7 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
                 avail_label = "Availability" if lot_type == "share" else "When Needed"
                 availability = f"📅 {avail_label}: {lot['availability']}\n" if lot['availability'] else ""
 
+                username_part = f" @{lot['username']}" if lot.get('username') else ""
                 lots_text += (
                     f"━━━━━━━━━━━━━━━\n"
                     f"📌 {lot['title']}\n"
@@ -102,7 +102,7 @@ async def show_active_lots(callback: CallbackQuery, db: Database, lot_type: str,
                     f"📝 {lot['description']}\n"
                     f"{location}"
                     f"{availability}"
-                    f"🐥 {lot['name']}\n\n"
+                    f"🐥 {lot['name']}{username_part}\n\n"
                 )
 
             if len(lots_text) > 4096:

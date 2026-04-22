@@ -720,34 +720,6 @@ async def page_skill_items(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@router.callback_query(Registration.offer_formats, F.data.startswith("q_fmt_page:"))
-async def page_offer_formats(callback: CallbackQuery, state: FSMContext):
-    await _redraw_multiselect_page(
-        callback,
-        state,
-        page_key="q_fmt_page",
-        selected_key="selected_offer_formats",
-        options=OFFER_FORMATS,
-        prefix="q_fmt",
-        done_callback="q_fmt_done",
-        back_callback="q_fmt_back",
-    )
-
-
-@router.callback_query(Registration.result_type, F.data.startswith("q_res_page:"))
-async def page_result_type(callback: CallbackQuery, state: FSMContext):
-    await _redraw_multiselect_page(
-        callback,
-        state,
-        page_key="q_res_page",
-        selected_key="selected_result_types",
-        options=RESULT_TYPES,
-        prefix="q_res",
-        done_callback="q_res_done",
-        back_callback="q_res_back",
-    )
-
-
 @router.callback_query(Registration.intro_items, F.data.startswith("intro_item_page:"))
 async def page_intro_items(callback: CallbackQuery, state: FSMContext):
     page = int(callback.data.split(":")[1])
@@ -869,7 +841,7 @@ async def process_initial_invite_code(message: Message, state: FSMContext):
 
 
             selected_ra_items=[],
-            selected_skill_items=[], selected_offer_formats=[],
+            selected_skill_items=[],
 
 
 
@@ -1903,143 +1875,19 @@ async def finish_skill_items(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
 
-    selected = set(data.get("selected_offer_formats", []))
-
-    await callback.message.edit_text(
-
-        "Formats You Offer\n\nSelect the formats in which you can share your expertise:\nYou can select multiple",
-
-        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page")
-
+    # Move to Personal Introductions section
+    intro_text = (
+        "3|11 🤝🏻 Personal Introduction\n\n"
+        "In almost every life story, there is a moment when someone opened a door for us.\n\n"
+        "Here, you can describe the key people in your orbit — founders, creators, innovators, "
+        "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
+        "Titles are indicative. If your contact is a decision maker, list them in the closest category."
     )
-
-    await state.set_state(Registration.offer_formats)
-
-    await callback.answer()
-
-
-
-# Back from offer formats
-
-
-
-@router.callback_query(Registration.offer_formats, F.data == "q_fmt_back")
-
-
-
-async def back_from_offer_formats(callback: CallbackQuery, state: FSMContext):
-
-
-
-    last_category = SKILL_CATEGORY_ORDER[-1]
-    await state.update_data(current_skill_category=last_category, q_item_page=0)
-
-    await _show_skill_category_items(callback, state, last_category)
-
-    await state.set_state(Registration.skill_items)
+    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
+    await state.set_state(Registration.intro_section)
 
     await callback.answer()
 
-
-
-
-
-@router.callback_query(Registration.offer_formats, F.data.startswith("q_fmt:"))
-
-
-
-async def toggle_offer_format(callback: CallbackQuery, state: FSMContext):
-
-
-
-    item_hash = callback.data.split(":")[1]
-
-
-
-    data = await state.get_data()
-
-
-
-    selected = set(data.get("selected_offer_formats", []))
-
-
-
-    target_item = find_item_by_hash(OFFER_FORMATS, item_hash)
-
-
-
-    if target_item:
-
-
-
-        if target_item in selected:
-
-
-
-            selected.remove(target_item)
-
-
-
-        else:
-
-
-
-            selected.add(target_item)
-
-
-
-        await state.update_data(selected_offer_formats=list(selected))
-
-
-
-        await callback.message.edit_reply_markup(reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page"))
-
-
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.offer_formats, F.data == "q_fmt_done")
-
-
-
-async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
-
-
-
-    data = await state.get_data()
-
-
-
-    selected_items = data.get("selected_offer_formats", [])
-
-
-
-    if not selected_items:
-
-
-
-        await callback.answer("Please select at least one format.", show_alert=True)
-
-
-
-        return
-
-
-
-
-
-    # Move to Result Type selection
-    selected = set(data.get("selected_result_types", []))
-    await callback.message.edit_text(
-        "Type of Result\n\nWhat kind of result can you provide?",
-        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
-    )
-    await state.set_state(Registration.result_type)
-    await callback.answer()
 
 
 
@@ -2047,125 +1895,17 @@ async def finish_offer_formats(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(Registration.intro_section, F.data == "intro_sec_back")
 
-async def back_to_result_type(callback: CallbackQuery, state: FSMContext):
+async def back_from_intro_section(callback: CallbackQuery, state: FSMContext):
 
-    data = await state.get_data()
-
-    selected = set(data.get("selected_result_types", []))
-
-    await callback.message.edit_text(
-
-        "Type of Result\n\nWhat kind of result can you provide?",
-
-        reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
-
-    )
-
-    await state.set_state(Registration.result_type)
+    last_category = SKILL_CATEGORY_ORDER[-1]
+    await state.update_data(current_skill_category=last_category, q_item_page=0)
+    await _show_skill_category_items(callback, state, last_category)
+    await state.set_state(Registration.skill_items)
 
     await callback.answer()
 
 
 
-
-
-
-
-@router.callback_query(Registration.result_type, F.data == "q_res_back")
-
-async def back_from_result_type(callback: CallbackQuery, state: FSMContext):
-
-    data = await state.get_data()
-
-    selected = set(data.get("selected_offer_formats", []))
-
-    await callback.message.edit_text(
-
-        "Formats You Offer\n\nSelect the formats in which you can share your expertise:\nYou can select multiple",
-
-        reply_markup=get_multiselect_keyboard(OFFER_FORMATS, selected, "q_fmt", "q_fmt_done", "q_fmt_back", page=data.get("q_fmt_page", 0), page_callback_prefix="q_fmt_page")
-
-    )
-
-    await state.set_state(Registration.offer_formats)
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.result_type, F.data.startswith("q_res:"))
-
-async def toggle_result_type(callback: CallbackQuery, state: FSMContext):
-
-    item_hash = callback.data.split(":")[1]
-
-    data = await state.get_data()
-
-    selected = set(data.get("selected_result_types", []))
-
-    target_item = find_item_by_hash(RESULT_TYPES, item_hash)
-
-    if target_item:
-
-        if target_item in selected:
-
-            selected.remove(target_item)
-
-        else:
-
-            selected.add(target_item)
-
-        await state.update_data(selected_result_types=list(selected))
-
-        await callback.message.edit_reply_markup(
-
-            reply_markup=get_multiselect_keyboard(RESULT_TYPES, selected, "q_res", "q_res_done", "q_res_back", page=data.get("q_res_page", 0), page_callback_prefix="q_res_page")
-
-        )
-
-    await callback.answer()
-
-
-
-
-
-@router.callback_query(Registration.result_type, F.data == "q_res_done")
-
-async def finish_result_type(callback: CallbackQuery, state: FSMContext):
-
-    data = await state.get_data()
-
-    if not data.get("selected_result_types", []):
-
-        await callback.answer("Please select at least one option.", show_alert=True)
-
-        return
-
-
-
-    # Move to Personal Introductions section
-
-    intro_text = (
-
-        "3|11 🤝🏻 Personal Introduction\n\n"
-
-        "In almost every life story, there is a moment when someone opened a door for us.\n\n"
-
-        "Here, you can describe the key people in your orbit — founders, creators, innovators, "
-
-        "curators, thinkers, leaders whom you are willing to introduce to other community members.\n\n"
-
-        "Titles are indicative. If your contact is a decision maker, list them in the closest category."
-
-    )
-
-    await callback.message.edit_text(intro_text, reply_markup=get_section_intro_keyboard("intro_start", "intro_skip", "intro_sec_back"))
-
-    await state.set_state(Registration.intro_section)
-
-    await callback.answer()
 
 # --- Personal Introductions Section ---
 

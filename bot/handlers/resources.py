@@ -22,8 +22,8 @@ CATEGORY_DATA_MAPPING = {
     },
     "Skills and Knowledge": {
         "items_key": "selected_skill_items",
-        "cities_key": None,  # Skills are not location-specific in questionnaire
-        "extra_keys": ["selected_offer_formats", "selected_result_types"]
+        "cities_key": None,
+        "extra_keys": []
     },
     "Personal Introductions to Key People": {
         "items_key": "selected_intro_items",

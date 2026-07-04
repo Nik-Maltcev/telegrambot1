@@ -194,13 +194,19 @@ class Database:
                 return [dict(row) for row in rows]
 
     async def get_users_by_city(self, city: str) -> List[Dict]:
-        """Get all users in a specific city"""
+        """Get all visible users who selected a specific city."""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM users WHERE current_city = ? ORDER BY name",
-                (city,)
-            ) as cursor:
+            async with db.execute("""
+                SELECT *
+                FROM users
+                WHERE COALESCE(is_hidden, 0) = 0
+                  AND instr(
+                      ',' || replace(current_city, ', ', ',') || ',',
+                      ',' || replace(?, ', ', ',') || ','
+                  ) > 0
+                ORDER BY name
+            """, (city,)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(row) for row in rows]
 

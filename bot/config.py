@@ -18,6 +18,7 @@ print(f"[DEBUG] ADMIN_IDS parsed: {ADMIN_IDS}")
 
 # Channel configuration
 CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "")
+CHANNEL_URL = os.getenv("CHANNEL_URL", "")
 
 # Database configuration
 DATABASE_PATH = os.getenv("DATABASE_PATH", "bot_database.db")

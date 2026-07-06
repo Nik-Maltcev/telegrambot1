@@ -3,7 +3,7 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.database import Database
 from bot.keyboards import get_menu_keyboard
-from bot.config import ADMIN_IDS, CHANNEL_USERNAME
+from bot.config import CHANNEL_URL, CHANNEL_USERNAME
 
 router = Router()
 
@@ -44,24 +44,34 @@ async def show_profile(message: Message, db: Database):
 @router.message(F.text == "⚡️Channel")
 async def show_channel(message: Message):
     """Show channel link"""
-    keyboard = get_menu_keyboard(message.from_user.id)
-    if CHANNEL_USERNAME:
+    channel_link = CHANNEL_URL or CHANNEL_USERNAME
+    if channel_link.startswith("@"):
+        channel_link = f"https://t.me/{channel_link.lstrip('@')}"
+
+    if channel_link:
+        channel_keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text="Community Channel",
+                    url=channel_link
+                )
+            ]]
+        )
         await message.answer(
             f"📢 Community Channel\n\n"
-            f"Join our channel to stay updated:\n"
-            f"{CHANNEL_USERNAME}\n\n"
+            f"Join our channel to stay updated:\n\n"
             f"📌 Channel content:\n"
             f"• News and updates\n"
             f"• Resident portraits\n"
             f"• Exchange digest\n"
             f"• New resources digest\n\n"
             f"📍 Pinned: How to earn points?",
-            reply_markup=keyboard
+            reply_markup=channel_keyboard
         )
     else:
         await message.answer(
             "📢 Community Channel\n\n"
             "Channel link will be provided soon.\n"
             "Stay tuned!",
-            reply_markup=keyboard
+            reply_markup=get_menu_keyboard(message.from_user.id)
         )
